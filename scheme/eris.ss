@@ -6,6 +6,12 @@
 ; with future releases, but for now I'm just looking to speed up Digamma development & run times 
 ; :D
 ; zlib/png licensed (c) 2010 Stefan Edwards
+(def string-join (fn (strs intersital)
+	(def isj (fn (s i)
+		(if (null? (cdr s))
+			(cons (car s) '())
+			(cons (car s) (cons i (isj (cdr s) i))))))
+	(apply string-append (isj strs intersital))))
 (def gen-number (fn (x)
         (cond
                 (integer? x) (format "makeinteger(~n)" x)
@@ -17,7 +23,7 @@
 	(format "makestring(\"~s\")" x)))
 (def gen-vector (fn (x)
 	(let ((n (length x)) (p (coerce x 'pair)))
-		(apply string-append (map gen p)))))
+		(string-append (format "vector(~n," n) (string-join (map gen p) ",") ")"))))
 (def gen (fn (x)
 	(cond
 		(number? x) (gen-number x)
