@@ -1,0 +1,22 @@
+(def zero? (fn (x) (= x 0)))
+
+(defflavour ship
+	(x-position y-position ; can use (slot-name default-value) as well...
+	 x-velocity y-velocity
+	 mass)
+	 ()
+	 :gettable-instance-variables
+	 :settable-instance-variables
+	 :initable-instance-variables)
+(defmethod (ship :speed) ()
+	(sqrt (+ (expt x-velocity 2)
+			(expt y-velocity 2))))
+(defmethod (ship :direction) ()
+	(atan y-velocity x-velocity))
+; create & query a Flavour...
+(setq myship (make-instance 'ship :x-position 0 :y-position -150 :mass 10))
+(send myship :set-x-velocity 1000)
+(send myship :set-y-velocity 500)
+(send myship :speed) 
+
+;describe, apropos, help

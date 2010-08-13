@@ -1,0 +1,6 @@
+% time ./stackless-vesta fib.ss
+10946
+0.246u 0.011s 0:00.29 86.2%     0+0k 0+0io 0pf+0w
+% time ./stackless-vesta fib-if.ss 
+1024
+0.032u 0.003s 0:00.07 42.8%     0+0k 0+0io 0pf+0w

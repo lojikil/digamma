@@ -1,0 +1,7 @@
+(def member? (fn (x y)
+(if (empty? y)
+        #f
+        (if (eq? x (car y))
+                #t
+                (member? x (cdr y))))))
+(member? 'beer '(apple cake pie cars cheese pie cars trucks chairs other stuff))

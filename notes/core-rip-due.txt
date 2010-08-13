@@ -1,0 +1,170 @@
+__base:
+	if(src->type == ATOM)
+	{
+		tmp0 = symlookup(src->object.str,env);
+		if(tmp0 == nil)
+		{
+			__return(makeerror(1,0,"unknown atom");
+		}
+		__return(tmp0);
+	}
+	else if(src->type != PAIR)
+	{
+		__return(src);
+	}
+	fst = car(src);
+	rst = cdr(src);
+	ret = tconcify(snil);
+	if(fst->type == ATOM)
+	{
+		tmp0 = symlookup(fst->object.str,env);
+		if(tmp0 == nil)
+		{
+			__return(makeerror(1,0,"unknown atom");
+		}
+		fst = tmp0;
+	}
+	else if(fst->type == PAIR)
+	{
+		// jump, schuck
+	}
+	if(fst->type == MACRO)
+	{
+		src = macro_expand(src,env);
+		if(src->type == PAIR)
+			goto __base;
+		else if(src->type == ATOM)
+		{
+			__return(symlookup(src->object.str,env));
+		}
+		else 
+		{
+			__return(src);
+		}
+	}
+	if(fst->type == SYNTAX)
+	{
+		src = syntax_expand(src,env);
+		if(src->type == PAIR)
+			goto __base;
+		else if(src->type == ATOM)
+		{
+			__return(symlookup(src->object.str,env));
+		}
+		else 
+		{
+			__return(src);
+		}
+	}
+	if(fst->type == PRIM && fst->object.primitive.evalp)
+		goto __eval;
+	while(rst != snil)
+	{
+		tmp0 = car(rst);
+		if(tmp0->type == ATOM)
+		{
+			tmp0 = symlookup(tmp0->object.str,env);
+			if(tmp0 == nil)
+			{
+				__return(makeerror(1,0,"unknown atom");
+			}
+			tconc(ret,tmp0);
+		}
+		else if(tmp0->type == PAIR)
+		{
+			// push, jump, schuck
+		}
+		else
+			tconc(ret,tmp0);
+		rst = cdr(rst);
+	}
+	// add closure unification here as well...
+	if(fst->type == CLOSURE) //process formals for closures...
+	{
+		// unify formal parameters with arguments
+		tenv = env;
+		tmp0 = fst->object.closure.params;
+		if(rst == snil)
+		{
+			if(mcar(tmp0)->type != KEY)
+			{
+				// attempt a stack trace
+				printf("Stack trace: \n");
+				tmp1 = stk;
+				while(tmp1 != snil)
+				{
+					tmp2 = car(car(tmp1));
+					llprinc(tmp2,stdout,1);
+					printf("\n");
+					tmp1 = cdr(tmp1);
+				}
+				__return(makeerror(1,0,"Unsatisfied arguments to procedure with non-optional parameters"));
+			}
+		}
+		/* process formal parameters */
+		while(tmp0 != snil)
+		{
+			tmp1 = car(tmp0);
+			if(tmp1->type == ATOM)
+			{
+				if(rst == snil)
+				{
+					__return(makeerror(1,0,"Unsatisfied non-optional procedure argument"));
+				}
+				tenv = closure_add_env(tenv,env,tmp1->object.str,car(rst));
+			}
+			else if(tmp1->type == KEY)
+			{
+				tmp2 = car(cdr(tmp0));
+				if(!strncasecmp(tmp1->object.str,"opt",3))
+				{
+					if(tmp2->type == PAIR)
+					{
+						tmp1 = car(tmp2);
+						tmp2 = car(cdr(tmp2));
+						if(tmp2->type == PAIR) // *should* do the jump/shuck, but for now, laze out...
+						{
+							tmp2 = __seval(tmp2,env);
+							//stk = cons(list(5,src,fst,cdr(rst),ret,tenv),stk);
+						}
+						else if(tmp2->type == ATOM)
+						{
+							tmp2 = symlookup(tmp2->object.str,env);
+							if(tmp2 == nil)
+							{
+								__return(makeerror(1,0,"Unknown atom in default position"));
+							}
+						}
+						tenv = closure_add_env(tenv,env,tmp1->object.str,tmp2);
+					}
+					else if(tmp2->type == ATOM)
+						tenv = closure_add_env(tenv,env,tmp1->object.str,car(rst));
+				}
+				else if(!strncasecmp(tmp1->object.str,"rest",4))
+				{
+					tmp1 = car(cdr(tmp0));
+					tenv = closure_add_env(tenv,env,tmp1->object.str,rst);
+					rst = snil;
+				}
+				else if(!strncasecmp(tmp1->object.str,"body",4))
+				{
+					tmp1 = car(cdr(tmp0));
+					if(rst == snil)
+					{
+						__return(makeerror(1,0,":body specified, but argument list was nil"));
+					}
+					tenv = closure_add_env(tenv,env,tmp1->object.str,rst);
+					rst = snil;
+				}
+				tmp0 = cdr(tmp0);
+			}
+			tmp0 = cdr(tmp0);
+		}
+		env = tenv;
+		rst = fst->object.closure.data;
+		fst = makeprimitive(OPBEGIN,"begin",1); // fugly
+		//goto __post_apply;	
+	}
+__eval:
+	
+__retstate:

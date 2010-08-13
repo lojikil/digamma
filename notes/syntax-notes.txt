@@ -1,0 +1,11 @@
+(define-syntax let
+	( (let ((name . val) ...) . body)
+		((fn (name) ... body) val ...)))
+
+(define-simple let
+	((let ((name . val) ...) . body)
+		((fn ,name . body) ,val)))
+		
+(define-odd let
+	((let ((@ name . value)) . body)
+		((fn name . body) . value)))

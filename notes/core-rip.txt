@@ -1,0 +1,972 @@
+	/* this is a simple test of a stack-based refactor of lleval below;
+	 * rather than kill lleval, I'll hoist it into seval, in between
+	 * rewritten code. This is also meant to clean out unused variables,
+	 * dead code, &c.
+	 */
+	// I *think* stk should use a tconc to store where in the apply list for
+	// a specific form the evaluation process is...
+	// if stk is init'd to snil, we don't have to have a separate test in the "push" state...
+	SExp *fst = snil, *rst = snil, *src = s, *stk = snil, *tmp0 = nil, *ret = nil, *__val = snil, *__r = nil;
+	SExp *tmp1 = snil, *tmp2 = snil;
+	Symbol *tenv = nil;
+	char *buf = nil;
+	int itmp = 0;
+	if(src == nil || src->type != PAIR) // bit of defensive programming...
+		return src;
+	//printf("Made it to __seval!\n");
+__base:
+	//printf("Made it to base...\n");
+	fst = car(src);
+	rst = cdr(src);
+	ret = tconcify(snil);
+	/*printf("src == ");
+	llprinc(src,stdout,1);
+	printf("\nfst == ");
+	llprinc(fst,stdout,1);
+	printf("\nrst == ");
+	llprinc(rst,stdout,1);
+	printf("\n");*/
+	/* not working:
+; ((if (< 3 4) + -) 3 4)
+ill-formed expression: ((if (< 3 4) + -) 3 4)
+fst: (if (< 3 4) + -)
+rst: (#<"+" 10> 3 4)
+	*/
+	if(fst->type == PAIR)
+	{
+		// tconc a place holder
+		// push that to stack
+		// re-set fst,src,rst
+		// goto __base
+		//stk = cons(cons(src,cons(fst,cons(rst,cons(tconcify(snil),snil)))), stk);
+		/*printf("Made it to pair...\n\t");
+		princ(src);
+		printf("\n\tfst: ");
+		princ(fst);
+		printf("\n\trst: ");
+		princ(rst);
+		printf("\n");*/
+		//stk = cons(list(4,src,fst,rst,ret),stk);
+		//src = fst;
+		/* FIXME: the lazy & evil way */
+		fst = __seval(fst,env); 
+		//goto __base;
+	}
+	else if(fst->type == ATOM)
+	{
+		fst = symlookup(fst->object.str,env);
+		if(fst == nil)
+		{
+			printf("While evaluating: ");
+			princ(src);
+			printf("\n");
+			buf = (char *)hmalloc(sizeof(char) * 64);
+			snprintf(buf,64,"unknown function/functor: %s",mcar(src)->object.str);
+			return makeerror(1,0,buf);
+		}
+	}
+	
+	if(fst->type == SYNTAX)
+	{
+		src = syntax_expand(src,env);
+		if(src->type == PAIR)
+			goto __base;
+		else if(src->type == ATOM)
+		{
+			__return(symlookup(src->object.str,env));
+		}
+		else 
+		{
+			__return(src);
+		}
+	}
+	
+	if(fst->type == MACRO)
+	{
+		src = macro_expand(src,env);
+		if(src->type == PAIR)
+			goto __base;
+		else if(src->type == ATOM)
+		{
+			__return(symlookup(src->object.str,env));
+		}
+		else 
+		{
+			__return(src);
+		}
+	}
+	if(fst->type == PRIM && fst->object.primitive.evalp)
+		goto __post_apply;
+__apply:
+	// iterate over rst
+	// apply functions to their value
+#ifdef DEBUG
+	printf("Made it to __apply\n");
+#endif
+	while(rst != snil)
+	{
+#ifdef DEBUG
+		printf("Looping in __apply?\n");
+#endif
+		tmp0 = car(rst);
+#ifdef DEBUG
+		printf("tmp0 == ");
+		llprinc(tmp0,stdout,1);
+		printf("\nrst == ");
+		llprinc(tmp0,stdout,1);
+		printf("\n");
+		if(rst == nil)
+			printf("rst == nil(!!)\n");
+		else
+			printf("rst->type == %s\n",typenames[rst->type]);
+#endif
+		if(tmp0->type == PAIR)
+		{
+			// jump schuck...
+			//stk = cons(cons(src,cons(fst,cons(cdr(rst),cons(ret,snil)))),stk); // makes me long for cons* :D
+			stk = cons(vector(5,src,fst,cdr(rst),ret,env),stk);
+			src = tmp0;
+			goto __base;
+		}
+		else if(tmp0->type == ATOM)
+		{
+			tmp0 = symlookup(tmp0->object.str,env);
+			if(tmp0 == nil)
+			{
+				__return(makeerror(1,0,"Unknown atom in expression"));
+			}
+			tconc(ret,tmp0);
+		}
+		else
+		{
+			// just add it to the result list...
+			tconc(ret,tmp0);
+		}
+		rst = cdr(rst);
+	}
+	rst = mcar(ret); // ret is the temporary holder of rst, builtup in the evlis process above...
+	if(fst->type == CLOSURE) //process formals for closures...
+	{
+		// unify formal parameters with arguments
+		tenv = env;
+		tmp0 = fst->object.closure.params;
+		if(rst == snil)
+		{
+			if(mcar(tmp0)->type != KEY)
+			{
+				// attempt a stack trace
+				printf("Stack trace: \n");
+				tmp1 = stk;
+				while(tmp1 != snil)
+				{
+					tmp2 = car(car(tmp1));
+					llprinc(tmp2,stdout,1);
+					printf("\n");
+					tmp1 = cdr(tmp1);
+				}
+				__return(makeerror(1,0,"Unsatisfied arguments to procedure with non-optional parameters"));
+			}
+		}
+		/* process formal parameters */
+		while(tmp0 != snil)
+		{
+#ifdef DEBUG
+			printf("Entered formal processing\n");
+#endif
+			tmp1 = car(tmp0);
+			if(tmp1->type == ATOM)
+			{
+				if(rst == snil)
+				{
+					__return(makeerror(1,0,"Unsatisfied non-optional procedure argument"));
+				}
+				tenv = closure_add_env(tenv,env,tmp1->object.str,car(rst));
+			}
+			else if(tmp1->type == KEY)
+			{
+				tmp2 = car(cdr(tmp0));
+				if(!strncasecmp(tmp1->object.str,"opt",3))
+				{
+					if(tmp2->type == PAIR)
+					{
+						tmp1 = car(tmp2);
+						tmp2 = car(cdr(tmp2));
+						if(tmp2->type == PAIR) // *should* do the jump/shuck, but for now, laze out...
+						{
+							tmp2 = __seval(tmp2,env);
+							//stk = cons(list(5,src,fst,cdr(rst),ret,tenv),stk);
+						}
+						else if(tmp2->type == ATOM)
+						{
+							tmp2 = symlookup(tmp2->object.str,env);
+							if(tmp2 == nil)
+							{
+								__return(makeerror(1,0,"Unknown atom in default position"));
+							}
+						}
+						tenv = closure_add_env(tenv,env,tmp1->object.str,tmp2);
+					}
+					else if(tmp2->type == ATOM)
+						tenv = closure_add_env(tenv,env,tmp1->object.str,car(rst));
+				}
+				else if(!strncasecmp(tmp1->object.str,"rest",4))
+				{
+					tmp1 = car(cdr(tmp0));
+					tenv = closure_add_env(tenv,env,tmp1->object.str,rst);
+					rst = snil;
+				}
+				else if(!strncasecmp(tmp1->object.str,"body",4))
+				{
+					tmp1 = car(cdr(tmp0));
+					if(rst == snil)
+					{
+						__return(makeerror(1,0,":body specified, but argument list was nil"));
+					}
+					tenv = closure_add_env(tenv,env,tmp1->object.str,rst);
+					rst = snil;
+				}
+				tmp0 = cdr(tmp0);
+			}
+			tmp0 = cdr(tmp0);
+		}
+		/* evaluate code; push environment for each call ... */
+		//tmp0 = fst->object.closure.data;
+		/* push a begin onto the front of the stack, and
+		 * go into a normal op...
+		 */
+		/*while(tmp0 != snil)
+		{
+			tmp1 = car(tmp0);
+			// FIXME: total hack; avoiding stackless principle...
+			if(tmp1->type == PAIR)
+			{
+				// jump, shuck
+				tmp1 = __seval(tmp1,tenv);
+			}
+			else if(tmp1->type == ATOM)
+			{
+				// lookup
+				tmp1 = symlookup(tmp1->object.str,tenv);
+			}
+			// add tmp1 to the list result...
+			ret = tconc(ret,tmp1);
+			tmp0 = cdr(tmp0);
+		}
+		__return(tmp1);*/
+		env = tenv;
+		rst = fst->object.closure.data;
+		fst = makeprimitive(OPBEGIN,"begin",1); // fugly
+		//goto __post_apply;	
+	}
+__post_apply:
+#ifdef DEBUG
+	printf("Made it to __post_aply\n");
+	printf("fst->type == %s\n",typenames[fst->type]);
+	if(fst->type == PRIM)
+	{
+		printf("(prim-num fst)\n\t%d\n",fst->object.primitive.num);
+		printf("OPBEGIN == %d\n",OPBEGIN);
+	}
+#endif
+	switch(fst->type)
+	{
+		// focus on getting primitives first...
+		case VECTOR:
+		case STRING:
+		case DICT:
+		case PROCEDURE:
+			__return(fst->object.procedure(rst,tl_env));
+		case FOREIGN:
+		case USFOREIGN:
+		case PRIM:
+			// this gets too heavily nested...
+			// should maybe switch this to a simple
+			// check to test for the above values, and after all those,
+			// die if it's not a primitive.
+			// if it is a primitive, a basic OPCODE switch can be used,
+			// rather than this monster & deeply nested code...
+			// tracing sucks, let's go shopping!
+			// Er, turn this into a table-based lookup dispatch...
+			switch(fst->object.primitive.num)
+			{
+				case OPCAR:
+					__return(car(car(rst)));
+				case OPCDR:
+					__return(cdr(car(rst)));
+				case OPCONS:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"cons s0 : SEXPRESSION s1 : SEXPRESSION => PAIR"));
+					}
+					__return(cons(car(rst),car(cdr(rst))));
+				case OPLAMBDA:
+					__return(ffn(rst,env));
+				case OPDEF:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"define expects exactly two arguments..."));
+					}
+					__return(fdef(car(rst),car(cdr(rst)), env));
+				case OPLENGTH:
+					if(pairlength(rst) != 1)
+					{
+						// and remember children, __return expand into two forms, so you need a {} pair
+						__return(makeerror(1,0,"length expects exactly one argument..."));
+					}
+					__return(flength(car(rst)));
+				case OPCOND:
+					if(pairlength(rst) < 1)
+					{
+						__return(sfalse);
+					}
+					while(rst != snil)
+					{   
+						tmp0 = car(car(rst));
+						tmp1 = car(cdr(car(rst)));
+						if(tmp0->type == ATOM)
+						{   
+							if(!strcasecmp(tmp0->object.str,"else"))
+							{   
+								if(tmp1->type == ATOM)
+								{
+									__return(symlookup(tmp1->object.str,env));
+								}
+								else if(tmp1->type == PAIR)
+								{
+									__return(lleval(tmp1,env));
+								}
+								__return(tmp1);
+							}   
+							tmp0 = symlookup(tmp0->object.str,env);
+							if(tmp0 == nil) /* woops, no such symbol */
+							{
+								__return(makeerror(1,0,"unknown symbol used in cond (need low-level SRFI-28 here...)..."));
+							}
+							if(tmp0->type == BOOL && tmp0->object.c)
+							{   
+								if(tmp1->type == ATOM)
+								{
+									__return(symlookup(tmp1->object.str,env));
+								}
+								else if(tmp1->type == PAIR)
+								{
+									__return(lleval(tmp1,env));
+								}
+								__return(tmp1);
+							}   
+						}   
+						if(tmp0->type == PAIR)
+							tmp0 = lleval(tmp0,env); /* make this a jump/shuck game... */
+						if(tmp0->type == BOOL && tmp0->object.c)
+						{   
+							if(tmp1->type == PAIR)
+							{
+								__return(lleval(tmp1,env));
+							}
+							else if(tmp1->type == ATOM)
+							{
+								__return(symlookup(tmp1->object.str,env));
+							}
+							__return(tmp1);
+						}   
+						else if(tmp0->type == ERROR)
+						{
+							__return(tmp0);
+						}
+						rst = cdr(rst);
+					}   
+					__return(sfalse);
+				case OPDEFMACRO:
+					if(pairlength(rst) < 3)
+					{
+						__return(makeerror(1,0,"define-macro (name : SYMBOL) (bindings*) (form*) => macro"));
+					}
+					__return(fdefmacro(car(rst),car(cdr(rst)),cdr(cdr(rst)),env));
+				case OPDEFSYN:
+					if(pairlength(rst) < 2)
+					{
+						__return(makeerror(1,0,"define-syntax (name : SYMBOL) (rewrite-rule*) => syntax"));
+					}
+					__return(fdefsyntax(car(rst),cdr(rst),env));
+				case OPQUOTE:
+					__return(car(rst));
+				case OPPLUS:
+					__return(fplus(rst));
+				case OPMULT:
+					__return(fmult(rst));
+				case OPSUB:
+					__return(fsubt(rst));
+				case OPDIV:
+					__return(fdivd(rst));
+				case OPBASELET:
+					__return(fbaselet(rst,env));
+				case OPLIST:
+					__return(rst);
+				case OPVECTOR:
+					__return(fvector(rst));
+				case OPDICT:
+					__return(fdict(rst));
+				case OPMKSTRING:
+					__return(fmakestring(rst));
+				case OPMKVEC:
+					__return(fmkvector(rst)); // inconsistent; rename to fmakevector
+				case OPMKDICT:
+					__return(makedict());
+				case OPEVAL:
+					__return(snil);
+				case OPAPPLY:
+					__return(snil);
+				case OPSTRING:
+					__return(fstring(rst));
+				case OPCCONS: /* collection cons... */
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"ccons (s : S-EXPRESSION) (c : COLLECTION)"));
+					}
+					__return(fccons(car(rst),car(cdr(rst))));
+				case OPFIRST:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"first expects only one argument, a collection..."));
+					}
+					__return(ffirst(car(rst)));
+				case OPREST:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"rest (c : COLLECTION) => s-expression"));
+					}
+					__return(frest(car(rst)));
+				case OPNTH:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"nth (c : COLLECTION) (idx: INTEGER) => s-expression"));
+					}
+					__return(fnth(car(rst),car(cdr(rst))));
+				case OPCSET:
+					if(pairlength(rst) != 3)
+					{
+						__return(makeerror(1,0,"cset! (c : COLLECTION) (idx : SEXPRESSION) (new : SEXPRESSION) => void?"));
+					}
+					__return(fcset(car(rst),car(cdr(rst)),car(cdr(cdr(rst)))));
+				case OPCUPDATE:
+					if(pairlength(rst) != 3)
+					{
+						__return(makeerror(1,0,"cupdate col : COLLECTION idx : SEXPRESSION new-value : SEXPRESSION => COLLECTION"));
+					}
+					__return(fcupdate(car(rst),car(cdr(rst)), car(cdr(cdr(rst)))));
+				case OPCSLICE:
+					if(pairlength(rst) != 3)
+					{
+						__return(makeerror(1,0,"cslice col : COLLECTION start : SEXPRESSION end : SEXPRESSION => COLLECTION"));
+					}
+					__return(fcslice(car(rst),car(cdr(rst)), car(cdr(cdr(rst)))));
+				case OPEMPTY: /* generic empty predicate */
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"empty? expects exactly one argument..."));
+					}
+					__return(fempty(car(rst)));
+				case OPSET:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"set! expects exactly two arguments..."));
+					}
+					__return(fset(car(rst),car(cdr(rst)),env));
+				case OPGENSYM:
+					if(pairlength(rst) > 1)
+					{
+						__return(makeerror(1,0,"gensym [(a : ATOM)] => symbol"));
+					}
+					__return(fgensym(car(rst)));
+				case OPAPPEND:
+					__return(append(rst));
+				case OPTYPE:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"type expects exactly one argument..."));
+					}
+					__return(makestring((char *)typenames[mcar(rst)->type]));
+				case OPEQ:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"eq? expects two arguments..."));
+					}
+					__return(eqp(car(rst), car(cdr(rst))));
+				case OPCALLCC:
+					__return(snil);
+				case OPLT: /* < */
+					__return(flt(rst));
+				case OPLTE:
+					__return(flte(rst));
+				case OPGT:
+					__return(fgt(rst));
+				case OPGTE:
+					__return(fgte(rst));
+				case OPNUMEQ:
+					__return(fnumeq(rst));
+				case OPUNWIND:
+					__return(snil);
+				case OPEXACT:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"exact? expects only on argument..."));
+					}
+					__return(fexactp(car(rst)));
+				case OPINEXACT:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"inexact? expects only on argument..."));
+					}
+					__return(finexactp(car(rst)));
+				case OPREAL:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"real? expects only on argument..."));
+					}
+					__return(frealp(car(rst)));
+				case OPCOMPLEX:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"complex? expects only on argument..."));
+					}
+					__return(fcomplexp(car(rst)));
+				case OPRATIONAL:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"rational? expects only on argument..."));
+					}
+					__return(frationalp(car(rst)));
+				case OPINTEGER:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"integer? expects only on argument..."));
+					}
+					__return(fintegerp(car(rst)));
+				case OPBEGIN:
+					/* convert this into a stackless version */
+					/* make this into a state machine :D */
+					//printf("Made it to opbegin\n");
+					tmp0 = rst;
+					//printf("tmp0 == nil: %d\n",tmp0 == nil);
+					if(tmp0 == nil || tmp0 == snil)
+						return snil;
+#ifdef DEBUG
+					printf("rst == ");
+					princ(rst);
+					printf("\n");
+#endif
+					while(tmp0 != snil)
+					{
+#ifdef DEBUG
+						printf("In loop...\n");
+						printf("(type rst) => %s\nrst == ",typenames[rst->type]);
+						llprinc(rst,stdout,1);
+						printf("\n");
+#endif
+						//tmp1 = lleval(car(tmp0),env);
+						tmp1 = car(tmp0);
+#ifdef DEBUG
+						printf("tmp1 == ");
+						llprinc(tmp1,stdout,1);
+						printf("\n");
+#endif
+						if(tmp1->type == PAIR)
+						{
+							// jump schuck
+							stk = cons(vector(5,src,fst,cdr(tmp0),ret,env),stk);
+							src = tmp1;
+							//ret = tconcify(snil);
+							//et = tconcify(snil);
+							goto __base;
+						}
+						else if(tmp1->type == ATOM)
+						{
+							tmp1 = symlookup(tmp1->object.str,env);
+							if(tmp1 == nil)
+							{
+								__return(makeerror(1,0,"undefined atom"));
+							}
+						}
+						//printf("Past lleval...\n");
+						if(tmp1->type == ERROR)
+							break;
+						tmp0 = cdr(tmp0);
+					}
+					//ret = tconcify(snil);
+					//rst = cdr(rst);
+					__return(tmp1);
+				case OPNUM: /* numerator */
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"numerator expects one argument..."));
+					}
+					__return(fnum(car(rst)));
+				case OPDEN: /* numerator */
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"denomenator expects one argument..."));
+					}
+					__return(fden(car(rst)));
+				case OPAND:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"& expects exactly two integer arguments"));
+					}
+					__return(fbitand(car(rst),car(cdr(rst))));
+				case OPOR:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"| expects exactly two integer arguments"));
+					}
+					__return(fbitor(car(rst),car(cdr(rst))));
+				case OPXOR:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"& expects exactly two integer arguments"));
+					}
+					__return(fbitxor(car(rst),car(cdr(rst))));
+				case OPNEG:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"~ expects exactly one integer arguments"));
+					}
+					__return(fbitnot(car(rst)));
+				case OPSHL:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"<< expects exactly two integer arguments"));
+					}
+					__return(fbitshl(car(rst),car(cdr(rst))));
+				case OPSHR:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,">> expects exactly two integer arguments"));
+					}
+					__return(fbitshr(car(rst),car(cdr(rst))));
+				case OPREALP:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"real-part expects exactly one argument..."));
+					}
+					__return(freal_part(car(rst)));
+				case OPIMAG:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"imag-part expects exactly one argument..."));
+					}
+					__return(fimag_part(car(rst)));
+				case OPMKRECT:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"make-rectangular expects two arguments only"));
+					}
+					__return(fmake_rect(car(rst),car(cdr(rst))));
+				case OPMKPOL:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"make-polar expects two arguments only"));
+					}
+					__return(fmake_pole(car(rst), car(cdr(rst))));
+				case OPCONJ:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"conjugate accepts only one argument (a complex number)"));
+					}
+					__return(fconjugate(car(rst)));
+				case OPCONJBANG:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"conjugate! accepts only one argument (a complex number)"));
+					}
+					tmp0 = car(rst);
+					__return(fconjugate_bang(car(rst)));
+				case OPPOLREC: /* polar->rectangular */
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"polar->rectangular accepts only one argument, a complex number"));
+					}
+					__return(fpol2rect(car(rst)));
+				case OPRECPOL: /* rectangular->polar */
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"rectangular->polar accepts only one argument, a complex number"));
+					}
+					__return(frect2pol(car(rst)));
+				case OPGCD:
+					__return(fgcd(rst));
+				case OPLCM:
+					__return(flcm(rst));
+				case OPQUOTIENT: 
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"quotient (x0 : NUMBER) (x1 : NUMBER) => NUMBER"));
+					}
+					__return(fquotient(car(rst),car(cdr(rst))));
+				case OPMOD:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"modulo (x0 : NUMBER) (x1 : NUMBER) => NUMBER"));
+					}
+					__return(fmodulo(car(rst),car(cdr(rst))));
+				case OPREMAINDER:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"remainder (x0 : NUMBER) (x1 : NUMBER) => NUMBER"));
+					}
+					__return(fremainder(car(rst),car(cdr(rst))));
+				case OPSIN:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"sin expects exactly one argument..."));
+					}
+					__return(fsin(car(rst)));
+				case OPCOS:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"cos expects exactly one argument..."));
+					}
+					__return(fcos(car(rst)));
+				case OPTAN:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"tan expects exactly one argument..."));
+					}
+					__return(ftan(car(rst)));
+				case OPASIN:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"asin expects exactly one argument..."));
+					}
+					__return(fasin(car(rst)));
+				case OPACOS:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"acos expects exactly one argument..."));
+					}
+					__return(facos(car(rst)));
+				case OPATAN:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"atan expects exactly one argument..."));
+					}
+					__return(fatan(car(rst)));
+				case OPATAN2:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"atan2 expects exactly two arguments..."));
+					}
+					__return(fatan2(car(rst),car(cdr(rst))));
+				case OPCOSH:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"cosh expects exactly one argument..."));
+					}
+					__return(fcosh(car(rst)));
+				case OPSINH:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"sinh expects exactly one argument..."));
+					}
+					__return(fsinh(car(rst)));
+				case OPTANH:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"tanh expects exactly one argument..."));
+					}
+					__return(ftanh(car(rst)));
+				case OPEXP:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"exp expects exactly one argument..."));
+					}
+					__return(fexp(car(rst)));
+				case OPEXP2:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"exp2 expects exactly one argument..."));
+					}
+					__return(fexp2(car(rst)));
+				case OPEXPM1:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"expm1 expects exactly one argument..."));
+					}
+					__return(fexpm1(car(rst)));
+				case OPLN:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"ln expects exactly one argument..."));
+					}
+					__return(fln(car(rst)));
+				case OPLOG2:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"log2 expects exactly one argument..."));
+					}
+					__return(flog2(car(rst)));
+				case OPLOG10:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"log10 expects exactly one argument..."));
+					}
+					__return(flog10(car(rst)));
+				case OPABS:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"abs expects exactly one argument..."));
+					}
+					__return(fnabs(car(rst)));
+				case OPMAG:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"abs expects exactly one argument..."));
+					}
+					__return(fmag(car(rst)));
+				case OPSQRT:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"sqrt expects exactly one argument..."));
+					}
+					__return(fsqrt(car(rst)));
+				case OPSTRAP: /* string-append */
+					__return(fstringappend(rst));
+				case OPASSQ:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"assq item : EQABLE-SEXPRESSION alist : ASSOC-LIST => sexpression"));
+					}
+					tmp0 = car(rst);
+					tmp1 = car(cdr(rst));
+					if(tmp1->type != PAIR)
+					{
+						__return(makeerror(1,0,"alist must be an ASSOC-LIST (an hence a pair)"));
+					}
+					__return(assq(tmp0,tmp1));
+				case OPDICHAS:
+					/* simple key test that returns true or false, and does not signal an error */
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"dict-has? d : DICTIONARY k : (KEYOBJ | STRING | ATOM) => S-EXPRESSION"));
+					}
+					__return(fdicthas(car(rst),car(cdr(rst))));
+				case OPCEIL:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"ceil r : REAL => REAL"));
+					}
+					__return(fceil(car(rst)));
+				case OPFLOOR:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"floor r : REAL => REAL"));
+					}
+					__return(ffloor(car(rst)));
+				case OPIN2EX:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"inexact->exact r : REAL => EXACT"));
+					}
+					__return(fin2ex(car(rst)));
+					case OPCOERCE:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"coerce from : SEXPRESSION to : (KEYWORD | STRING | ATOM) => SEXPRESSION"));
+					}
+					__return(fcoerce(car(rst),car(cdr(rst))));
+				case OPERROR:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"error msg : (STRING | ATOM | KEYWORD) => ERROR"));
+					}
+					tmp0 = car(rst);
+					//printf("%s\n",typenames[tmp0->type]);
+					if(tmp0->type == STRING || tmp0->type == ATOM || tmp0->type == KEY)
+					{
+						__return(makeerror(3,0,tmp0->object.str));
+					}
+					__return(makeerror(1,0,"error's msg argument must be (STRING | ATOM | KEYWORD)"));
+				case OPMKTCONC:
+					itmp = pairlength(rst);
+					switch(itmp)
+					{
+						case 0:
+							__return(tconcify(snil));
+						case 1:
+							__return(tconcify(car(rst)));
+						default:
+							__return(makeerror(1,0,"make-tconc [s : SEXPRESSION]"));
+					}
+				case OPTCONC:
+					if(pairlength(rst) != 2)
+					{
+						__return(makeerror(1,0,"tconc t : TCONC s : SEXPRESSION => tconc"));
+					}
+					__return(tconc(car(rst),car(cdr(rst))));
+				case OPTCONCL:
+					__return(snil);
+				case OPT2P:
+					if(pairlength(rst) != 1)
+					{
+						__return(makeerror(1,0,"tconc->pair t : TCONC => SEXPRESSION"));
+					}
+					if(mcar(rst)->type != TCONC)
+					{
+						__return(makeerror(1,0,"tconc->pair's t variable *must* be bound to a TCONC"));
+					}
+					__return(mcar(mcar(rst)));
+			}
+		default: //ill-formed expression...
+			printf("ill-formed expression: ");
+			princ(src);
+			printf("\nfst: ");
+			princ(fst);
+			printf("\nrst: ");
+			princ(rst);
+			printf("\n");
+			return makeerror(0,0,"ill-formed expression: you may only apply vectors, strings, dicts, procedures, primitives, (unsafe) foreign procedures & syntax");
+	}
+__retstate:
+#ifdef DEBUG 
+	printf("Made it to __retstate\n");
+#endif
+	/* rewrite placeholder with result
+	* if stack is empty and rst is as well
+	*   return actual result
+	* else
+	*   more fun!
+	* fi
+	*/
+	__r = car(stk);
+	stk = cdr(stk);
+	/* need to check for errors & fire off an error handler should
+	 * one occur...
+	 */
+	if(__val->type == ERROR)
+		return __val;
+	if(stk == snil && __r == snil)
+		return __val;
+	src = __r->object.vec[0];
+	fst = __r->object.vec[1];
+	rst = __r->object.vec[2];
+	ret = __r->object.vec[3];
+	env = (Symbol *)__r->object.vec[4];
+#ifdef DEBUG
+	printf("\n\n------------------------\n__r: ");
+	llprinc(__r,stdout,1);
+	printf("\nsrc: ");
+	llprinc(src,stdout,1);
+	printf("\nfst: ");
+	llprinc(fst,stdout,1);
+	printf("\nrst: ");
+	llprinc(rst,stdout,1);
+#endif
+	tconc(ret,__val);
+#ifdef DEBUG
+	printf("\nret: ");
+	llprinc(ret,stdout,1);
+	printf("\n------------------------\n");
+#endif
+	/*if(fst->type == PRIM)
+		goto __post_apply;
+	else*/
+		goto __apply;

@@ -1,0 +1,56 @@
+SExp *base = nil, *rules = nil, *t0 = nil, *t1 = nil, *t2 = nil, *zip = nil;
+	if(src->type != PAIR)
+		return makeerror(1,0,"syntax-expand: not syntax");
+	if(mcar(src)->type == PAIR)
+		src = car(src);
+	t0 = car(src);
+	if(t0->type == ATOM)
+	{
+		t0 = symlookup(t0->object.str,(Symbol *)e);
+		if(t0->type != SYNTAX)
+			return makeerror(1,0,"syntax-expand: not syntax");
+	}
+	rules = t0->object.closure.data;
+	if(rules->type != PAIR)
+		return makeerror(1,0,"syntax-expand: mal-formed rules");
+	while(rules != snil)
+	{
+		//TODO: need to add sanity checking...
+		base = car(car(rules));
+		if(pairlength(base) == pairlength(src)) // evil hack for now...
+		{
+			// zip & use __build to rewrite
+			t1 = cdr(base);
+			t2 = cdr(src);
+			/*printf("t1 == ");
+			princ(t1);
+			printf("\nt2 == ");
+			princ(t2);
+			printf("\n");*/
+			zip = cons(snil,snil);
+			t0 = zip;
+			while(t1 != snil)
+			{
+				if(mcar(t1)->type == ATOM && !strncmp(mcar(t1)->object.str,".",1))
+					mcar(t0) = cons(mcar(mcdr(t1)),cons(t2,snil));
+				else
+					mcar(t0) = cons(car(t1),cons(car(t2),snil));
+				t1 = cdr(t1);
+				t2 = cdr(t2);
+				if(t1 != snil)
+				{
+					mcdr(t0) = cons(snil,snil);
+					t0 = mcdr(t0);
+				}
+			}
+			/*printf("zip == ");
+			princ(zip);
+			printf("\n");
+			printf("exec == ");
+			princ(car(cdr(car(rules))));
+			printf("\n");*/
+			return __build(car(cdr(car(rules))),zip);
+		}
+		rules = cdr(rules);
+	}
+	return makeerror(1,0,"syntax-expand: no matching rules...");

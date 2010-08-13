@@ -1,0 +1,7 @@
+(def make-bag make-dict)
+(def bag-add (fn (x y)
+	(if (has-key? x y)
+			(cset! x y (+ (nth x y) 1))
+			(cset! x y 1))))
+(def bag-members keys)
+(def bag-cardinal (fn (x) (length (keys x))))

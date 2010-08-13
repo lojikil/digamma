@@ -1,0 +1,276 @@
+SExp *tmp = snil, *tmp1 = snil, *tmp2 = snil, *tmp3 = snil, *ret = snil;
+	int bufiter = 0,iter = 0;
+	char *buf = nil;
+	buf = (char *)hmalloc(sizeof(char) * 2048);
+	/*
+	(format #t "this examples shows what format does: chars ~c ints ~i tildes ~~ & new lines ~%" #\t 34)
+	*/
+	if(pairlength(rst) < 1)
+	{
+		printf("%%display-e-arguments: display port fmt args* => bool\n");
+		return sfalse;
+	}
+	tmp1 = car(rst);
+	if(tmp1->type != STRING)
+	{
+		printf("%%display-e-arguments: type clash: second arg must be a string!\n");
+		return snil;
+	}
+	tmp2 = cdr(rst);
+	while(tmp1->object.str[iter] != nul)
+	{
+		if(tmp1->object.str[iter] == '~') /* CL-style format string */
+		{
+			switch(tmp1->object.str[iter + 1])
+			{
+				case 'A': /* any object, to the uppercase notation */
+					switch(mcar(tmp2)->type)
+					{
+						case ATOM:
+							tmp3 = car(tmp2);
+							tmp2 = cdr(tmp2);
+							buf = _strcpy(buf,tmp3->object.str,&bufiter);
+							break;
+						case STRING:
+							goto dispustr;
+						case CHAR:
+							goto dispuchr;
+						case BOOL:
+							goto dispubool;
+						case GOAL:
+							goto dispugoal;
+						case PAIR:
+							goto dispulist;
+						case NUMBER:
+							goto dispunum;
+						default: break;	
+					}
+					break;
+				case 'a': /* any object */
+					switch(mcar(tmp2)->type)
+					{
+						case ATOM:
+							tmp3 = car(tmp2);
+							tmp2 = cdr(tmp2);
+							buf = _strcpy(buf,tmp3->object.str,&bufiter);
+							break;
+						case STRING:
+							goto dispstr;
+						case CHAR:
+							goto dispchr;
+						case BOOL:
+							goto dispbool;
+						case GOAL:
+							goto dispgoal;
+						case PAIR:
+							goto displist;
+						case NUMBER:
+							goto dispnum;
+						default: break;	
+					}
+					break;
+				dispstr:
+				case 's': /* string, no quotes */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == STRING)
+						buf = _strcpy(buf,tmp3->object.str,&bufiter);
+					else
+						buf[bufiter++] = '#';
+					break;
+				dispustr:
+				case 'S': /* string, quotes */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == STRING)
+					{
+						buf[bufiter++] = '"';
+						buf = _strcpy(buf,tmp3->object.str,&bufiter);
+						buf[bufiter++] = '"';
+					}
+					else
+						buf[bufiter++] = '#';
+					break;
+				case 'x': /* hex, no #x */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == NUMBER && tmp3->object.n->type == INTEGER)
+						buf = _itox(buf,tmp3->object.n->nobject.z,&bufiter);
+					else
+					{
+						buf[bufiter++] = 'N';
+						buf[bufiter++] = 'a';
+						buf[bufiter++] = 'N';
+					}
+					break;
+				case 'X': /* hex, #x */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == NUMBER && tmp3->object.n->type == INTEGER)
+					{
+						buf[bufiter++] = '#';
+						buf[bufiter++] = 'x';
+						buf = _itox(buf,tmp3->object.n->nobject.z,&bufiter);
+					}
+					else if(tmp3->type == NUMBER && tmp3->object.n->type == REAL)
+					{
+						buf[bufiter++] = '#';
+						buf[bufiter++] = 'x';
+						buf = _itox(buf,(int)tmp3->object.n->nobject.real,&bufiter);
+					}
+					else
+					{
+						buf[bufiter++] = 'N';
+						buf[bufiter++] = 'a';
+						buf[bufiter++] = 'N';
+					}
+					break;
+				case 'o': /* octal, no 0 */
+					break;
+				case 'O': /* octal, 0 */
+					break;
+				case '~': /* literal ~ */
+					buf[bufiter++] = '~';
+					break;
+				case 'f': /* double */
+					break;
+				case 'F': /* double, scientific notation */
+					break;
+				case 'i': /*  integer */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == NUMBER && tmp3->object.n->type == INTEGER)
+						buf = _itoa(buf,tmp3->object.n->nobject.z,&bufiter);
+					else
+					{
+						buf[bufiter++] = 'N';
+						buf[bufiter++] = 'a';
+						buf[bufiter++] = 'N';
+					}
+					break;
+				case '%': /* newline */
+					buf[bufiter++] = '\n';
+					break;
+				case 'R': /* roman numeral */
+					break;
+				case 'm': /* special form from Gwidyion Dylan: apply function to the stream */
+					break;
+				case 'M': /* something similar to the above, but the function will be passed 
+							 the next argument in rst
+						   */
+					break;
+				dispuchr:
+				case 'C': /* scheme syntax */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == CHAR)
+					{
+						buf[bufiter++] = '#';
+						buf[bufiter++] = '\\';
+						buf[bufiter++] = tmp3->object.c;
+					}
+					else
+						buf[bufiter++] = ' ';
+					break;
+				dispchr:
+				case 'c': /* char */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == CHAR)
+						buf[bufiter++] = tmp3->object.c;
+					else
+						buf[bufiter++] = ' ';
+					break;
+				displist:
+				case 'l': /* list no parens */
+					break;
+				dispulist:
+				case 'L': /* list with parens */
+					break;
+				dispbool:
+				case 'b': /* regular bool syntax */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == BOOL)
+					{
+						buf[bufiter++] = '#';
+						buf[bufiter++] = tmp3->object.c ? 't' : 'f';
+					}
+					else
+					{
+						buf[bufiter++] = 'N';
+						buf[bufiter++] = 'a';
+						buf[bufiter++] = 'B';
+					}
+					break;
+				dispubool:
+				case 'B': /* puts 'true' or 'false' */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == BOOL)
+					{
+						if(tmp3->object.c)
+							buf = _strcpy(buf,"true",&bufiter);
+						else
+							buf = _strcpy(buf,"false",&bufiter);
+					}
+					else
+					{
+						buf[bufiter++] = 'N';
+						buf[bufiter++] = 'a';
+						buf[bufiter++] = 'B';
+					}
+					break;
+				dispgoal:
+				case 'g': /* regular bool syntax */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == GOAL)
+					{
+						buf[bufiter++] = '#';
+						buf[bufiter++] = tmp3->object.c ? 's' : 'u';
+					}
+					else
+					{
+						buf[bufiter++] = 'N';
+						buf[bufiter++] = 'a';
+						buf[bufiter++] = 'G';
+					}
+					break;
+				dispugoal:
+				case 'G': /* puts 'successful' or 'unsuccessful' */
+					tmp3 = car(tmp2);
+					tmp2 = cdr(tmp2);
+					if(tmp3->type == GOAL)
+					{
+						if(tmp3->object.c)
+							buf = _strcpy(buf,"successful",&bufiter);
+						else
+							buf = _strcpy(buf,"unsuccessful",&bufiter);
+					}
+					else
+					{
+						buf[bufiter++] = 'N';
+						buf[bufiter++] = 'a';
+						buf[bufiter++] = 'G';
+					}
+					break;
+				dispnum:
+				case 'n':
+					break;
+				dispunum:
+				case 'N':
+					break;
+			}
+			iter++;
+		}
+		else
+			buf[bufiter++] = tmp1->object.str[iter];
+		iter++;	
+	}
+	buf[bufiter] = nul;
+	ret = (SExp *)hmalloc(sizeof(SExp));
+	ret->type = STRING;
+	ret->length = bufiter;
+	ret->object.str = buf;
+	return ret;

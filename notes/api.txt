@@ -1,0 +1,6 @@
+f_call_0, f_call_1, f_call_2, f_call_n
+SExp *f_call_n(SExp *, int, ...);
+
+http://www.ibm.com/developerworks/linux/library/l-guile/index.html
+
+I think Guile's interface is overwrought, but a decent example of what *not* to do...

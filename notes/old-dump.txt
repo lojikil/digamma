@@ -1,0 +1,91 @@
+old OPEQ:
+/*tmp0 = car(rst);
+tmp1 = car(cdr(rst));
+if(tmp0->type != tmp1->type)
+	return sfalse;
+switch(tmp0->type)
+{
+	case NUMBER:
+		if(tmp0->object.n->type != tmp1->object.n->type)
+			return sfalse;
+		switch(tmp0->object.n->type)
+		{
+			case INTEGER:
+				if(tmp1->object.n->nobject.z == tmp0->object.n->nobject.z)
+					return strue;
+				return sfalse;
+			case REAL:
+				if(tmp1->object.n->nobject.real == tmp0->object.n->nobject.real)
+					return strue;
+				return sfalse;
+			case RATIONAL:
+				if(tmp1->object.n->nobject.rational.num != tmp0->object.n->nobject.rational.num)
+					return sfalse;
+				if(tmp1->object.n->nobject.rational.den != tmp0->object.n->nobject.rational.den)
+					return sfalse;
+				return strue;
+			case COMPLEX:
+				if(tmp1->object.n->nobject.complex.r != tmp0->object.n->nobject.complex.r)
+					return sfalse;
+				if(tmp1->object.n->nobject.complex.i != tmp0->object.n->nobject.complex.i)
+					return sfalse;
+				return strue;
+		}
+		break;
+	case KEY:
+	case STRING:
+	case ATOM:
+		if(!strcasecmp(tmp0->object.str,tmp1->object.str))
+			return strue;
+		return sfalse;
+	case CHAR:
+		if(tmp0->object.c == tmp1->object.c)
+			return strue;
+		return sfalse;
+	case NIL: // since we know both type(tmp0) and type(tmp1) == NIL, there is no other test required 
+		return strue; 
+	default:
+		if(tmp0 == tmp1)
+			return strue;
+		return sfalse;
+}
+return sfalse;*/
+
+old OPAPPEND:
+itmp = pairlength(rst);
+switch(itmp)
+{
+	case 0:
+		return snil;
+	case 1:
+		return car(rst);
+	default:
+		tmp1 = cons(snil,snil);
+		tmp2 = tmp1;
+		while(rst != snil)
+		{
+			if(mcdr(rst) == snil)
+				break;
+			tmp0 = car(rst);
+			if(tmp0 == snil)
+			{
+				rst = cdr(rst);
+				continue;
+			}
+			if(tmp0->type != PAIR)
+				return makeerror(1,0,"append (l*: PAIR) (e : S-EXPRESSION) => PAIR");
+			while(tmp0 != snil)
+			{
+				if(mcar(tmp1) != snil)
+				{
+					mcdr(tmp1) = cons(snil,snil);
+					tmp1 = mcdr(tmp1);
+				}
+				mcar(tmp1) = mcar(tmp0);
+				tmp0 = mcdr(tmp0);
+			}
+			rst = cdr(rst);
+		}
+		mcdr(tmp1) = mcar(rst);
+		return tmp2;
+}
