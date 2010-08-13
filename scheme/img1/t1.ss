@@ -1,0 +1,8 @@
+(load "t0m.ss")
+(def img (make-vector (* 300 300) 0))
+(draw-x-axis img 0 150)
+(draw-y-axis img 150 0)
+(plot-fixed-line img 220 75 230 85)
+(def fil (open "test0.pnm" :write))
+(display (format "P1~%300 300~%~a" img) fil)
+(close fil)
