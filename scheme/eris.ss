@@ -15,6 +15,9 @@
                 else (error "NaN"))))
 (def gen-string (fn (x)
 	(format "makestring(\"~s\")" x)))
+(def gen-vector (fn (x)
+	(let ((n (length x)) (p (coerce x 'pair)))
+		(apply string-append (map gen p)))))
 (def gen (fn (x)
 	(cond
 		(number? x) (gen-number x)
