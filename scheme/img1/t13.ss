@@ -1,5 +1,12 @@
 ; attempt at colour version
-(load "./prelude.ss")
+;(load "./prelude.ss")
+
+; to do:
+;  - angled rectangle
+;  - add flood fill colour to rectangle & circle
+;  - text rendering
+;  - predefined chart rendering (ala gnuplot)
+
 (define-macro with (var val :body b)
 	(list (cons fn (cons (cons var '()) b)) val))
 (def foreach-proc (fn (proc col)
