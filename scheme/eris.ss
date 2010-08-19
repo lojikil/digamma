@@ -23,8 +23,11 @@
 	(format "makestring(\"~s\")" x)))
 (def gen-vector (fn (x)
 	(let ((n (length x)) (p (coerce x 'pair)))
-		(string-append (format "vector(~n," n) (string-join (map gen p) ",") ")"))))
-(def gen (fn (x)
+		(string-append (format "vector(~n," n) (string-join (map gen-literal p) ",") ")"))))
+(def gen-pair (fn (x)
+	(let ((n (length x)))
+		(string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")"))))
+(def gen-literal (fn (x)
 	(cond
 		(number? x) (gen-number x)
 		(string? x) (gen-string x)
@@ -32,3 +35,21 @@
 		(pair? x) (gen-pair x) ; really, need to tell what type of code to generate here...
 		(dict? x) (gen-dict x)
 		else (error "unsupported file type for code generation"))))
+(def gen-code (fn (x)
+	(if (pair? x) 
+		(cond
+			(eq? (car x) 'def) #t
+			(eq? (car x) 'load) #t
+			(eq? (car x) 'import) #t
+			(eq? (car x) 'use) #t
+			(eq? (car x) 'from) #t
+			(pair? (car x)) #t
+			else 'EVAL-FORM)
+		(gen-literal x))))
+
+; The basic system is this:
+; - read form from file
+; - call syntax-expand
+; - call macro-expand
+; - call gen-code on what's left
+; - loop to the first item until #e
