@@ -64,6 +64,12 @@
 	(if (empty? col)
 		col
 		(ccons (proc (first col)) (map proc (rest col)))))
+(defn filter (proc col)
+	(if (empty? col)
+		col
+		(if (proc (first col))
+			(ccons (first col) (filter proc (rest col)))
+			(filter proc (rest col)))))
 (defn map-apply (proc col)
 	(if (empty? col)
 		col
@@ -73,3 +79,17 @@
 		(if (eof-object? r)
 			'()
 			(cons r (read-lines p))))))
+
+(defn odd? (x)
+	(= (modulo x 2) 1))
+(defn even? (x)
+	(= (modulo x 2) 0))
+(defn foldr (op s l)
+	(if (empty? l)
+		s
+		(op (first l) (foldr op s (rest l)))))
+(defn foldl (op s l)
+	(if (empty? l)
+		s
+		(foldl op (op s (first l)) (rest l))))
+(def require (let ((paths ["~/.digamma/lib" "."]) (loaded {})) (fn (x) #f)))
