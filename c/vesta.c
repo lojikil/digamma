@@ -658,6 +658,8 @@ init_env()
 	add_env(tl_env,"if",makeprimitive(OPIF,"if",1));
 	add_env(tl_env,"eval",makeprimitive(OPEVAL,"eval",0));
 	add_env(tl_env,"help",makeprimitive(OPHELP,"help",0));
+	add_env(tl_env,"reset",makeprimitive(OPRESET,"reset",0));
+	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
 	//LINE_DEBUG;
 	/* seed the random system*/
 	srandom(time(nil));
