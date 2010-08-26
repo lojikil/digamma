@@ -660,6 +660,7 @@ init_env()
 	add_env(tl_env,"help",makeprimitive(OPHELP,"help",0));
 	add_env(tl_env,"reset",makeprimitive(OPRESET,"reset",0));
 	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
+	add_env(tl_env,"call/cc",makeprimitive(OPCALLCC,"call/cc",0));
 	//LINE_DEBUG;
 	/* seed the random system*/
 	srandom(time(nil));
