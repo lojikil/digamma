@@ -38,11 +38,19 @@
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
-			(eq? (car x) 'def) #t
+			(eq? (car x) 'def) 
+				(if (not (symbol? (car (cdr x))))
+					(error "def p : SYMBOL e : SEXPRESSION => VOID")
+					(if (not (pair? (car (cdr (cdr x)))))
+						(format "fdef(~s,~s);" (gen-literal (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
+						(if (not (eq? (car (car (cdr (cdr x)))) 'fn))
+							(format "fdef(~s,~s);" (gen-literal (car (cdr x))) (gen-code (car (cdr (cdr x)))))
+							'LIFT-LAMBDAS)))		
 			(eq? (car x) 'load) #t
 			(eq? (car x) 'import) #t
 			(eq? (car x) 'use) #t
 			(eq? (car x) 'from) #t
+			(eq? (car x) 'quote) (gen-literal (car (cdr x)))
 			(pair? (car x)) #t
 			else 'EVAL-FORM)
 		(gen-literal x))))
