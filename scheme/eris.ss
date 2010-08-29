@@ -21,6 +21,8 @@
                 else (error "NaN"))))
 (def gen-string (fn (x)
 	(format "makestring(\"~s\")" x)))
+(def gen-symbol (fn (x)
+	(format "makeatom(\"~s\")" x)))
 (def gen-vector (fn (x)
 	(let ((n (length x)) (p (coerce x 'pair)))
 		(string-append (format "vector(~n," n) (string-join (map gen-literal p) ",") ")"))))
@@ -34,6 +36,7 @@
 		(vector? x) (gen-vector x)
 		(pair? x) (gen-pair x) ; really, need to tell what type of code to generate here...
 		(dict? x) (gen-dict x)
+		(symbol? x) (gen-symbol x)
 		else (error "unsupported file type for code generation"))))
 (def gen-code (fn (x)
 	(if (pair? x) 

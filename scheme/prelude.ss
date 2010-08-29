@@ -16,6 +16,13 @@
 (def dict? (fn (n) (eq? (type n) "Dictionary")))
 (def symbol? (fn (n) (eq? (type n) "Symbol")))
 (def number? (fn (n) (eq? (type n) "Number")))
+(def string? (fn (n) (eq? (type n) "String")))
+(def not (fn (x)
+        (cond
+                (eq? x #s) #u
+                (eq? x #f) #t
+                (eq? x #u) #s
+                else #f)))
 (def zero? (fn (n) (= n 0)))
 (def eof-object? (fn (n) (eq? n #e)))
 (def ncons (fn (x) (cons x '())))
