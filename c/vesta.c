@@ -1394,7 +1394,17 @@ llprinc(SExp *s, FILE *fd, int mode)
 		case STRING:
 			// write mode should escape characters like \t & \n
 			if(mode)
-				fprintf(fd,"\"%s\"",s->object.str);
+			{
+				fprintf(fd,"\"");
+				for(;iter < s->length;iter++)
+				{
+					if(s->object.str[iter] == '\"')
+						fprintf(fd,"\\\"");
+					else
+						fprintf(fd,"%c",s->object.str[iter]);
+				}
+				fprintf(fd,"\"");
+			}
 			else
 				fprintf(fd,"%s",s->object.str);
 			break;
