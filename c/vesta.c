@@ -1400,6 +1400,12 @@ llprinc(SExp *s, FILE *fd, int mode)
 				{
 					if(s->object.str[iter] == '\"')
 						fprintf(fd,"\\\"");
+					else if(s->object.str[iter] == '\\')
+						fprintf(fd,"\\\\");
+					else if(s->object.str[iter] == '\n')
+						fprintf(fd,"\\n");
+					else if(s->object.str[iter] == '\t')
+						fprintf(fd,"\\t");
 					else
 						fprintf(fd,"%c",s->object.str[iter]);
 				}
@@ -1848,6 +1854,10 @@ lex(FILE *fdin, char **r)
 						c = fgetc(fdin);
 						if(feof(fdin))
 							return TOK_SERROR;
+						else if(c == 't')
+							c = '\t';
+						else if(c == 'n')
+							c = '\n';
 					}
 					ret[iter] = c;
 					c = fgetc(fdin);
