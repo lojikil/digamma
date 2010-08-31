@@ -1398,16 +1398,39 @@ llprinc(SExp *s, FILE *fd, int mode)
 				fprintf(fd,"\"");
 				for(;iter < s->length;iter++)
 				{
-					if(s->object.str[iter] == '\"')
-						fprintf(fd,"\\\"");
-					else if(s->object.str[iter] == '\\')
-						fprintf(fd,"\\\\");
-					else if(s->object.str[iter] == '\n')
-						fprintf(fd,"\\n");
-					else if(s->object.str[iter] == '\t')
-						fprintf(fd,"\\t");
-					else
-						fprintf(fd,"%c",s->object.str[iter]);
+					switch(s->object.str[iter])
+					{
+						case '\"':
+							fprintf(fd,"\\\"");
+							break;
+						case '\\':
+							fprintf(fd,"\\\\");
+							break;
+						case '\n':
+							fprintf(fd,"\\n");
+							break;
+						case '\t':
+							fprintf(fd,"\\t");
+							break;
+						case '\r':
+							fprintf(fd,"\\r");
+							break;
+						case '\v':
+							fprintf(fd,"\\v");
+							break;
+						case '\a':
+							fprintf(fd,"\\a");
+							break;
+						case '\b':
+							fprintf(fd,"\\b");
+							break;
+						case '\0':
+							fprintf(fd,"\\0");
+							break;	
+						default:	
+							fprintf(fd,"%c",s->object.str[iter]);
+							break;
+					}	
 				}
 				fprintf(fd,"\"");
 			}
@@ -1858,6 +1881,16 @@ lex(FILE *fdin, char **r)
 							c = '\t';
 						else if(c == 'n')
 							c = '\n';
+						else if(c == 'r')
+							c = '\r';
+						else if(c == 'v')
+							c = '\v';
+						else if(c == '0')
+							c = '\0';
+						else if(c == 'b')
+							c = '\b';
+						else if(c == 'a')
+							c = '\a';
 					}
 					ret[iter] = c;
 					c = fgetc(fdin);
