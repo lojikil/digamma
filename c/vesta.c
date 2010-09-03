@@ -3162,6 +3162,7 @@ __base:
 	printf("src == ");
 	princ(src);
 	printf("\n");*/
+	// add interpreter tick here.
 	switch(state)
 	{
 		case __PRE_APPLY:
@@ -3363,22 +3364,28 @@ __base:
 								{
 									tmp1 = car(tmp2);
 									tmp2 = car(cdr(tmp2));
-									if(tmp2->type == PAIR) // *should* do the jump/shuck, but for now, laze out...
+									if(rst != snil)
+										add_env(env,tmp1->object.str,car(rst));
+									else
 									{
-										printf("\tMade it to the \"should have done the jump/shuck\" call?\n");
-										tmp2 = __seval(tmp2,env);
-										//stk = cons(list(5,src,fst,cdr(rst),ret,tenv),stk);
-									}
-									else if(tmp2->type == ATOM)
-									{
-										tmp2 = symlookup(tmp2->object.str,env);
-										if(tmp2 == nil)
+										// these should be evaluted at bind time, not now. Fix this
+										if(tmp2->type == PAIR) // *should* do the jump/shuck, but for now, laze out...
 										{
-											__return(makeerror(1,0,"Unknown atom in default position"));
+											printf("\tMade it to the \"should have done the jump/shuck\" call?\n");
+											tmp2 = __seval(tmp2,env);
+											//stk = cons(list(5,src,fst,cdr(rst),ret,tenv),stk);
 										}
+										else if(tmp2->type == ATOM)
+										{
+											tmp2 = symlookup(tmp2->object.str,env);
+											if(tmp2 == nil)
+											{
+												__return(makeerror(1,0,"Unknown atom in default position"));
+											}
+										}
+										add_env(env,tmp1->object.str,tmp2);
 									}
-									add_env(env,tmp1->object.str,tmp2);
-								}
+								}	
 								else if(tmp2->type == ATOM)
 									add_env(env,tmp1->object.str,car(rst));
 							}
