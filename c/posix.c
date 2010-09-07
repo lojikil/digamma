@@ -1713,7 +1713,33 @@ f_sysselect(SExp *s, Symbol *e)
 SExp *
 f_sys(SExp *s, Symbol *e)
 {
+	SExp *key = nil, *args = nil;
 	if(pairlength(s) < 1)
 		return makeerror(1,0,"unmatched parameter entry");
-	return e->strue;
+	key = car(s);
+	if(key->type != KEY && key->type != ATOM)
+		return makeerror(1,0,"entry *must* be of type KEYOBJ");
+	if(!strncasecmp(key->object.str,"gettimeofday",12))
+		return f_gettimeofday(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"getuid",6))
+		return f_getuid(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"geteuid",7))
+		return f_geteuid(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"getgid",6))
+		return f_getgid(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"getegid",7))
+		return f_getegid(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"set*id",6))
+		return f_setsid(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"open",4))
+		return f_sysopen(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"close",5))
+		return f_sysclose(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"read",4))
+		return f_sysread(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"write",5))
+		return f_syswrite(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"pipe",4))
+		return f_syspipe(cdr(s),e);
+	return makeerror(1,0,"unknown entry point");
 }
