@@ -1710,3 +1710,10 @@ f_sysselect(SExp *s, Symbol *e)
 {
 	return e->snil;
 }
+SExp *
+f_sys(SExp *s, Symbol *e)
+{
+	if(pairlength(s) < 1)
+		return makeerror(1,0,"unmatched parameter entry");
+	return e->strue;
+}

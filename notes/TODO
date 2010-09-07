@@ -1,0 +1,45 @@
+- network op toolkit
+
+- move posix into sys namespace
+
+- t13
+
+- network checks
+
+- regression tests
+
+- define-syntax
+
+- extend error ala CL
+
+- delim/c & call/cc
+
+- interpreter ticks
+
+- new gc
+
+- file/data functions in prelude
+
+- eris/enyo/hydra/ceres
+
+- user defined types ala SRFI-9/57/99
+
+- catch
+
+- regex
+
+- select
+
+- import, require, module
+
+- FTk
+
+- W7
+
+- Frak
+
+- Template Engine
+
+- multiprocessing, threading, oo
+
+

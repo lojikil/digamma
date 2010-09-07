@@ -84,11 +84,12 @@ main(int ac, char **al, char **el)
 	 * take the pythonic approach & make "os.unix"?
 	 * maybe just (use "nix") ^_^
 	 */
-	register_procedure(f_getuid,"getuid",0,tl_env);
-	register_procedure(f_geteuid,"geteuid",0,tl_env);
-	register_procedure(f_getgid,"getgid",0,tl_env);
-	register_procedure(f_getegid,"getegid",0,tl_env);
-	register_procedure(f_setsid,"set*id",0,tl_env);
+	register_procedure(f_sys,"sys",0,tl_env);
+	register_procedure(f_getuid,"sysgetuid",0,tl_env);
+	register_procedure(f_geteuid,"sysgeteuid",0,tl_env);
+	register_procedure(f_getgid,"sysgetgid",0,tl_env);
+	register_procedure(f_getegid,"sysgetegid",0,tl_env);
+	register_procedure(f_setsid,"sysset*id",0,tl_env);
 	register_procedure(f_sysopen,"sysopen",0,tl_env);
 	register_procedure(f_sysclose,"sysclose",0,tl_env);
 	register_procedure(f_sysread,"sysread",0,tl_env);
@@ -97,8 +98,8 @@ main(int ac, char **al, char **el)
 	register_procedure(f_fork,"sysfork",0,tl_env);
 	register_procedure(f_waitpid,"syswait",0,tl_env);
 	register_procedure(f_execve,"sysexec",0,tl_env);
-	register_procedure(f_popen,"popen",0,tl_env);
-	register_procedure(f_pclose,"pclose",0,tl_env);
+	register_procedure(f_popen,"syspopen",0,tl_env);
+	register_procedure(f_pclose,"syspclose",0,tl_env);
 	register_procedure(f_vfork,"sysvfork",0,tl_env);
 	register_procedure(f_kill,"syskill",0,tl_env);
 	register_procedure(f_stat,"sysstat",0,tl_env);
@@ -108,23 +109,16 @@ main(int ac, char **al, char **el)
 	register_procedure(f_chown,"syschown",0,tl_env);
 	register_procedure(f_chmod,"syschmod",0,tl_env);
 	register_procedure(f_chroot,"syschroot",0,tl_env);
-	register_procedure(f_getenv,"sys-getenv",0,tl_env);
-	register_procedure(f_setenv,"sys-setenv",0,tl_env);
+	register_procedure(f_getenv,"sysgetenv",0,tl_env);
+	register_procedure(f_setenv,"syssetenv",0,tl_env);
 	register_procedure(f_sysfcntl,"sysfcntl",0,tl_env);
 	register_procedure(f_sysfcntlconst,"sysfcntl-const",0,tl_env);
 	register_procedure(f_syssleep,"syssleep",0,tl_env);
 	register_procedure(f_sysusleep,"sysusleep",0,tl_env);
 	register_procedure(f_sysnanosleep,"sysnanosleep",0,tl_env);
 	register_procedure(f_sysselect,"sysselect",0,tl_env);
-	/*
-	ret = f_load(cons(makestring("init.ss"),tl_env->snil),(void *)tl_env);
-	if(ret != tl_env->strue)
-	{
-		if(ret->type == ERROR)
-			printf("Error: could not load prelude from init.ss: %s\n",ret->object.error.message);
-		else
-			printf("Warning: could not load prelude from init.ss\n");
-	}*/
+
+	/* load prelude out of paths */
 	while(paths[iter] != 0)
 	{
 		if(paths[iter][0] == '~') // search home directory, but expand ~ 

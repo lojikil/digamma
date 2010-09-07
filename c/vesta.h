@@ -578,4 +578,5 @@ INTERNDEF(f_syssleep);
 INTERNDEF(f_sysusleep);
 INTERNDEF(f_sysnanosleep);
 INTERNDEF(f_sysselect);
+INTERNDEF(f_sys);
 #endif
