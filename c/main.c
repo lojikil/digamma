@@ -85,6 +85,7 @@ main(int ac, char **al, char **el)
 	 * maybe just (use "nix") ^_^
 	 */
 	register_procedure(f_sys,"sys",0,tl_env);
+	/*
 	register_procedure(f_getuid,"sysgetuid",0,tl_env);
 	register_procedure(f_geteuid,"sysgeteuid",0,tl_env);
 	register_procedure(f_getgid,"sysgetgid",0,tl_env);
@@ -117,7 +118,7 @@ main(int ac, char **al, char **el)
 	register_procedure(f_sysusleep,"sysusleep",0,tl_env);
 	register_procedure(f_sysnanosleep,"sysnanosleep",0,tl_env);
 	register_procedure(f_sysselect,"sysselect",0,tl_env);
-
+	*/
 	/* load prelude out of paths */
 	while(paths[iter] != 0)
 	{

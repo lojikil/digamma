@@ -1712,6 +1712,10 @@ f_sysselect(SExp *s, Symbol *e)
 }
 SExp *
 f_sys(SExp *s, Symbol *e)
+/* a dispatch function that operates in a manner similar to modules in
+ * Digamma proper. Contains all the previous POSIX functions that Vesta
+ * supports, but doesn't pollute the namespace. 
+ */
 {
 	SExp *key = nil, *args = nil;
 	if(pairlength(s) < 1)
@@ -1741,5 +1745,47 @@ f_sys(SExp *s, Symbol *e)
 		return f_syswrite(cdr(s),e);
 	else if(!strncasecmp(key->object.str,"pipe",4))
 		return f_syspipe(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"fork",4))
+		return f_fork(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"wait",4))
+		return f_waitpid(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"exec",4))
+		return f_execve(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"popen",5))
+		return f_popen(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"pclose",6))
+		return f_pclose(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"vfork",5))
+		return f_vfork(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"kill",4))
+		return f_kill(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"stat",4))
+		return f_stat(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"*sockopt",8))
+		return f_ssockopt(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"time",4))
+		return f_time(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"chown",5))
+		return f_chown(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"chmod",5))
+		return f_chmod(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"chroot",6))
+		return f_chroot(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"getenv",6))
+		return f_getenv(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"setenv",6))
+		return f_setenv(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"fcntl",5))
+		return f_sysfcntl(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"fcntl-const",11))
+		return f_sysfcntlconst(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"sleep",5))
+		return f_syssleep(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"usleep",6))
+		return f_sysusleep(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"nanosleep",9))
+		return f_sysnanosleep(cdr(s),e);
+	else if(!strncasecmp(key->object.str,"select",9))
+		return f_sysselect(cdr(s),e);
 	return makeerror(1,0,"unknown entry point");
 }
