@@ -661,6 +661,7 @@ init_env()
 	add_env(tl_env,"reset",makeprimitive(OPRESET,"reset",0));
 	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
 	add_env(tl_env,"call/cc",makeprimitive(OPCALLCC,"call/cc",0));
+	add_env(tl_env,"current-tick",makeprimitive(OPCURTICK,"current-tick",0));
 	//LINE_DEBUG;
 	/* seed the random system*/
 	srandom(time(nil));
@@ -945,6 +946,7 @@ shallow_clone_env(Symbol *src)
 	ret->ssucc = src->ssucc;
 	ret->sunsucc = src->sunsucc;
 	ret->seof = src->seof;
+	ret->tick = src->tick;
 	return ret;	
 }
 Symbol *
@@ -3163,6 +3165,7 @@ __base:
 	princ(src);
 	printf("\n");*/
 	// add interpreter tick here.
+	e->tick++;
 	switch(state)
 	{
 		case __PRE_APPLY:
@@ -4205,6 +4208,8 @@ __base:
 				__return(makeerror(1,0,"help t : OBJECT => STRING "));
 			}
 			__return(fhelp(car(rst)));
+		case OPCURTICK:
+			__return(makeinteger(env->tick));
 		case __PROC:
 			proc = (SExp *(*)(SExp *, Symbol *))fst->object.procedure;
 			if(env->snil == nil)
