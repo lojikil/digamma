@@ -129,7 +129,7 @@ typedef enum
 	OPLOG2, OPLOG10, OPCONJ, OPSTRAP, OPASSQ, OPCOERCE, OPMKTCONC, OPTCONC, OPTCONCL, OPT2P, OPTCONCSPLICE,
 	OPDEFREC, OPSETREC, OPSETCURIN, OPSETCUROUT, OPSETCURERR, OPCURIN, OPCUROUT, OPCURERR,
 	OPQQUOTE, OPUNQUOTE, OPUNQSPLICE, OPDICHAS, OPEMPTY, OPCEIL, OPFLOOR, OPTRUNCATE, OPROUND,
-	OPIN2EX, OPCLONENV, OPDEFENV, OPSETENV, OPSTDENV, OPHELP,OPRESET, OPSHIFT, OPCURTICK,
+	OPIN2EX, OPCLONENV, OPDEFENV, OPSETENV, OPSTDENV, OPMETA,OPRESET, OPSHIFT, OPCURTICK, 
 	OPDEFAULTENV, OPNULLENV, __INTERNAL_RETURN, __PRE_APPLY, __POST_APPLY, __INT_CLOSURE, __PROC
 } InternalOps;
 
@@ -188,6 +188,7 @@ typedef struct _SEXP
 {
 	SExpType type;
 	int length; /* length of aggregated s-expressions, such as strings or vectors */
+	Trie *metadata;
 	union
 	{
 		char c;
@@ -197,7 +198,6 @@ typedef struct _SEXP
 		{
 			int procnum;
 			int arity;
-			struct _SEXP *docstr; /* document strings, returned by help */
 			struct _SEXP *params;
 			struct _SEXP *data;
 			void *env; /* environment frame pointer */

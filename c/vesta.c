@@ -657,7 +657,7 @@ init_env()
 	add_env(tl_env,"tconc-splice!",makeprimitive(OPTCONCSPLICE,"tconc-splice!",0));
 	add_env(tl_env,"if",makeprimitive(OPIF,"if",1));
 	add_env(tl_env,"eval",makeprimitive(OPEVAL,"eval",0));
-	add_env(tl_env,"help",makeprimitive(OPHELP,"help",0));
+	add_env(tl_env,"meta",makeprimitive(OPMETA,"META",0));
 	add_env(tl_env,"reset",makeprimitive(OPRESET,"reset",0));
 	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
 	add_env(tl_env,"call/cc",makeprimitive(OPCALLCC,"call/cc",0));
@@ -684,6 +684,7 @@ makechar(char c)
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = CHAR;
 	ret->object.c = c;
+	ret->metadata = nil;
 	return ret;
 }
 SExp *
@@ -692,6 +693,7 @@ makeport(FILE *fp,char *src, int proto, int bind, char *mode)
 	SExp *ret = snil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = PORT;
+	ret->metadata = nil;
 	ret->object.p = (Port *)hmalloc(sizeof(Port));
 	PTYPE(ret) = PFILE;
 	FILEPORT(ret) = fp;
@@ -707,6 +709,7 @@ makenumber(int t)
 	SExp *ret = nil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = NUMBER;
+	ret->metadata = nil;
 	ret->object.n = (Number *)hmalloc(sizeof(Number));
 	ret->object.n->type = t;
 	if(t == INTEGER)
@@ -719,6 +722,7 @@ makeinteger(int s)
 	SExp *ret = nil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = NUMBER;
+	ret->metadata = nil;
 	ret->object.n = (Number *)hmalloc(sizeof(Number));
 	ret->object.n->type = INTEGER;
 	ret->object.n->nobject.z = s;
@@ -730,6 +734,7 @@ makereal(double f)
 	SExp *ret = nil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = NUMBER;
+	ret->metadata = nil;
 	ret->object.n = (Number *)hmalloc(sizeof(Number));
 	ret->object.n->type = REAL;
 	ret->object.n->nobject.real = f;
@@ -741,6 +746,7 @@ makerational(int n,int d)
 	SExp *ret = nil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = NUMBER;
+	ret->metadata = nil;
 	ret->object.n = (Number *)hmalloc(sizeof(Number));
 	ret->object.n->type = RATIONAL;
 	NUM(ret) = n;
@@ -753,6 +759,7 @@ makecomplex(double r,double i)
 	SExp *ret = nil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = NUMBER;
+	ret->metadata = nil;
 	ret->object.n = (Number *)hmalloc(sizeof(Number));
 	ret->object.n->type = COMPLEX;
 	CEREAL(ret) = r;
@@ -771,6 +778,7 @@ makeatom(char *s)
 		return nil;
 	}
 	ret->type = ATOM;
+	ret->metadata = nil;
 	set_str(ret,s);
 	return ret;
 }
@@ -781,6 +789,7 @@ makestring_v(int size, char fill)
 	int iter = 0;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = STRING;
+	ret->metadata = nil;
 	ret->object.str = (char *)hmalloc(sizeof(char) * size + 1);
 	if(fill != nul)
 	{
@@ -797,6 +806,7 @@ makestring(const char *s)
 	SExp *ret = nil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = STRING;
+	ret->metadata = nil;
 	set_str(ret,s);
 	ret->length = strlen(s);
 	return ret;
@@ -807,6 +817,7 @@ makeerror(int t, int s, char *f)
 	SExp *ret = snil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = ERROR;
+	ret->metadata = nil;
 	ret->object.error.source = (s & 0xFF);
 	ret->object.error.level = t;
 	ret->object.error.message = hstrdup(f);
@@ -818,6 +829,7 @@ makeprimitive(int n, char *s, int f)
 	SExp *ret = snil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = PRIM;
+	ret->metadata = nil;
 	ret->object.primitive.evalp = (char) f & 0xFF;
 	ret->object.primitive.name = hstrdup(s);
 	ret->object.primitive.num = n;
@@ -838,6 +850,7 @@ makevector(int n, SExp *fill)
 	}
 	ret->length = n;
 	ret->type = VECTOR;
+	ret->metadata = nil;
 	return ret;
 }
 SExp *
@@ -846,6 +859,7 @@ makedict()
 	SExp *ret = snil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = DICT;
+	ret->metadata = nil;
 	ret->object.dict = (Trie *)hmalloc(sizeof(Trie));
 	ret->object.dict->key = nul;
 	ret->object.dict->n_len = 0;
@@ -859,6 +873,7 @@ makeenv(Symbol *e)
 	SExp *ret = snil;
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = ENVIRONMENT;
+	ret->metadata = nil;
 	ret->object.foreign = (void *) e;
 	return ret;
 }
@@ -4202,12 +4217,12 @@ __base:
 				__return(makeerror(1,0,"tconc-splice!'s t arugment *must* be bound to a TCONC"));
 			}
 			__return(tconc_splice(car(rst),car(cdr(rst))));
-		case OPHELP:
+		case OPMETA:
 			if(pairlength(rst) != 1)
 			{
 				__return(makeerror(1,0,"help t : OBJECT => STRING "));
 			}
-			__return(fhelp(car(rst)));
+			__return(fmeta(car(rst)));
 		case OPCURTICK:
 			__return(makeinteger(env->tick));
 		case __PROC:
@@ -7887,27 +7902,44 @@ ffn(SExp *rst, Symbol *env)
 	tmp2 = car(cdr(rst));
 	if(tmp2->type == STRING)
 	{
-		tmp0->object.closure.docstr = tmp2;
+		//tmp0->object.closure.docstr = tmp2;
+		trie_put(tmp0->metadata,"docstring",tmp2);
 		tmp0->object.closure.data = cdr(cdr(rst));
 	}
 	else
-	{
-		tmp0->object.closure.docstr = snil;
 		tmp0->object.closure.data = cdr(rst);
-	}
-	/*printf("tmp0->object.closure.data = ");
-	princ(tmp0->object.closure.data);
-	printf("\n");*/
 	return tmp0;
 }
 SExp *
-fhelp(SExp *o)
+fmeta(SExp *o)
 {
-	if(o == nil)
-		return snil;
-	if(o->type == CLOSURE)
-		return o->object.closure.docstr;
-	return makestring("No docstring defined for requested object");
+	SExp *ret = nil, *tmp = nil;
+	if(o == nil || o == snil)
+		return makeerror(1,0,"meta o : SEXP [k : (STRING|KEYBOJ|ATOM)] => SEXP"); 
+	switch(pairlength(o))
+	{
+		case 1:
+			tmp = car(o);
+			if(tmp == snil)
+				return snil;
+			else if(tmp->metadata == nil)
+				return snil;
+			ret = (SExp *)hmalloc(sizeof(SExp));
+			ret->type = DICT;
+			ret->object.dict = tmp->metadata;
+			return ret;
+		case 2:
+			tmp = car(o);
+			ret = car(cdr(o));
+			if(tmp == snil)
+				return snil;
+			else if(tmp->metadata == nil)
+				return snil;
+			if(ret == snil)
+				return snil;
+			return trie_get(tmp->metadata,ret->objec.str);
+	}
+	return makeerror(1,0,"meta o : SEXP [k : (STRING|KEYBOJ|ATOM)] => SEXP"); 
 }
 SExp *
 cloneenv(SExp *e)
