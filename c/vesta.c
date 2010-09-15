@@ -657,7 +657,7 @@ init_env()
 	add_env(tl_env,"tconc-splice!",makeprimitive(OPTCONCSPLICE,"tconc-splice!",0));
 	add_env(tl_env,"if",makeprimitive(OPIF,"if",1));
 	add_env(tl_env,"eval",makeprimitive(OPEVAL,"eval",0));
-	add_env(tl_env,"meta",makeprimitive(OPMETA,"META",0));
+	add_env(tl_env,"meta!",makeprimitive(OPMETA,"meta!",0));
 	add_env(tl_env,"reset",makeprimitive(OPRESET,"reset",0));
 	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
 	add_env(tl_env,"call/cc",makeprimitive(OPCALLCC,"call/cc",0));
@@ -4218,11 +4218,7 @@ __base:
 			}
 			__return(tconc_splice(car(rst),car(cdr(rst))));
 		case OPMETA:
-			if(pairlength(rst) != 1)
-			{
-				__return(makeerror(1,0,"help t : OBJECT => STRING "));
-			}
-			__return(fmeta(car(rst)));
+			__return(fmeta(rst));
 		case OPCURTICK:
 			__return(makeinteger(env->tick));
 		case __PROC:
@@ -7903,7 +7899,12 @@ ffn(SExp *rst, Symbol *env)
 	if(tmp2->type == STRING)
 	{
 		//tmp0->object.closure.docstr = tmp2;
-		trie_put(tmp0->metadata,"docstring",tmp2);
+		tmp0->metadata = (Trie *)hmalloc(sizeof(Trie));
+		tmp0->metadata->key = nul;
+		tmp0->metadata->n_len = 0;
+		tmp0->metadata->n_cur = 0;
+		tmp0->metadata->nodes = nil;
+		trie_put("docstring",tmp2,tmp0->metadata);
 		tmp0->object.closure.data = cdr(cdr(rst));
 	}
 	else
@@ -7915,7 +7916,7 @@ fmeta(SExp *o)
 {
 	SExp *ret = nil, *tmp = nil;
 	if(o == nil || o == snil)
-		return makeerror(1,0,"meta o : SEXP [k : (STRING|KEYBOJ|ATOM)] => SEXP"); 
+		return makeerror(1,0,"meta! o : SEXP [k : (STRING|KEYBOJ|ATOM) [v : SEXP]] => SEXP"); 
 	switch(pairlength(o))
 	{
 		case 1:
@@ -7937,9 +7938,33 @@ fmeta(SExp *o)
 				return snil;
 			if(ret == snil)
 				return snil;
-			return trie_get(tmp->metadata,ret->objec.str);
+			if(ret->type != STRING && ret->type != KEY && ret->type != ATOM)
+				return makeerror(1,0,"meta!'s k parameter *must be of type STRING|KEYOBJ|ATOM");
+			ret = trie_get(ret->object.str,tmp->metadata);
+			if(ret == nil)
+				return makeerror(1,0,"meta: no such key");
+			return ret;
+		case 3:
+			tmp = car(o);
+			ret = car(cdr(o));
+			if(tmp == snil)
+				return snil;
+			else if(ret == snil)
+				return snil;
+			if(ret->type != STRING && ret->type != KEY && ret->type != ATOM)
+				return makeerror(1,0,"meta!'s k parameter *must be of type STRING|KEYOBJ|ATOM");
+			if(tmp->metadata == nil)
+			{
+				tmp->metadata = (Trie *)hmalloc(sizeof(Trie));
+				tmp->metadata->key = nul;
+				tmp->metadata->n_len = 0;
+				tmp->metadata->n_cur = 0;
+				tmp->metadata->nodes = nil;
+			}
+			trie_put(ret->object.str,car(cdr(cdr(o))),tmp->metadata);
+			return svoid;
 	}
-	return makeerror(1,0,"meta o : SEXP [k : (STRING|KEYBOJ|ATOM)] => SEXP"); 
+	return makeerror(1,0,"meta o : SEXP [k : (STRING|KEYBOJ|ATOM) [v : SEXP]] => SEXP"); 
 }
 SExp *
 cloneenv(SExp *e)

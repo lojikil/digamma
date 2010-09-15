@@ -489,7 +489,7 @@ SExp *fstring(SExp *);
 SExp *fmakestring(SExp *);
 /* generic functions */
 SExp *fgensym(SExp *);
-SExp *fhelp(SExp *);
+SExp *fmeta(SExp *);
 SExp *cloneenv(SExp *);
 /* Desktop-level foreign procedures */
 INTERNDEF(f_princ);
