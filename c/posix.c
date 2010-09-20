@@ -786,7 +786,7 @@ f_read_char(SExp *s, Symbol *e)
 {
 	SExp *tmp = e->snil, *ret = e->snil;
 	FILE *fd = nil;
-	int itmp = pairlength(s);
+	int itmp = pairlength(s), len = 0, sd = 0, ptype = 0;
 	if(itmp > 1)
 		return makeerror(2,0,"read-char [fd : PORT] => sexpression");
 	ret = (SExp *)hmalloc(sizeof(SExp));
@@ -796,13 +796,28 @@ f_read_char(SExp *s, Symbol *e)
 		tmp = car(s);
 		if(tmp->type != PORT)
 			return makeerror(2,0,"read-string's optional argument must be a port");
-		fd = FILEPORT(tmp); /* should check if it's a PFILE first... */
+		if(PTYPE(tmp) == PNET)
+		{
+			sd = tmp->object.p->pobject.fd;
+			ptype = 1;
+		}
+		else
+			fd = FILEPORT(tmp); /* should check if it's a PFILE first... */
 	}
 	else
 		fd = stdin; /* should lookup current-input-port */
-	ret->object.c = fgetc(fd);
-	if(feof(fd))
-		return e->seof;
+	if(!ptype)
+	{
+		ret->object.c = fgetc(fd);
+		if(feof(fd))
+			return e->seof;
+	}
+	else
+	{
+		len = read(sd,&ret->object.c,1);
+		if(len == 0)
+			return e->seof;
+	}	
 	return ret;
 }
 SExp *
@@ -810,7 +825,7 @@ f_read_string(SExp *s, Symbol *e)
 {
 	SExp *tmp = e->snil, *ret = e->snil;
 	char buf[8192] = {0};
-	int itmp = pairlength(s), iter = 0, in = 0;
+	int itmp = pairlength(s), iter = 0, in = 0, fd = 0, ptype = 0, len = 0;
 	FILE *fdin = nil;
 	if(itmp > 1)
 		return makeerror(2,0,"read-string [fd : PORT] => sexpression");
@@ -821,32 +836,88 @@ f_read_string(SExp *s, Symbol *e)
 		tmp = car(s);
 		if(tmp->type != PORT)
 			return makeerror(2,0,"read-string's optional argument must be a port");
-		fdin = FILEPORT(tmp); /* should check if it's a PFILE first... */
+		if(PTYPE(tmp) == PNET)
+		{
+			fd = tmp->object.p->pobject.fd;
+			ptype = 1;
+		}
+		else
+			fdin = FILEPORT(tmp); /* should check if it's a PFILE first... */
 	}
 	else
 		fdin = stdin; /* should lookup current-input-port */
+	//printf("Made it to f_read_string: ptype == %d\n",ptype);
 	while(1)
 	{
-		in = fgetc(fdin);
-		if(feof(fdin) || in == EOF)
-		{
-			if(iter == 0)
-				return e->seof;
-			break;
-		}
-		if(in == '\r')
+		//printf("looping in f_read_string\n");
+		if(!ptype)
 		{
 			in = fgetc(fdin);
-			if(in == '\n')
-				break;
-			else if(feof(fdin))
+			if(feof(fdin) || in == EOF)
 			{
 				if(iter == 0)
 					return e->seof;
 				break;
 			}
+		}	
+		else
+		{
+			//printf("%d: before read\n",__LINE__);
+			len = read(fd,&in,1);
+			//printf("%d: after read\n",__LINE__);
+			if(len == 0)
+			{
+				if(iter == 0)
+					return e->seof;
+				break;
+			}
+			else if(len < 0)
+			{
+				if(errno == EBADF)
+					printf("BADF\n");
+				else if(errno == EAGAIN)
+					printf("AGAIN\n");
+				else if(errno == EINTR)
+					printf("EINTr\n");
+				else if(errno == EINVAL)
+					printf("EINVAL\n");
+				else if(errno == EIO)
+					printf("EIO\n");
+				else if(errno == EFAULT)
+					printf("EFAULT\n");
+				else 
+					printf("SOME OTHER errno\n");
+				return makeerror(2,0,"read-string: error from PNET on read");
+			}
+		}
+		if(in == '\r')
+		{
+			if(!ptype)
+			{
+				in = fgetc(fdin);
+				if(in == '\n')
+					break;
+				else if(feof(fdin))
+				{
+					if(iter == 0)
+						return e->seof;
+					break;
+				}
+				else
+					ungetc(in,fdin);
+			}
 			else
-				ungetc(in,fdin);
+			{
+				len = read(fd,&in,1);
+				if(len == 0) // eof
+				{
+					if(iter == 0)
+						return e->seof;
+					break;
+				}
+				else if(in == '\n')
+					break;
+			}
 		}
 		if(in == '\n')
 			break;
@@ -963,7 +1034,8 @@ f_dial(SExp *s, Symbol *e)
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = PORT;
 	PORT(ret) = (Port *)hmalloc(sizeof(Port));
-	FILEPORT(ret) = fdopen(fd,"w+");
+	//FILEPORT(ret) = fdopen(fd,"w+"); // this isn't working for accept & friends
+	PORT(ret)->pobject.fd = fd;
 	FILEADDRESS(ret) = hstrdup(host->object.str);
 	strcpy(FILEMODE(ret),"w+");
 	PROTONUMBER(ret) = p->p_proto;
@@ -1041,14 +1113,16 @@ f_accept(SExp *s, Symbol *e)
 	tmp = car(s);
 	if(tmp->type != PORT || PTYPE(tmp) != PNET)
 		return makeerror(2,0,"accept's sole argument *must* be a network port");	
-	fd = fileno(FILEPORT(tmp));
+	//fd = fileno(FILEPORT(tmp));
+	fd = PORT(tmp)->pobject.fd;
 	rc = accept(fd,nil,nil);
 	if(rc < 0)
 		return makeerror(2,0,"accept returned -1; exiting");
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = PORT;
 	PORT(ret) = (Port *)hmalloc(sizeof(Port));
-	FILEPORT(ret) = fdopen(rc,"w+");
+	//FILEPORT(ret) = fdopen(rc,"w+");
+	PORT(ret)->pobject.fd = rc;
 	PROTONUMBER(ret) = -1;
 	NETBIND(ret) = -1;
 	PTYPE(ret) = PNET;
@@ -1074,7 +1148,8 @@ f_hangup(SExp *s, Symbol *e)
 	tmp = car(s);
 	if(tmp->type != PORT)
 		return makeerror(2,0,"p *must* be bound to a PORT");
-	fd = fileno(FILEPORT(tmp));
+	//fd = fileno(FILEPORT(tmp));
+	fd = PORT(tmp)->pobject.fd;
 	if(shutdown(fd,SHUT_RDWR))
 	{
 		close(fd);
@@ -1148,11 +1223,19 @@ f_write_buf(SExp *s, Symbol *e)
 	if(port->type != PORT)
 		return makeerror(2,0,"p *must* be bound to a port");
 	len = buf->length;
-	if((len = fwrite(buf->object.str,sizeof(char),buf->length,FILEPORT(port))) != buf->length)
-		return makeerror(2,0,"fwrite returned mis-matched sizes!");
-	if(fflush(FILEPORT(port)) != 0)
-		return makeerror(2,0,"fflush return something other than 0!");
-	return e->strue;
+	if(PTYPE(port) == PFILE)
+	{
+		if((len = fwrite(buf->object.str,sizeof(char),buf->length,FILEPORT(port))) != buf->length)
+			return makeerror(2,0,"fwrite returned mis-matched sizes!");
+		if(fflush(FILEPORT(port)) != 0)
+			return makeerror(2,0,"fflush return something other than 0!");
+	}
+	else if(PTYPE(port) == PNET)
+	{
+		if((len = write(PORT(port)->pobject.fd,buf,buf->length)) != buf->length)
+			return makeerror(2,0,"write returned mis-matched sizes for PNET!");
+	}	
+	return e->svoid;
 }
 SExp *
 f_read_buf(SExp *s, Symbol *e)
