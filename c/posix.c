@@ -1092,7 +1092,8 @@ f_announce(SExp *s, Symbol *e)
 		ret = (SExp *)hmalloc(sizeof(SExp));
 		ret->type = PORT;
 		PORT(ret) = (Port *)hmalloc(sizeof(Port));
-		FILEPORT(ret) = fdopen(sock,"w+");
+		//FILEPORT(ret) = fdopen(sock,"w+");
+		PORT(ret)->pobject.fd = sock;
 		PROTONUMBER(ret) = p->p_proto;
 		NETBIND(ret) = AINT(port);
 		PTYPE(ret) = PNET;
