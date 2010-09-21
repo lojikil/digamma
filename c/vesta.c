@@ -1935,6 +1935,9 @@ lex(FILE *fdin, char **r)
 }
 SExp *
 llread(FILE *fdin)
+/* I'm wondering if I should split this into two (one for reading from PNETs, one from PFILEs) or modularise
+   this. The second option will take quite a bit of time...
+   */
 {
 	int tok = 0, iter = 0, itmp = 0, cur_state = 0, state_stack[64] = {0}, sp = -1;
 	SExp *ret = snil, *holder = snil, *tmp0 = snil, *tmp1 = snil, *tmp2 = snil, *read_stack[64] = {snil};

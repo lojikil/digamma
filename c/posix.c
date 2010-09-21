@@ -935,9 +935,9 @@ SExp *
 f_write_char(SExp *s, Symbol *e)
 {
 	SExp *tmp = e->snil, *port = e->snil, *ret = e->snil;
-	int itmp = pairlength(s), rc = 0;
+	int itmp = pairlength(s), rc = 0, ptype = 0, len = 0, sd = 0;
 	FILE *fd = nil;
-	if(itmp > 2)
+	if(itmp < 1 || itmp > 2)
 		return makeerror(2,0,"write-char c : CHAR [fd : PORT] => sexpression");
 	tmp = car(s);
 	if(tmp->type != CHAR)
@@ -949,13 +949,29 @@ f_write_char(SExp *s, Symbol *e)
 		port = car(cdr(s));
 		if(port->type != PORT)
 			return makeerror(2,0,"read-string's optional argument must be a port");
-		fd = FILEPORT(port); /* should check if it's a PFILE first... */
+		if(PTYPE(port))
+			fd = FILEPORT(port); /* should check if it's a PFILE first... */
+		else if(PTYPE(port) == PNET)
+		{
+			ptype = 1;
+			sd = PORT(port)->pobject.fd;
+		}
 	}
 	else
 		fd = stdout; /* should lookup current-input-port */
-	rc = fputc(tmp->object.c,fd);
-	if(rc != EOF)
+	if(!ptype)
+	{
+		rc = fputc(tmp->object.c,fd);
+		if(rc != EOF)
+			return tmp;
+	}	
+	else
+	{
+		len = write(sd,&tmp->object.c,1);
+		if(len < 0)
+			return makeerror(2,0,"write-char: write returned an error");
 		return tmp;
+	}
 	return e->sfalse;
 }
 SExp *
@@ -1252,16 +1268,30 @@ f_read_buf(SExp *s, Symbol *e)
 	if(port->type != PORT)
 		return makeerror(2,0,"p *must* be bound to a port");
 	len = buf->length;
-	if((len = fread(buf->object.str,sizeof(char),buf->length,FILEPORT(port))) != buf->length)
+	if(PTYPE(port) == PFILE)
 	{
-		//printf("made it past fread...\n");
-		if(len > 0)
-			return e->strue;
-		if(feof(FILEPORT(port)))
-			return e->seof;
-		return makeerror(2,0,"fread hit an error...");
+		if((len = fread(buf->object.str,sizeof(char),buf->length,FILEPORT(port))) != buf->length)
+		{
+			//printf("made it past fread...\n");
+			if(len > 0)
+				return e->strue;
+			if(feof(FILEPORT(port)))
+				return e->seof;
+			return makeerror(2,0,"fread hit an error...");
+		}
 	}
-	return e->strue;
+	else if(PTYPE(port) == PNET)
+	{
+		if((len = read(PORT(port)->pobject.fd,buf->object.str,buf->length)) != buf->length)
+		{
+			if(len > 0)
+				return e->svoid;
+			if(len == 0)
+				return e->seof;
+			return makeerror(2,0,"read returned -1...");
+		}
+	}
+	return e->svoid;
 }
 SExp *
 f_gettimeofday(SExp *s, Symbol *e)
