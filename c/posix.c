@@ -1233,7 +1233,7 @@ f_write_buf(SExp *s, Symbol *e)
 	}
 	else if(PTYPE(port) == PNET)
 	{
-		if((len = write(PORT(port)->pobject.fd,buf,buf->length)) != buf->length)
+		if((len = write(PORT(port)->pobject.fd,buf->object.str,buf->length)) != buf->length)
 			return makeerror(2,0,"write returned mis-matched sizes for PNET!");
 	}	
 	return e->svoid;
