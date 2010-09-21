@@ -1,0 +1,7 @@
+#!/bin/sh
+
+name=`uname | sed -e 's/_.*//'`
+case $name in
+	CYGWIN) make CFLAGS=-DCYGWIN ;;
+	*) make ;;
+esac
