@@ -6,6 +6,9 @@
 ; with future releases, but for now I'm just looking to speed up Digamma development & run times 
 ; :D
 ; zlib/png licensed (c) 2010 Stefan Edwards
+
+(load "primitives.ss")
+
 (def string-join (fn (strs intersital)
 	(def isj (fn (s i)
 		(if (null? (cdr s))
@@ -55,6 +58,7 @@
 			(eq? (car x) 'from) #t
 			(eq? (car x) 'quote) (gen-literal (car (cdr x)))
 			(pair? (car x)) #t
+			(primitive-form? (car x)) 'PRIM-FORM
 			else 'EVAL-FORM)
 		(gen-literal x))))
 
