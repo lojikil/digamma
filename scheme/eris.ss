@@ -58,7 +58,7 @@
 			(eq? (car x) 'from) #t
 			(eq? (car x) 'quote) (gen-literal (car (cdr x)))
 			(pair? (car x)) #t
-			(primitive-form? (car x)) 'PRIM-FORM
+			(primitive-form? (car x)) (gen-primitive (cdr x)) 
 			else 'EVAL-FORM)
 		(gen-literal x))))
 

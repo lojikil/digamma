@@ -8,12 +8,12 @@
 ; zlib/png licensed Copyright 2010 Stefan Edwards 
 
 (def *primitives* {
-:car #t
-:cdr #t
-:cons #t
-:quote #t
-:length #t
-:def #t
+:car [1 #f "car"]
+:cdr [1 #f "cdr"] 
+:cons [2 #f "cons"] 
+;:quote #t
+:length [1 #f "flength"] 
+;:def #t
 :+ #t
 :exact? #t
 :inexact? #t
@@ -129,3 +129,5 @@
 })
 (def primitive-form? (fn (x)
 	(dict-has? *primitives* x)))
+(def gen-primitive (fn (x)
+	'PRIM-FORM))
