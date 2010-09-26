@@ -2,7 +2,7 @@
 ; also defines *primitives* a global dict of all internal forms
 ; TODO:
 ;  - make *primitives* result a vector: [arity syntax? internal-c-function]
-;    + arity is the number of parameters to the C function
+;    + arity is the number of parameters to the C function [0 means just pass a list]
 ;    + syntax? means if this form should have it's arguments eval'd before applying it
 ;    + internal-c-function is the low-level C function that backs this primitive in Vesta's runtime
 ; zlib/png licensed Copyright 2010 Stefan Edwards 
@@ -14,19 +14,19 @@
 ;:quote #t
 :length [1 #f "flength"] 
 ;:def #t
-:+ #t
-:exact? #t
-:inexact? #t
-:real? #t
-:integer? #t
-:complex? #t
-:rational? #t
-:numerator #t
-:denomenator #t
-:* #t
-:type #t
-:- #t
-:/ #t
+:+ [0 #f "fplus"]
+:exact? [1 #f "fexactp"]
+:inexact? [1 #f "finexactp"]
+:real? [1 #f "frealp"]
+:integer? [1 #f "fintegerp"]
+:complex? [1 #f "fcomplexp"]
+:rational? [1 #f "frationalp"]
+:numerator [1 #f "fnum"]
+:denomenator [1 #f "fden"]
+:* [0 #f "fmult"]
+:type [1 #f "ftype"]
+:- [0 #f "fsubt"]
+:/ [0 #f "fdivd"]
 :gcd #t
 :lcm #t
 :ceil #t
@@ -34,19 +34,19 @@
 :truncate #t
 :round #t
 :inexact->exact #t
-:eq? #t
-:< #t
-:> #t
-:<= #t
-:>= #t
-:= #t
-:quotient #t
-:modulo #t
-:remainder #t
+:eq? [2 #f "eqp"]
+:< [0 #f "flt"] 
+:> [0 #f "fgt"] 
+:<= [0 #f "flte"]
+:>= [0 #f "fgte"]
+:= [0 #f "fnumeq"]
+:quotient [2 #f "fquotient"]
+:modulo [2 #f "fmodulo"]
+:remainder [2 #f "fremainder"]
 :set! #t
 :fn #t
-:& #t
-:| #t
+:& [2 #f "fbitand"]
+:| [2 #f "fbitor"]
 :^ #t
 :~ #t
 :list #t
