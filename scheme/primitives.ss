@@ -130,4 +130,5 @@
 (def primitive-form? (fn (x)
 	(dict-has? *primitives* x)))
 (def gen-primitive (fn (x)
-	'PRIM-FORM))
+	(let ((f (nth *primitives* (car x))) (args (cdr x)))
+		
