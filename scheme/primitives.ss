@@ -129,6 +129,14 @@
 })
 (def primitive-form? (fn (x)
 	(dict-has? *primitives* x)))
+(def count-cdr (fn (obj n)
+		(if (= n 0)
+		 obj
+		 (string-append "cdr(" (count-cdr obj (- n 1)) ")" ))))
 (def gen-primitive (fn (x)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
-		
+	 (if (= (nth f 0) 0) ; arity
+	  (format "~s(list(~n,~s))" (nth f 2) (length args) (string-join (map gen-code args) ","))
+	  (if (= (length args) (nth f 0))
+	   (format "~s(~s)" (nth f 2) (string-join (map gen-code args) ","))
+	   (error (format "eris: incorrect number of arguments to ~s" (nth f 2))))))))

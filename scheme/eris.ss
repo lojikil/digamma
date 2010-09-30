@@ -57,6 +57,8 @@
 			(eq? (car x) 'use) #t
 			(eq? (car x) 'from) #t
 			(eq? (car x) 'quote) (gen-literal (car (cdr x)))
+			(eq? (car x) 'module) 'MODULE
+			(eq? (car x) 'if) 'IF ; if & other primitive syntax needs to be handled here
 			(pair? (car x)) #t
 			(primitive-form? (car x)) (gen-primitive x) 
 			else 'EVAL-FORM)
