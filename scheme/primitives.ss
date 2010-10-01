@@ -49,7 +49,7 @@
 :| [2 #f "fbitor"]
 :^ #t
 :~ #t
-:list #t
+:list [0 #f "list"]
 :vector #t
 :make-vector #t
 :make-string #t
@@ -133,6 +133,10 @@
 		(if (= n 0)
 		 obj
 		 (string-append "cdr(" (count-cdr obj (- n 1)) ")" ))))
+(def gen-begin (fn (l)
+		(if (eq? (cdr l) '())
+		 (string-append "__return(" (gen-code (car l)) ");\n")
+		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l))))))
 (def gen-primitive (fn (x)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
 	 (if (= (nth f 0) 0) ; arity
