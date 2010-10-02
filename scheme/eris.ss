@@ -46,6 +46,8 @@
 		else (error "unsupported file type for code generation"))))
 (def lift-lambda (fn (name code)
 #f))
+(def defined-lambda? (fn (name)
+	(dict-has? *fnmung* name)))
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
@@ -70,6 +72,7 @@
 			(eq? (car x) 'list) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'vector) (format "vector(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(pair? (car x)) #t
+			(defined-lambda? (car x)) #t ; need to figure out some method of capturing lambda result & placing it in code
 			(primitive-form? (car x)) (gen-primitive x) 
 			else 'EVAL-FORM)
 		(if (symbol? x)

@@ -487,6 +487,7 @@ SExp *fdict(SExp *);
 SExp *fdicthas(SExp *, SExp *);
 SExp *fstring(SExp *);
 SExp *fmakestring(SExp *);
+SExp *fappend(SExp *);
 /* generic functions */
 SExp *fgensym(SExp *);
 SExp *fmeta(SExp *);

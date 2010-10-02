@@ -27,13 +27,13 @@
 :type [1 #f "ftype"]
 :- [0 #f "fsubt"]
 :/ [0 #f "fdivd"]
-:gcd #t
-:lcm #t
-:ceil #t
-:floor #t
-:truncate #t
-:round #t
-:inexact->exact #t
+:gcd [0 #f "fgcd"]
+:lcm [0 #f "flcm"]
+:ceil [1 #f "fceil"]
+:floor [1 #f "ffloor"]
+:truncate [1 #f "ftruncate"]
+:round [1 #f "fround"]
+:inexact->exact [1 #f "fin2ex"]
 :eq? [2 #f "eqp"]
 :< [0 #f "flt"] 
 :> [0 #f "fgt"] 
@@ -43,25 +43,25 @@
 :quotient [2 #f "fquotient"]
 :modulo [2 #f "fmodulo"]
 :remainder [2 #f "fremainder"]
-:set! #t
-:fn #t
+;:set! #t
+;:fn #t
 :& [2 #f "fbitand"]
 :| [2 #f "fbitor"]
-:^ #t
-:~ #t
-:list [0 #f "list"]
-:vector #t
-:make-vector #t
-:make-string #t
-:string #t
-:append #t
-:first #t
-:rest #t
-:ccons #t
-:nth #t
-:keys #t
+:^ [2 #f "fbitxor"]
+:~ [2 #f "fbitnot"]
+;:list [0 #f "list"]
+;:vector #t
+:make-vector [0 #f "fmkvector"]
+:make-string [0 #f "fmakestring"]
+;:string #t
+:append [0 #f "fappend"]
+:first [0 #f "ffirst"]
+:rest [0 #f "frest"]
+:ccons [0 #f "fccons"] 
+:nth [0 #f "fnth"]
+:keys #t 
 :partial-key? #t
-:cset! #t
+:cset! [0 #f "fcset"]
 :empty? #t
 :define-macro #t
 :gensym #t

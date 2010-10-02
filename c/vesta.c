@@ -3605,18 +3605,8 @@ __base:
 				__return(makeerror(1,0,"gensym [(a : ATOM)] => symbol"));
 			}
 			__return(fgensym(car(rst)));
-		case OPAPPEND:
-			switch(pairlength(rst))
-			{
-				case 0:
-					__return(snil);
-				case 1:
-					__return(car(rst));
-				case 2:
-					__return(bappend(car(rst),car(cdr(rst))));
-				default:
-					__return(append(rst));
-			}
+		case OPAPPEND: 
+			__return(fappend(rst));	
 		case OPTYPE:
 			if(pairlength(rst) != 1)
 			{
@@ -7973,6 +7963,22 @@ SExp *
 cloneenv(SExp *e)
 {
 	return snil;
+}
+SExp *
+fappend(SExp *rst)
+/* wrapped the append switch in a function so that it can be easily compiled with Eris */
+{
+	switch(pairlength(rst))
+	{
+		case 0:
+			return snil;
+		case 1:
+			return car(rst);
+		case 2:
+			return bappend(car(rst),car(cdr(rst)));
+		default:
+			return append(rst);
+	}
 }
 #ifdef NEED_LOG2
 double
