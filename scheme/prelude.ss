@@ -100,3 +100,7 @@
 		s
 		(foldl op (op s (first l)) (rest l))))
 (def require (let ((paths ["~/.digamma/lib" "."]) (loaded {})) (fn (x) #f)))
+(def char->=? (fn (a b) (>= (coerce a 'int) (coerce b 'int))))
+(def char->? (fn (a b) (> (coerce a 'int) (coerce b 'int))))
+(def char-<=? (fn (a b) (<= (coerce a 'int) (coerce b 'int))))
+(def char-<? (fn (a b) (< (coerce a 'int) (coerce b 'int))))

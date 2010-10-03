@@ -44,6 +44,20 @@
 		(dict? x) (gen-dict x)
 		(symbol? x) (gen-symbol x)
 		else (error "unsupported file type for code generation"))))
+		 
+(def cmung-name (fn (s)
+	(def imung (fn (s i thusfar)
+		(cond
+			(>= i (length s)) thusfar 
+			(ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
+			else (imung s (+ i 1) thusfar))))
+	(apply string (imung s 0 '()))))
+(def ascii-acceptable? (fn (c)
+	(or
+		(and (char->=? c #\a) (char-<=? c #\z))
+		(and (char->=? c #\A) (char-<=? c #\Z))
+		(and (char->=? c #\0) (char-<=? c #\9))
+		(eq? c #\_))))
 (def lift-lambda (fn (name code)
 	(let ((fixname (cmung-name name)))
 	 (cset! *fnmung* fixname name)
