@@ -85,6 +85,7 @@
 			(eq? (car x) 'quote) (gen-literal (car (cdr x)))
 			(eq? (car x) 'module) 'MODULE
 			(eq? (car x) 'if) 'IF ; if & other primitive syntax needs to be handled here
+			(eq? (car x) 'cond) 'COND
 			(eq? (car x) 'begin) (gen-begin (cdr x))
 			(eq? (car x) 'list) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'vector) (format "vector(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
@@ -95,7 +96,23 @@
 		(if (symbol? x)
 		 (format "symlookup(~S,env)" (coerce x 'string))
 		 (gen-literal x)))))
-
+(def header-out (fn (p) 
+		 "output C headers & any top-level structure to output file"
+#f))
+(def footer-out (fn (p)
+		 "finalize C code to output file"
+#f))
+(def eris (fn ()
+	   "Main code output"
+	   (def inner-eris (fn (i o) 
+		(with x (read i)
+	 		#f)))	
+	   (let ((in (open (nth *command-line* 0) :read)) (out (open (nth *command-line* 1) :write)))
+	    (header-out out)
+	    (inner-eris in out)
+	    (footer-out out)
+	    (close in)
+	    (close out))))
 ; The basic system is this:
 ; - read form from file
 ; - call syntax-expand
