@@ -106,7 +106,11 @@
 	   "Main code output"
 	   (def inner-eris (fn (i o) 
 		(with x (read i)
-	 		#f)))	
+		 (if (eq? x #e)
+			#t
+		  (begin
+		   (display (format "~s~%" (gen-code x)) o)
+		   (inner-eris i o))))))
 	   (let ((in (open (nth *command-line* 0) :read)) (out (open (nth *command-line* 1) :write)))
 	    (header-out out)
 	    (inner-eris in out)
