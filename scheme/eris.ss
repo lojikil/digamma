@@ -96,23 +96,51 @@
 		(if (symbol? x)
 		 (format "symlookup(~S,env)" (coerce x 'string))
 		 (gen-literal x)))))
-(def header-out (fn (p) 
+; TODO:
+; - make macro to "call" a specific sub-routine
+; - gensym the base label
+; - generate a C macro to jump to this "base label"
+(def header-out (fn (p n) 
 		 "output C headers & any top-level structure to output file"
-#f))
+		 (foreach-proc (fn (x) (display x p) (newline p)) '("#include <stdio.h>"
+"#include <stdlib.h>"
+"#include <string.h>"
+"#include <unistd.h>"
+"#include <gc.h>"
+"#include <math.h>"
+"#include <sys/param.h>"
+"#include <fcntl.h>"
+"#include <sys/time.h>"
+"#include <sys/types.h>"
+"#include <sys/stat.h>"
+"#include <sys/wait.h>"
+"#include <sys/socket.h>"
+"#include <netdb.h>"
+"#include <netinet/in.h>"
+"#include <arpa/inet.h>"
+"#include <dirent.h>"
+"#include <signal.h>"
+"#include <errno.h>"
+"#include <stdarg.h>"
+"#include \"vesta.h\""))
+		 (display (format "void~%~s()~%{\tSExp *stk,*it,*fst,*rst;~%\tint state = 0, nextstate = 0;~%" p n))
+		 (display (format "~a:~%\tswitch(state)~%\t{~%" (gensym 'BASE)) p))) ; need to capture that gensym's result, so it can be stuffed in a macro
 (def footer-out (fn (p)
 		 "finalize C code to output file"
-#f))
+		 (display "\t}\n}\n" p)))
 (def eris (fn ()
 	   "Main code output"
 	   (def inner-eris (fn (i o) 
 		(with x (read i)
 		 (if (eq? x #e)
-			#t
+			#v
 		  (begin
 		   (display (format "~s~%" (gen-code x)) o)
 		   (inner-eris i o))))))
-	   (let ((in (open (nth *command-line* 0) :read)) (out (open (nth *command-line* 1) :write)))
-	    (header-out out)
+	   (let ((in (open (nth *command-line* 0) :read)) 
+		 (out (open (nth *command-line* 1) :write))
+		 (name (nth *command-line* 2)))
+	    (header-out out name)
 	    (inner-eris in out)
 	    (footer-out out)
 	    (close in)
