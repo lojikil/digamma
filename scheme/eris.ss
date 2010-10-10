@@ -100,8 +100,18 @@
 ; - make macro to "call" a specific sub-routine
 ; - gensym the base label
 ; - generate a C macro to jump to this "base label"
+; - collate lambda "states" to an enum that can be placed in a header file for
+; Awesome things to do:
+; - call graphs
+; - static checks of availability
+; - useful lambda lifting 
+; - inclusion of types & typed-syntax expansion
+; - c-lambdas, c-macros, c-syntax
 (def header-out (fn (p n) 
 		 "output C headers & any top-level structure to output file"
+		 (def BASE (gensym 'BASE))
+		 ; would be nice to store which of these headers is needed by which
+		 ; primitives, and only include accordingly.
 		 (foreach-proc (fn (x) (display x p) (newline p)) '("#include <stdio.h>"
 "#include <stdlib.h>"
 "#include <string.h>"
@@ -123,8 +133,9 @@
 "#include <errno.h>"
 "#include <stdarg.h>"
 "#include \"vesta.h\""))
-		 (display (format "void~%~s()~%{\tSExp *stk,*it,*fst,*rst;~%\tint state = 0, nextstate = 0;~%" p n))
-		 (display (format "~a:~%\tswitch(state)~%\t{~%" (gensym 'BASE)) p))) ; need to capture that gensym's result, so it can be stuffed in a macro
+		 (display (format "~%#define __return(x) __val = (x); state = __INT_ERIS_RETURN; goto ~a;~%~%" BASE) p)
+		 (display (format "void~%~s()~%{\tSExp *stk,*it,*fst,*rst;~%\tint state = 0, nextstate = 0;~%" n) p)
+		 (display (format "~a:~%\tswitch(state)~%\t{~%" BASE) p))) 
 (def footer-out (fn (p)
 		 "finalize C code to output file"
 		 (display "\t}\n}\n" p)))

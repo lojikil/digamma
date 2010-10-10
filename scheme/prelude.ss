@@ -71,6 +71,10 @@
 	(if (empty? col)
 		col
 		(ccons (proc (first col)) (map proc (rest col)))))
+(defn foreach-proc (proc col)
+       (if (empty? col)
+	       #v
+	       (begin (proc (first col)) (map proc (rest col)))))
 (defn filter (proc col)
 	(if (empty? col)
 		col
