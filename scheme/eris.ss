@@ -132,13 +132,21 @@
 "#include <signal.h>"
 "#include <errno.h>"
 "#include <stdarg.h>"
-"#include \"vesta.h\""))
+"#include \"vesta.h\""
+"#include \"eris-out.h\""))
 		 (display (format "~%#define __return(x) __val = (x); state = __INT_ERIS_RETURN; goto ~a;~%~%" BASE) p)
 		 (display (format "void~%~s()~%{\tSExp *stk,*it,*fst,*rst;~%\tint state = 0, nextstate = 0;~%" n) p)
 		 (display (format "~a:~%\tswitch(state)~%\t{~%" BASE) p))) 
 (def footer-out (fn (p)
 		 "finalize C code to output file"
 		 (display "\t}\n}\n" p)))
+(def dump-states (fn (p)
+	(def ids (fn ()
+#f))
+	(display "#ifndef __ERIS_OUT_H\n#define __ERIS_OUT_H\n" p)
+	(display "typedef enum\n{\n" p)
+	(display (ids) p)
+	(display "\n}\n#endif\n" p)))
 (def eris (fn ()
 	   "Main code output"
 	   (def inner-eris (fn (i o) 
@@ -150,11 +158,14 @@
 		   (inner-eris i o))))))
 	   (let ((in (open (nth *command-line* 0) :read)) 
 		 (out (open (nth *command-line* 1) :write))
-		 (name (nth *command-line* 2)))
+		 (name (nth *command-line* 2))
+		 (e-oh (open "eris-out.h" :write)))
 	    (header-out out name)
 	    (inner-eris in out)
 	    (footer-out out)
+	    (dump-states e-oh)
 	    (close in)
+	    (close e-oh)
 	    (close out))))
 ; The basic system is this:
 ; - read form from file
