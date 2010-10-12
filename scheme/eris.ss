@@ -92,6 +92,7 @@
 			(pair? (car x)) #t
 			(defined-lambda? (car x)) #t ; need to figure out some method of capturing lambda result & placing it in code
 			(primitive-form? (car x)) (gen-primitive x) 
+			(primitive-proc? (car x)) (gen-prim-proc x) ;display & friends
 			else 'EVAL-FORM)
 		(if (symbol? x)
 		 (format "symlookup(~S,env)" (coerce x 'string))
@@ -141,11 +142,9 @@
 		 "finalize C code to output file"
 		 (display "\t}\n}\n" p)))
 (def dump-states (fn (p)
-	(def ids (fn ()
-#f))
 	(display "#ifndef __ERIS_OUT_H\n#define __ERIS_OUT_H\n" p)
 	(display "typedef enum\n{\n" p)
-	(display (ids) p)
+	(display (string-join (map (fn (x) (nth *fnmung* x)) (keys *fnmung*)) ",\n") p) 
 	(display "\n}\n#endif\n" p)))
 (def eris (fn ()
 	   "Main code output"

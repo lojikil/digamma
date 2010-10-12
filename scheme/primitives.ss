@@ -144,3 +144,7 @@
 	  (if (= (length args) (nth f 0))
 	   (format "~s(~s)" (nth f 2) (string-join (map gen-code args) ","))
 	   (error (format "eris: incorrect number of arguments to ~s" (nth f 2))))))))
+(def primitive-proc? (fn (x)
+	(dict-has? *prim-proc* x)))
+(def gen-prim-proc (fn (f)
+#f))
