@@ -7052,7 +7052,7 @@ flength(SExp *tmp1)
 	/* would it be meaningful to return 0 here?
 	 * technically, scalars have a zero length...
 	 */
-	return makeerror(1,0,"type clash...");
+	return makeerror(1,0,"length: type clash: length operates on STRING | VECTOR | PAIR");
 }
 SExp *
 fempty(SExp *tmp0)

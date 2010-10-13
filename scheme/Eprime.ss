@@ -1,4 +1,4 @@
-; A Digamma->C compiler that supports the full Digamma spec (including POSIX & W7).
+; A restricted Digamma->C compiler that supports a subset of the Digamma spec.
 ; it's probably a crappy method of compilation, but it eases transition, since it
 ; reuses Vesta's runtime. The Best method would be to have a nice Type inference system
 ; that uses something similar to a tagged pointer for SExprs, rather than the heavy struct/union
@@ -7,9 +7,7 @@
 ; :D
 ; zlib/png licensed (c) 2010 Stefan Edwards
 
-(load "primitives.ss")
-
-(def *states* {}) ; this is a dict of the various "functions" of the Digamma program
+(def *fnarit* {}) ; this is a dict of the various functions' arity
 (def *fnmung* {}) ; maps the program's lambda's name to the munged version
 
 (def string-join (fn (strs intersital)
@@ -46,12 +44,14 @@
 		else (error "unsupported file type for code generation"))))
 		 
 (def cmung-name (fn (s)
+		 (display "Made it to cmung\n")
 	(def imung (fn (s i thusfar)
 		(cond
 			(>= i (length s)) thusfar 
 			(ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
 			else (imung s (+ i 1) thusfar))))
-	(apply string (imung s 0 '()))))
+	(display "Returning from cmung\n")
+	(apply string (imung (coerce s 'string) 0 '()))))
 (def ascii-acceptable? (fn (c)
 	(or
 		(and (char->=? c #\a) (char-<=? c #\z))
@@ -59,12 +59,19 @@
 		(and (char->=? c #\0) (char-<=? c #\9))
 		(eq? c #\_))))
 (def lift-lambda (fn (name code)
+		  (display "Made it to lift-lambda\n")
 	(let ((fixname (cmung-name name)))
-	 (cset! *fnmung* fixname name)
-	 (string-append (gen-fn-env (car code)) (gen-begin (cdr code)))
-#f)))
+	 (display "Made it past cmung-name in let\n")
+	 (cset! *fnmung* name fixname)'
+	 (cset! *fnarit* name (length (car code)))
+	 (display "Past cset!\n")
+	 (format "SExp *~%~s(~s)\n{\n\t~s}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
+(def call-lambda (fn name args)
+ (if (= (length args) (nth *fnarit* name))
+  (format "~s(~s)" name (string-join (map (fn (x) (gen-code x)) args) ","))
+  (error (format "incorrect arity for ~S~%" (coerce name 'string)))))
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
@@ -90,12 +97,12 @@
 			(eq? (car x) 'list) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'vector) (format "vector(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(pair? (car x)) #t
-			(defined-lambda? (car x)) #t ; need to figure out some method of capturing lambda result & placing it in code
+			(defined-lambda? (car x)) (call-lambda (car x) (cdr x))
 			(primitive-form? (car x)) (gen-primitive x) 
 			(primitive-proc? (car x)) (gen-prim-proc x) ;display & friends
 			else 'EVAL-FORM)
 		(if (symbol? x)
-		 (format "symlookup(~S,env)" (coerce x 'string))
+		 (coerce x 'string)
 		 (gen-literal x)))))
 ; TODO:
 ; - make macro to "call" a specific sub-routine
@@ -138,8 +145,7 @@
 "#include \"eris-out.h\""))
 		 (display (format "~%#define __return(x) __val = (x); state = __INT_ERIS_RETURN; goto ~a;~%~%" BASE) p)
 		 (display (format "~%#define __call(x,y) state = (x); nextstate = (y);~%~%") p)
-		 (display (format "void~%~s()~%{\tSExp *stk,*it,*fst,*rst;~%\tint state = 0, nextstate = 0;~%" n) p)
-		 (display (format "~a:~%\tswitch(state)~%\t{~%" BASE) p))) 
+		 (display (format "void~%~s()~%{~%" n) p)))
 (def footer-out (fn (p)
 		 "finalize C code to output file"
 		 (display "\t}\n}\n" p)))
@@ -148,7 +154,7 @@
 	(display "typedef enum\n{\n" p)
 	(display (string-join (map (fn (x) (format "~a" (nth *fnmung* x))) (keys *fnmung*)) ",\n") p) 
 	(display "\n}\n#endif\n" p)))
-(def eris (fn ()
+(def eprime (fn ()
 	   "Main code output"
 	   (def inner-eris (fn (i o) 
 		(with x (read i)
@@ -174,3 +180,138 @@
 ; - call macro-expand
 ; - call gen-code on what's left
 ; - loop to the first item until #e
+; Primitive handling functions for Eris
+; also defines *primitives* a global dict of all internal forms
+; TODO:
+;  - make *primitives* result a vector: [arity syntax? internal-c-function]
+;    + arity is the number of parameters to the C function [0 means just pass a list]
+;    + syntax? means if this form should have it's arguments eval'd before applying it
+;    + internal-c-function is the low-level C function that backs this primitive in Vesta's runtime
+; zlib/png licensed Copyright 2010 Stefan Edwards 
+
+(def *primitives* {
+:car [1 #f "car"]
+:cdr [1 #f "cdr"] 
+:cons [2 #f "cons"] 
+:length [1 #f "flength"] 
+:+ [0 #f "fplus"]
+:exact? [1 #f "fexactp"]
+:inexact? [1 #f "finexactp"]
+:real? [1 #f "frealp"]
+:integer? [1 #f "fintegerp"]
+:complex? [1 #f "fcomplexp"]
+:rational? [1 #f "frationalp"]
+:numerator [1 #f "fnum"]
+:denomenator [1 #f "fden"]
+:* [0 #f "fmult"]
+:type [1 #f "ftype"]
+:- [0 #f "fsubt"]
+:/ [0 #f "fdivd"]
+:gcd [0 #f "fgcd"]
+:lcm [0 #f "flcm"]
+:ceil [1 #f "fceil"]
+:floor [1 #f "ffloor"]
+:truncate [1 #f "ftruncate"]
+:round [1 #f "fround"]
+:inexact->exact [1 #f "fin2ex"]
+:eq? [2 #f "eqp"]
+:< [0 #f "flt"] 
+:> [0 #f "fgt"] 
+:<= [0 #f "flte"]
+:>= [0 #f "fgte"]
+:= [0 #f "fnumeq"]
+:quotient [2 #f "fquotient"]
+:modulo [2 #f "fmodulo"]
+:remainder [2 #f "fremainder"]
+;:set! #t
+;:fn #t
+:& [2 #f "fbitand"]
+:| [2 #f "fbitor"]
+:^ [2 #f "fbitxor"]
+:~ [2 #f "fbitnot"]
+:make-vector [0 #f "fmkvector"]
+:make-string [0 #f "fmakestring"]
+:append [0 #f "fappend"]
+:first [0 #f "ffirst"]
+:rest [0 #f "frest"]
+:ccons [0 #f "fccons"] 
+:nth [0 #f "fnth"]
+:keys #t 
+:partial-key? #t
+:cset! [0 #f "fcset"]
+:empty? #t
+:gensym #t
+:imag-part #t
+:real-part #t
+:make-rectangular #t
+:make-polar #t
+:magnitude #t
+:argument #t
+:conjugate! #t
+:conjugate #t
+:polar->rectangular #t
+:rectangular->polar #t
+:sin #t
+:cos #t
+:tan #t
+:asin #t
+:acos #t
+:atan #t
+:atan2 #t
+:cosh #t
+:sinh #t
+:tanh #t
+:exp #t
+:ln #t
+:abs #t
+:sqrt #t
+:exp2 #t
+:expm1 #t
+:log2 #t
+:log10 #t
+:<< #t
+:>> #t
+:begin #t
+:string-append #t
+:apply #t
+:assq #t
+:defrec #t
+:set-rec! #t
+:dict #t
+:make-dict #t
+:dict-has? #t
+:coerce #t
+:error #t
+:cupdate #t
+:cslice #t
+:tconc! #t
+:make-tconc #t
+:tconc-list #t
+:tconc->pair #t
+:tconc-splice! #t
+:if #t
+:eval #t
+:meta! #t
+:current-tick #t
+})
+(def primitive-form? (fn (x)
+	(dict-has? *primitives* x)))
+(def count-cdr (fn (obj n)
+		(if (= n 0)
+		 obj
+		 (string-append "cdr(" (count-cdr obj (- n 1)) ")" ))))
+(def gen-begin (fn (l)
+		(if (eq? (cdr l) '())
+		 (string-append "return " (gen-code (car l)) ";\n")
+		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l))))))
+(def gen-primitive (fn (x)
+	(let ((f (nth *primitives* (car x))) (args (cdr x)))
+	 (if (= (nth f 0) 0) ; arity
+	  (format "~s(list(~n,~s))" (nth f 2) (length args) (string-join (map gen-code args) ","))
+	  (if (= (length args) (nth f 0))
+	   (format "~s(~s)" (nth f 2) (string-join (map gen-code args) ","))
+	   (error (format "eris: incorrect number of arguments to ~s" (nth f 2))))))))
+(def primitive-proc? (fn (x)
+	(dict-has? *prim-proc* x)))
+(def gen-prim-proc (fn (f)
+#f))
