@@ -136,11 +136,11 @@ f_pwd(SExp *src, Symbol *env)
 {
 	char *buf = nil;
 	SExp *ret = env->snil;
-	buf = (char *)hmalloc(sizeof(char) * MAXPATHLEN);
-	buf = getcwd(buf,MAXPATHLEN);
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = STRING;
-	ret->object.str = buf;
+	ret->object.str = (char *)hmalloc(sizeof(char) * MAXPATHLEN);
+	ret->object.str = getcwd(ret->object.str,MAXPATHLEN);
+	ret->length = strlen(ret->object.str);
 	return ret;
 }
 SExp *
