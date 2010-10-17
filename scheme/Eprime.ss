@@ -68,10 +68,10 @@
 	 (format "SExp *~%~s(~s)\n{\n\t~s}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
-(def call-lambda (fn name args)
+(def call-lambda (fn (name args)
  (if (= (length args) (nth *fnarit* name))
   (format "~s(~s)" name (string-join (map (fn (x) (gen-code x)) args) ","))
-  (error (format "incorrect arity for ~S~%" (coerce name 'string)))))
+  (error (format "incorrect arity for ~S~%" (coerce name 'string))))))
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
