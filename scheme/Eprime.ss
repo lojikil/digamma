@@ -72,6 +72,12 @@
  (if (= (length args) (nth *fnarit* name))
   (format "~s(~s)" name (string-join (map (fn (x) (gen-code x)) args) ","))
   (error (format "incorrect arity for ~S~%" (coerce name 'string))))))
+(def gen-if (fn (args)
+	     (let ((<cond> (car args))
+		   (<then> (car (cdr args)))
+		   (<else> (car (cdr (cdr args))))
+		   (<it> (gensym 'it)))
+	      'do-something)))
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
@@ -91,8 +97,8 @@
 			(eq? (car x) 'with) #t ; same goes for with
 			(eq? (car x) 'quote) (gen-literal (car (cdr x)))
 			(eq? (car x) 'module) 'MODULE
-			(eq? (car x) 'if) 'IF ; if & other primitive syntax needs to be handled here
-			(eq? (car x) 'cond) 'COND
+			(eq? (car x) 'if) (gen-if (cdr x)) ; if & other primitive syntax needs to be handled here
+			(eq? (car x) 'cond) (gen-cond (cdr x)) ; should be nearly identical to if, but with more else if's 
 			(eq? (car x) 'begin) (gen-begin (cdr x))
 			(eq? (car x) 'list) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'vector) (format "vector(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
