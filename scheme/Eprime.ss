@@ -72,6 +72,11 @@
  (if (= (length args) (nth *fnarit* name))
   (format "~s(~s)" name (string-join (map (fn (x) (gen-code x)) args) ","))
   (error (format "incorrect arity for ~S~%" (coerce name 'string))))))
+
+; need to change this:
+;  - check if <then> or <else> is a (begin ...)
+;  - if not, say ret = (gen-code ...)
+;  - if so, do nothing (and make gen-begin set ret = final code...)
 (def gen-if (fn (args)
 	     (let ((<cond> (car args))
 		   (<then> (car (cdr args)))
