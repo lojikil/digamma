@@ -77,7 +77,16 @@
 		   (<then> (car (cdr args)))
 		   (<else> (car (cdr (cdr args))))
 		   (<it> (gensym 'it)))
-	      'do-something)))
+	      (format "SExp *~s = ~s;~%
+	       if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+	       {
+	       	 ~s;
+		}
+		else
+		{
+			~s;
+		}~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-code <else>)))))
+	      
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
@@ -300,6 +309,15 @@
 :meta! #t
 :current-tick #t
 })
+(def *prim-proc* {
+ :display #t
+ :read-char #t
+ :write-char #t
+ :read-buffer #t
+ :write-buffer #t
+ :read-string #t
+ :write-string #t
+ })
 (def primitive-form? (fn (x)
 	(dict-has? *primitives* x)))
 (def count-cdr (fn (obj n)
