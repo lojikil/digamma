@@ -17,6 +17,8 @@
 (def symbol? (fn (n) (eq? (type n) "Symbol")))
 (def number? (fn (n) (eq? (type n) "Number")))
 (def string? (fn (n) (eq? (type n) "String")))
+(def bool? (fn (n) (eq? (type n) "Boolean")))
+(def goal? (fn (n) (eq? (type n) "Goal")))
 (def not (fn (x)
         (cond
                 (eq? x #s) #u

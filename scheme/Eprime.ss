@@ -33,6 +33,14 @@
 (def gen-pair (fn (x)
 	(let ((n (length x)))
 		(string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")"))))
+(def gen-bool (fn (x)
+	       (if x
+		"strue"
+		"sfalse")))
+(def gen-goal (fn (x)
+	       (if (eq? x #s)
+		"ssucc"
+		"sunsucc")))
 (def gen-literal (fn (x)
 	(cond
 		(number? x) (gen-number x)
@@ -40,8 +48,11 @@
 		(vector? x) (gen-vector x)
 		(pair? x) (gen-pair x) ; really, need to tell what type of code to generate here...
 		(dict? x) (gen-dict x)
+		(eq? x '()) "snil"
 		(symbol? x) (gen-symbol x)
-		else (error "unsupported file type for code generation"))))
+		(bool? x) (gen-bool x)
+		(goal? x) (gen-goal x)
+		else (error (format "unsupported data type for code generation: ~s" (type x))))))
 		 
 (def cmung-name (fn (s)
 		 (display "Made it to cmung\n")
@@ -65,7 +76,7 @@
 	 (cset! *fnmung* name fixname)'
 	 (cset! *fnarit* name (length (car code)))
 	 (display "Past cset!\n")
-	 (format "SExp *~%~s(~s)\n{\n\t~s}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
@@ -78,19 +89,19 @@
 ;  - if not, say ret = (gen-code ...)
 ;  - if so, do nothing (and make gen-begin set ret = final code...)
 (def gen-if (fn (args)
-	     (let ((<cond> (car args))
-		   (<then> (car (cdr args)))
-		   (<else> (car (cdr (cdr args))))
+	     (let ((<cond> (gen-code (car args)))
+		   (<then> (if (eq? (caadr args) 'begin) (gen-code (cadr args)) (string-append "ret = " (gen-code (cadr args)) ";\n")))
+		   (<else> (if (eq? (caaddr args) 'begin) (gen-code (caddr args)) (string-append "ret = " (gen-code (caddr args)) ";\n")))
 		   (<it> (gensym 'it)))
 	      (format "SExp *~s = ~s;~%
 	       if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
 	       {
-	       	 ~s;
+	       	 ~s
 		}
 		else
 		{
-			~s;
-		}~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-code <else>)))))
+			~s
+		}~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> <then> <else>))))
 	      
 (def gen-code (fn (x)
 	(if (pair? x) 
@@ -331,7 +342,9 @@
 		 (string-append "cdr(" (count-cdr obj (- n 1)) ")" ))))
 (def gen-begin (fn (l)
 		(if (eq? (cdr l) '())
-		 (string-append "return " (gen-code (car l)) ";\n")
+		 (if (and (pair? (car l)) (eq? (car (car l)) 'if))
+		  (string-append (gen-code (car l)) ";\n") 
+		  (string-append "ret = " (gen-code (car l)) ";\n"))
 		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l))))))
 (def gen-primitive (fn (x)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
