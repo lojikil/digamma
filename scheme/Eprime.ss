@@ -73,7 +73,7 @@
 		  (display "Made it to lift-lambda\n")
 	(let ((fixname (cmung-name name)))
 	 (display "Made it past cmung-name in let\n")
-	 (cset! *fnmung* name fixname)'
+	 (cset! *fnmung* name fixname)
 	 (cset! *fnarit* name (length (car code)))
 	 (display "Past cset!\n")
 	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
@@ -81,7 +81,7 @@
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
  (if (= (length args) (nth *fnarit* name))
-  (format "~s(~s)" name (string-join (map (fn (x) (gen-code x)) args) ","))
+  (format "~s(~s)" (nth *fnmung* name) (string-join (map (fn (x) (gen-code x)) args) ","))
   (error (format "incorrect arity for ~S~%" (coerce name 'string))))))
 
 ; need to change this:
