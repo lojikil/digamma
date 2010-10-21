@@ -101,7 +101,7 @@
 		else
 		{
 			~s
-		}~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> <then> <else>))))
+		}~%" <it> <cond> <it> <it> <it> <it> <it> <then> <else>))))
 	      
 (def gen-code (fn (x)
 	(if (pair? x) 
