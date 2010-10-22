@@ -768,7 +768,7 @@ f_write(SExp *s, Symbol *e)
 	llprinc(s,stdout,1);
 	printf("\n");*/
 	if(i < 1 || i > 2)
-		return makeerror(2,0,"write expects at least one argument, and no more than two: display o : SEXPRESSION [p : PORT] => SEXRESSION");
+		return makeerror(2,0,"write expects at least one argument, and no more than two: write o : SEXPRESSION [p : PORT] => SEXRESSION");
 	f = car(s);
 	if(i == 1)
 		llprinc(f,stdout,1); /* should look up what *current-output-port* is set to... */
@@ -776,7 +776,7 @@ f_write(SExp *s, Symbol *e)
 	{
 		t = car(cdr(s));
 		if(t->type != PORT)
-			return makeerror(2,0,"display's p argument must be of type PORT");
+			return makeerror(2,0,"write's p argument must be of type PORT");
 		llprinc(f,FILEPORT(t),1);
 	}
 	return f;

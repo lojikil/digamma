@@ -94,7 +94,7 @@
 		   (<else> (if (eq? (caaddr args) 'begin) (gen-code (caddr args)) (string-append "ret = " (gen-code (caddr args)) ";\n")))
 		   (<it> (gensym 'it)))
 	      (format "SExp *~s = ~s;~%
-	       if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+	       if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
 	       {
 	       	 ~s
 		}
@@ -326,7 +326,7 @@
 :current-tick #t
 })
 (def *prim-proc* {
- :display #t
+ :display [0 "f_princ"]
  :read-char #t
  :write-char #t
  :read-buffer #t
@@ -336,10 +336,6 @@
  })
 (def primitive-form? (fn (x)
 	(dict-has? *primitives* x)))
-(def count-cdr (fn (obj n)
-		(if (= n 0)
-		 obj
-		 (string-append "cdr(" (count-cdr obj (- n 1)) ")" ))))
 (def gen-begin (fn (l)
 		(if (eq? (cdr l) '())
 		 (if (and (pair? (car l)) (eq? (car (car l)) 'if))
