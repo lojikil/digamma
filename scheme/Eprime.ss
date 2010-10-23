@@ -69,6 +69,11 @@
 		(and (char->=? c #\A) (char-<=? c #\Z))
 		(and (char->=? c #\0) (char-<=? c #\9))
 		(eq? c #\_))))
+(def check-tail-call (fn (proc)
+	"walk through the code of proc, and check if it calls itself; return #t if:
+	- a bottom if has a call in either it's <then> or <else> suite
+	- a bottom begin has a self-call in the tail"
+	#f))
 (def lift-lambda (fn (name code)
 		  (display "Made it to lift-lambda\n")
 	(let ((fixname (cmung-name name)))
@@ -77,6 +82,9 @@
 	 (cset! *fnarit* name (length (car code)))
 	 (display "Past cset!\n")
 	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
+(def lift-tail-lambda (fn (name code)
+	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
+	#f))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
