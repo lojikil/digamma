@@ -75,12 +75,9 @@
 	- a bottom begin has a self-call in the tail"
 	#f))
 (def lift-lambda (fn (name code)
-		  (display "Made it to lift-lambda\n")
 	(let ((fixname (cmung-name name)))
-	 (display "Made it past cmung-name in let\n")
 	 (cset! *fnmung* name fixname)
 	 (cset! *fnarit* name (length (car code)))
-	 (display "Past cset!\n")
 	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
 (def lift-tail-lambda (fn (name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
