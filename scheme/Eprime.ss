@@ -69,11 +69,22 @@
 		(and (char->=? c #\A) (char-<=? c #\Z))
 		(and (char->=? c #\0) (char-<=? c #\9))
 		(eq? c #\_))))
-(def check-tail-call (fn (proc)
+(def tail-call? (fn (name code)
 	"walk through the code of proc, and check if it calls itself; return #t if:
-	- a bottom if has a call in either it's <then> or <else> suite
-	- a bottom begin has a self-call in the tail"
-	#f))
+        - a bottom if has a call in either it's <then> or <else> suite
+        - a bottom begin has a self-call in the tail\n"
+	(if (pair? code)
+		(cond
+                	(eq? (car code) 'if)
+                        	(if (tail-call? name (caddr code))
+                                	#t
+                        		(tail-call? name (cadddr code)))
+			(eq? (car code) 'begin)
+ 				(tail-call? name (nth code (- (length code) 1)))
+			(eq? (car code) 'fn)
+				(tail-call? name (nth code (- (length code) 1)))
+			else (eq? (car code) name))
+		#f)))
 (def lift-lambda (fn (name code)
 	(let ((fixname (cmung-name name)))
 	 (cset! *fnmung* name fixname)
