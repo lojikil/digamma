@@ -92,7 +92,9 @@
 	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
 (def lift-tail-lambda (fn (name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
-	#f))
+	(let ((state (gensym 's))
+	      (fixname (cmung-name name)))
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\t}" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") state))))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
