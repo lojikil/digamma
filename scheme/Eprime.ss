@@ -94,7 +94,7 @@
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
 	(let ((state (gensym 's))
 	      (fixname (cmung-name name)))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\t}" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") state))))
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n\t}}" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") state state))))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
@@ -190,19 +190,11 @@
 "#include <signal.h>"
 "#include <errno.h>"
 "#include <stdarg.h>"
-"#include \"vesta.h\""
-"#include \"eris-out.h\""))
-		 (display (format "~%#define __return(x) __val = (x); state = __INT_ERIS_RETURN; goto ~a;~%~%" BASE) p)
-		 (display (format "~%#define __call(x,y) state = (x); nextstate = (y);~%~%") p)
+"#include \"vesta.h\""))
 		 (display (format "void~%~s()~%{~%" n) p)))
 (def footer-out (fn (p)
 		 "finalize C code to output file"
 		 (display "\t}\n}\n" p)))
-(def dump-states (fn (p)
-	(display "#ifndef __ERIS_OUT_H\n#define __ERIS_OUT_H\n" p)
-	(display "typedef enum\n{\n" p)
-	(display (string-join (map (fn (x) (format "~a" (nth *fnmung* x))) (keys *fnmung*)) ",\n") p) 
-	(display "\n}\n#endif\n" p)))
 (def eprime (fn ()
 	   "Main code output"
 	   (def inner-eris (fn (i o) 
@@ -214,15 +206,13 @@
 		   (inner-eris i o))))))
 	   (let ((in (open (nth *command-line* 0) :read)) 
 		 (out (open (nth *command-line* 1) :write))
-		 (name (nth *command-line* 2))
-		 (e-oh (open "eris-out.h" :write)))
+		 (name (nth *command-line* 2)))
 	    (header-out out name)
 	    (inner-eris in out)
 	    (footer-out out)
-	    (dump-states e-oh)
 	    (close in)
-	    (close e-oh)
 	    (close out))))
+
 ; The basic system is this:
 ; - read form from file
 ; - call syntax-expand
