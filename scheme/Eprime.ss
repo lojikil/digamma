@@ -85,6 +85,9 @@
 				(tail-call? name (nth code (- (length code) 1)))
 			else (eq? (car code) name))
 		#f)))
+(def tail-call-rewrite (fn (name params code)
+	"walks down code & rewrites calls to name; should only be called on last if or begin\n"
+	#t))
 (def lift-lambda (fn (name code)
 	(let ((fixname (cmung-name name)))
 	 (cset! *fnmung* name fixname)
