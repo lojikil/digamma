@@ -6958,7 +6958,7 @@ fnth(SExp *tmp0, SExp *tmp1)
 				return makeerror(1,0,"No such key");
 			return tmp2;
 		default: 
-			return makeerror(1,0,"first operates on collections only...");
+			return makeerror(1,0,"nth operates on collections only...");
 	}
 }
 SExp *

@@ -85,9 +85,38 @@
 				(tail-call? name (nth code (- (length code) 1)))
 			else (eq? (car code) name))
 		#f)))
-(def tail-call-rewrite (fn (name params code)
-	"walks down code & rewrites calls to name; should only be called on last if or begin\n"
-	#t))
+(def rewrite-tail-call (fn (name params state code)
+        (cond
+                (eq? (car code) 'if)
+                        (let ((<cond> (gen-code (car args)))
+							(<then> (if (eq? (caadr args) 'begin) (gen-code (cadr args)) (string-append "ret = " (gen-code (cadr args)) ";\n")))
+							(<else> (if (eq? (caaddr args) 'begin) (gen-code (caddr args)) (string-append "ret = " (gen-code (caddr args)) ";\n")))
+							(<it> (gensym 'it)))
+							(format "SExp *~s = ~s;~%
+	if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+	{
+		~s = 0;
+		~s
+	}
+	else
+	{
+		~s
+	}~%" <it> <cond> <it> <it> <it> <it> <it> state <then> <else>)
+							(format "SExp *~s = ~s;~%
+	if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+	{
+		~s
+	}
+	else
+	{
+		~s = 0;
+		~s
+	}~%" <it> <cond> <it> <it> <it> <it> <it> <then> state <else>))
+                (eq? (car code) 'begin)
+                        (rewrite-tail-call name args (nth code (- (length code) 1)))
+                (eq? (car code) name)
+                       (string-append (string-join (map (fn (x) "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x))) (zip params (cdr code))) ";\n") ";\n")
+                else (gen-code code))))
 (def lift-lambda (fn (name code)
 	(let ((fixname (cmung-name name)))
 	 (cset! *fnmung* name fixname)
@@ -97,7 +126,7 @@
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
 	(let ((state (gensym 's))
 	      (fixname (cmung-name name)))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n\t}}" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") state state))))
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t~s\n\t}}" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") state state (rewrite-tail-call name (car code) state (cdr code))))))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
