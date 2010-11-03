@@ -87,33 +87,33 @@
 		#f)))
 (def rewrite-tail-call (fn (name params state code)
         (cond
-                (eq? (car code) 'if)
-                        (let ((<cond> (gen-code (car args)))
-							(<then> (if (eq? (caadr args) 'begin) (gen-code (cadr args)) (string-append "ret = " (gen-code (cadr args)) ";\n")))
-							(<else> (if (eq? (caaddr args) 'begin) (gen-code (caddr args)) (string-append "ret = " (gen-code (caddr args)) ";\n")))
-							(<it> (gensym 'it)))
-							(format "SExp *~s = ~s;~%
-	if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
-	{
-		~s = 0;
-		~s
-	}
-	else
-	{
-		~s
-	}~%" <it> <cond> <it> <it> <it> <it> <it> state <then> <else>)
-							(format "SExp *~s = ~s;~%
-	if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
-	{
-		~s
-	}
-	else
-	{
-		~s = 0;
-		~s
-	}~%" <it> <cond> <it> <it> <it> <it> <it> <then> state <else>))
+            (eq? (car code) 'if)
+                (let ((<cond> (gen-code (car code)))
+                    (<then> (if (eq? (caadr code) 'begin) (rewrite-tail-call name params state (cadr code)) (string-append (rewrite-tail-call name params state (cadr code)) ";\n")))
+                    (<else> (if (eq? (caaddr params) 'begin) (rewrite-tail-call name params state (caddr code)) (string-append (rewrite-tail-call name params state (caddr code)) ";\n")))
+                    (<it> (gensym 'it)))
+                    (format "SExp *~s = ~s;~%
+        if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+        {
+                ~s = 0;
+                ~s
+        }
+        else
+        {
+                ~s
+        }~%" <it> <cond> <it> <it> <it> <it> <it> state <then> <else>)
+                                                        (format "SExp *~s = ~s;~%
+        if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+        {
+                ~s
+        }
+        else
+        {
+                ~s = 0;
+                ~s
+        }~%" <it> <cond> <it> <it> <it> <it> <it> <then> state <else>))
                 (eq? (car code) 'begin)
-                        (rewrite-tail-call name args (nth code (- (length code) 1)))
+                        (rewrite-tail-call name params (nth code (- (length code) 1)))
                 (eq? (car code) name)
                        (string-append (string-join (map (fn (x) "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x))) (zip params (cdr code))) ";\n") ";\n")
                 else (gen-code code))))
