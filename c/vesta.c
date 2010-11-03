@@ -7118,7 +7118,7 @@ fcupdate(SExp *col, SExp *index, SExp *nuval)
 SExp *
 fcslice(SExp *col, SExp *start, SExp *end)
 {
-	SExp *ret = nil;
+	SExp *ret = snil,*tmp = snil;
 	int i = 0, j = 0, base = 0;
 	if(col->type != VECTOR && col->type != DICT && col->type != STRING && col->type != PAIR)
 		return makeerror(1,0,"cslice's col argument *must* be bound to a collexion");
@@ -7132,6 +7132,8 @@ fcslice(SExp *col, SExp *start, SExp *end)
 			j = AINT(end);
 			if(j < 0)
 				j = col->length + j + 1;
+			else if(j > col->length)
+				return makeerror(1,0,"cslice's END parameter is longer than the collexion it is operating on");
 			i = AINT(start);
 			if(i < 0)
 				i = col->length + i;
@@ -7140,15 +7142,59 @@ fcslice(SExp *col, SExp *start, SExp *end)
 			 */
 			 if(i < 0)
 			 	return makeerror(1,0,"cslice's start argument *must* be greater than 0");
-			 ret = makestring_v(j,nul);
+			 ret = makestring_v(j,' ');
 			 ret->length = j;
 			 for(;i < j;i++, base++)
 			 	ret->object.str[base] = col->object.str[i];
 			 ret->object.str[base] = nul;
 			 break;	
 		case VECTOR:
+			j = AINT(end);
+			if(j < 0)
+				j = col->length + j + 1;
+			else if(j > col->length)
+				return makeerror(1,0,"cslice's END parameter is longer than the collexion it is operating on");
+			i = AINT(start);
+			if(i < 0)
+				i = col->length + i;
+			/* should probably have it where if you say cslice(col,-1,4), it copies the 
+			 * end & wraps to 4, but this seems to be an edge-case that won' be oft used...
+			 */
+			 if(i < 0)
+			 	return makeerror(1,0,"cslice's start argument *must* be greater than 0");
+			ret = makevector(j,snil);
+			for(; i < j; i++, base++)
+				ret->object.vec[base] = col->object.vec[i];
+			ret->length = j;
+			break;
 		case PAIR:
+			j = AINT(end);
+			if(j < 0)
+				j = col->length + j + 1;
+			else if(j > pairlength(col))
+				return makeerror(1,0,"cslice's END parameter is longer than the collexion it is operating on");
+			i = AINT(start);
+			if(i < 0)
+				i = col->length + i;
+			/* should probably have it where if you say cslice(col,-1,4), it copies the 
+			 * end & wraps to 4, but this seems to be an edge-case that won' be oft used...
+			 */
+			 if(i < 0)
+			 	return makeerror(1,0,"cslice's start argument *must* be greater than 0");
+			ret = cons(snil,snil);
+			tmp = ret;
+			for(;i < j; i++, base++)
+			{
+				mcar(tmp) = fnth(col,makeinteger(i));
+				if(i < (j - 1))
+				{
+					mcdr(tmp) = cons(snil,snil);
+					tmp = mcdr(tmp);
+				}
+			}
+			break;
 		case DICT:
+			/* slice off based on list of keys? */
 			break;
 	}
 	return ret;
