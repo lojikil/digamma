@@ -130,13 +130,13 @@
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
 	(let ((state (gensym 's))
 	      (fixname (cmung-name name)))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t~s;\n~s\n\t}}" 
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}}" 
 	  	fixname 
 		(string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") 
 		state 
 		state 
-		(gen-begin (cslice code 0 (- (length code) 1)))
-		(rewrite-tail-call name (car code) state (nth (- (length code) 1) code))))))
+		;(gen-begin (cslice code 0 (- (length code) 1)))
+		(rewrite-tail-call name (car code) state (nth code (- (length code) 1)))))))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
