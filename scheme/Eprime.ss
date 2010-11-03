@@ -88,34 +88,38 @@
 (def rewrite-tail-call (fn (name params state code)
         (cond
             (eq? (car code) 'if)
-                (let ((<cond> (gen-code (car code)))
-                    (<then> (if (eq? (caadr code) 'begin) (rewrite-tail-call name params state (cadr code)) (string-append (rewrite-tail-call name params state (cadr code)) ";\n")))
-                    (<else> (if (eq? (caaddr params) 'begin) (rewrite-tail-call name params state (caddr code)) (string-append (rewrite-tail-call name params state (caddr code)) ";\n")))
-                    (<it> (gensym 'it)))
-                    (format "SExp *~s = ~s;~%
-        if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
-        {
-                ~s = 0;
-                ~s
-        }
-        else
-        {
-                ~s
-        }~%" <it> <cond> <it> <it> <it> <it> <it> state <then> <else>)
-                                                        (format "SExp *~s = ~s;~%
-        if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+				(with <cond> (gen-code (cadr code))
+					(if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?
+					 (let ((<then> (rewrite-tail-call name params state (caddr code)))
+						(<else> (rewrite-tail-call name params state (cadddr code)))
+						(<it> (gensym 'it)))
+                        (format "SExp *~s = ~s;~%
+		if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
         {
                 ~s
         }
         else
         {
                 ~s = 0;
-                ~s
+                ret = ~s;
         }~%" <it> <cond> <it> <it> <it> <it> <it> <then> state <else>))
+					 (let ((<then> (rewrite-tail-call name params state (caddr code)))
+						(<else> (rewrite-tail-call name params state (cadddr code)))
+						(<it> (gensym 'it)))
+                        (format "SExp *~s = ~s;~%
+                if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && !~s->object.c))
+        {
+                ~s = 0;
+                ret = ~s;
+        }
+        else
+        {
+                ~s
+        }~%" <it> <cond> <it> <it> <it> <it> <it> state <then> <else>))))
                 (eq? (car code) 'begin)
                         (rewrite-tail-call name params (nth code (- (length code) 1)))
                 (eq? (car code) name)
-                       (string-append (string-join (map (fn (x) "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x))) (zip params (cdr code))) ";\n") ";\n")
+                       (string-append (string-join (map (fn (x)  (format "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x)))) (zip params (cdr code))) ";\n") ";\n")
                 else (gen-code code))))
 (def lift-lambda (fn (name code)
 	(let ((fixname (cmung-name name)))
