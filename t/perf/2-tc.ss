@@ -1,0 +1,13 @@
+(def fib (fn (t i j n)
+	  (if (<= n 1)
+	   i
+	   (fib i (+ i j) t (- n 1)))))
+(display (fib 1 1 1 2))
+(newline)
+(display (fib 0 1 1 4))
+(newline)
+(display (fib 0 1 1 6))
+(newline)
+(display (fib 0 1 1 8))
+(newline)
+(quit)
