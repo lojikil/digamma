@@ -173,7 +173,9 @@
 						(format "fdef(~s,~s);" (gen-literal (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
 						(if (not (eq? (car (car (cdr (cdr x)))) 'fn))
 							(format "fdef(~s,~s);" (gen-literal (car (cdr x))) (gen-code (car (cdr (cdr x)))))
-							(lift-lambda (car (cdr x)) (cdr (car (cdr (cdr x))))))))
+							(if (tail-call? (cadr x) (cadr (cdaddr x)))
+							 (lift-tail-lambda (cadr x) (cdaddr x))
+							 (lift-lambda (cadr x) (cdaddr x))))))
 			(eq? (car x) 'load) #t
 			(eq? (car x) 'import) #t
 			(eq? (car x) 'use) #t
