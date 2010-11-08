@@ -189,6 +189,7 @@
 			(eq? (car x) 'begin) (gen-begin (cdr x))
 			(eq? (car x) 'list) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'vector) (format "vector(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
+			(eq? (car x) 'string) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(pair? (car x)) #t
 			(defined-lambda? (car x)) (call-lambda (car x) (cdr x))
 			(primitive-form? (car x)) (gen-primitive x) 
@@ -306,8 +307,6 @@
 :quotient [2 #f "fquotient"]
 :modulo [2 #f "fmodulo"]
 :remainder [2 #f "fremainder"]
-;:set! #t
-;:fn #t
 :& [2 #f "fbitand"]
 :| [2 #f "fbitor"]
 :^ [2 #f "fbitxor"]
@@ -322,60 +321,58 @@
 :keys #t 
 :partial-key? #t
 :cset! [0 #f "fcset"]
-:empty? #t
-:gensym #t
-:imag-part #t
-:real-part #t
-:make-rectangular #t
-:make-polar #t
-:magnitude #t
-:argument #t
-:conjugate! #t
-:conjugate #t
-:polar->rectangular #t
-:rectangular->polar #t
-:sin #t
-:cos #t
-:tan #t
-:asin #t
-:acos #t
-:atan #t
-:atan2 #t
-:cosh #t
-:sinh #t
-:tanh #t
-:exp #t
-:ln #t
-:abs #t
-:sqrt #t
-:exp2 #t
-:expm1 #t
-:log2 #t
-:log10 #t
-:<< #t
-:>> #t
-:begin #t
-:string-append #t
-:apply #t
-:assq #t
-:defrec #t
-:set-rec! #t
-:dict #t
+:string [0 #f "fstring"]
+:empty? [1 #f "fempty"] 
+:gensym [0 #f "gensym"] 
+:imag-part [1 #f "fimag_part"]
+:real-part [1 #f "freal_part"] 
+:make-rectangular [2 #f "fmake_rect"]
+:make-polar [2 #f "fmake_pole"]
+:magnitude [1 #f "fmag"]
+:argument [1 #f "fimag_part"]
+:conjugate! [1 #f "fconjugate_bang"] 
+:conjugate [1 #f "fconjugate"]
+:polar->rectangular [1 #f "fpol2rect"]
+:rectangular->polar [1 #f "frect2pol"]
+:sin [1 #f "fsin"]
+:cos [1 #f "fcos"]
+:tan [1 #f "ftan"]
+:asin [1 #f fasin"]
+:acos [1 #f "facos"]
+:atan [1 #f "fatan"]
+:atan2 [2 #f "fatan2"]
+:cosh [1 #f "fcosh"]
+:sinh [1 #f "fsinh"]
+:tanh [1 #f "ftanh"]
+:exp [1 #f "fexp"]
+:ln [1 #f "fln"]
+:abs [1 #f "fnabs"]
+:sqrt [1 #f "fsqrt"]
+:exp2 [1 #f "fexp2"]
+:expm1 [1 #f "fexpm1"]
+:log2 [1 #f "flog2"]
+:log10 [1 #f "flog10"]
+:<< [2 #f "fbitshl"]
+:>> [2 #f "fbitshr"]
+:string-append [0 #f "fstringappend"]
+;:apply #t
+:assq [2 #f "assq"]
+;:defrec #t
+;:set-rec! #t
+:dict [0 #f "fdict"]
 :make-dict #t
-:dict-has? #t
-:coerce #t
-:error #t
-:cupdate #t
-:cslice #t
-:tconc! #t
+:dict-has? [2 #f "fdicthas"]
+:coerce [2 #f "fcoerce"]
+:error [1 #f "ferror"]
+:cupdate [3 #f "fcupdate"]
+:cslice [3 #f "fcslice"]
+:tconc! [2 #f "tconc"]
 :make-tconc #t
 :tconc-list #t
 :tconc->pair #t
-:tconc-splice! #t
-:if #t
-:eval #t
-:meta! #t
-:current-tick #t
+:tconc-splice! [2 #f "tconc_splice"]
+;:eval #t
+;:meta! #t
 })
 (def *prim-proc* {
  :display [0 "f_princ"]
