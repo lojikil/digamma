@@ -1221,6 +1221,7 @@ f_load(SExp *s, Symbol *env)
 {
 	FILE *fdin = nil;
 	SExp *ret = env->snil;
+	int exprcnt = 0;
 	/*printf("Rigors (in f_load): \n");
 	if(ret != nil)
 	{
@@ -1237,6 +1238,7 @@ f_load(SExp *s, Symbol *env)
 	while(1)
 	{
 		ret = llread(fdin);
+		exprcnt++;
 		//llprinc(ret,stderr,1);
 		if(ret->type == ERROR)
 			break;
@@ -1249,7 +1251,10 @@ f_load(SExp *s, Symbol *env)
 			break;
 	}
 	if(ret->type == ERROR)
+	{
+		printf("Error on expression: %d\n",exprcnt);
 		return ret;
+	}
 	return env->strue;	
 }
 SExp *
