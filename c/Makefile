@@ -11,6 +11,8 @@ all: $(OBJS)
 	@echo -n "Linking image..."
 	@cc -o vesta -L/usr/local/lib $(OBJS) -lgc -lm
 	@echo "Done."
+rt: $(OBJS)
+	@cc $(CLFAGS) -DRT_ONLY -c vesta.c -o vesta.o
 %.o: %.c
 	@echo -n Compiling $<
 	@cc $(CFLAGS) -c $< -o $@

@@ -525,17 +525,18 @@ init_env()
 	seof->type = SEOF;
 	svoid = (SExp *)hmalloc(sizeof(SExp));
 	svoid->type = SVOID;
-	//LINE_DEBUG;
-	//LINE_DEBUG;
 	tl_env = (Symbol *)hmalloc(sizeof(Symbol));
+#ifndef RT_ONLY
 	tl_env->data = (Window *)hmalloc(sizeof(Window)); // 64 initial "windows"
-	//LINE_DEBUG;
 	tl_env->cur_offset = 0;
 	tl_env->cur_size = 64;
-	//LINE_DEBUG;
 	tl_env->data->env = (Trie *)hmalloc(sizeof(Trie)); // initial "window"
 	tl_env->data->next = nil;
-	//LINE_DEBUG;
+#elif
+	tl_env->data = nil;
+	tl_env->cur_offset = 0;
+	tl_env->cur_size = 0;
+#endif
 	tl_env->snil = snil;
 	tl_env->svoid = svoid;
 	tl_env->seof = seof;
@@ -543,7 +544,7 @@ init_env()
 	tl_env->sfalse = sfalse;
 	tl_env->ssucc = ssucc;
 	tl_env->sunsucc = sunsucc;
-	//LINE_DEBUG;
+#ifndef RT_ONLY
 	add_env(tl_env,"car",makeprimitive(OPCAR,"car",0));
 	add_env(tl_env,"cdr",makeprimitive(OPCDR,"cdr",0));
 	add_env(tl_env,"cons",makeprimitive(OPCONS,"cons",0));
@@ -662,7 +663,7 @@ init_env()
 	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
 	add_env(tl_env,"call/cc",makeprimitive(OPCALLCC,"call/cc",0));
 	add_env(tl_env,"current-tick",makeprimitive(OPCURTICK,"current-tick",0));
-	//LINE_DEBUG;
+#endif
 	/* seed the random system*/
 	srandom(time(nil));
 	return tl_env;

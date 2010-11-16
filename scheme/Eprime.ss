@@ -235,8 +235,9 @@
 "#include <signal.h>"
 "#include <errno.h>"
 "#include <stdarg.h>"
-"#include \"vesta.h\""))
-		 (display (format "void~%~s()~%{~%" n) p)))
+"#include \"vesta.h\"
+"static Symbol *tl_env = nil;"))
+		 (display (format "void~%~s()~%{~%\ttl_env = init_env();\n" n) p)))
 (def footer-out (fn (p)
 		 "finalize C code to output file"
 		 (display "\t}\n}\n" p)))
