@@ -236,6 +236,7 @@
 "#include <errno.h>"
 "#include <stdarg.h>"
 "#include \"vesta.h\"
+		   (inner-eris i o))))))
 "static Symbol *tl_env = nil;"))
 		 (display (format "void~%~s()~%{~%\ttl_env = init_env();\n" n) p)))
 (def footer-out (fn (p)
@@ -243,13 +244,6 @@
 		 (display "\t}\n}\n" p)))
 (def eprime (fn ()
 	   "Main code output"
-	   (def inner-eris (fn (i o) 
-		(with x (read i)
-		 (if (eq? x #e)
-			#v
-		  (begin
-		   (display (format "~s~%" (gen-code x)) o)
-		   (inner-eris i o))))))
 	   (let ((in (open (nth *command-line* 0) :read)) 
 		 (out (open (nth *command-line* 1) :write))
 		 (name (nth *command-line* 2)))
