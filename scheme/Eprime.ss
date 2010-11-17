@@ -206,11 +206,13 @@
 		(if (symbol? x)
 		 (coerce x 'string)
 		 (gen-literal x)))))
-; TODO:
-; - make macro to "call" a specific sub-routine
-; - gensym the base label
-; - generate a C macro to jump to this "base label"
-; - collate lambda "states" to an enum that can be placed in a header file for
+(def foreach-expression (fn (proc in)
+	(with r (read in)
+	 (if (eq? r #e)
+		#v
+	 	(begin
+			(proc r)
+		       (foreach-expression proc in))))))
 ; Awesome things to do:
 ; - call graphs
 ; - function instrumentation (for debugging)
@@ -243,17 +245,17 @@
 "#include <signal.h>"
 "#include <errno.h>"
 "#include <stdarg.h>"
-"#include \"vesta.h\"
+"#include \"vesta.h\""
 "static Symbol *tl_env = nil;"))))
 (def footer-out (fn (p)
 		 "finalize C code to output file"
-		 (display "\t}\n}\n" p)))
+		 (display "\n}\n" p)))
 (def eprime (fn (i o name)
 	   "Main code output"
 	   (let ((in (open i :read)) 
 		 (out (open o :write)))
 	    (header-out out name)
-
+	    (foreach-expression (fn (e) (display (gen-code e) out)) in)
 	    (display (format "void~%~s()~%{~%\ttl_env = init_env();~%" name) out)
 	    (footer-out out)
 	    (close in)

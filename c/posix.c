@@ -742,7 +742,7 @@ f_read(SExp *s, Symbol *e)
 	{
 		tmp = car(s);
 		if(tmp->type != PORT)
-			return makeerror(2,0,"read-string's optional argument must be a port");
+			return makeerror(2,0,"read's optional argument must be a port");
 		ret = llread(FILEPORT(tmp)); /* should check if it's a PFILE first... */
 	}
 	else
@@ -795,7 +795,7 @@ f_read_char(SExp *s, Symbol *e)
 	{
 		tmp = car(s);
 		if(tmp->type != PORT)
-			return makeerror(2,0,"read-string's optional argument must be a port");
+			return makeerror(2,0,"read-char's optional argument must be a port");
 		if(PTYPE(tmp) == PNET)
 		{
 			sd = tmp->object.p->pobject.fd;
@@ -948,7 +948,7 @@ f_write_char(SExp *s, Symbol *e)
 	{
 		port = car(cdr(s));
 		if(port->type != PORT)
-			return makeerror(2,0,"read-string's optional argument must be a port");
+			return makeerror(2,0,"write-char's optional argument must be a port");
 		if(PTYPE(port))
 			fd = FILEPORT(port); /* should check if it's a PFILE first... */
 		else if(PTYPE(port) == PNET)
