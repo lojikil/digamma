@@ -137,6 +137,14 @@
 		state 
 		;(gen-begin (cslice code 0 (- (length code) 1)))
 		(rewrite-tail-call name (car code) state (nth code (- (length code) 1)))))))
+; rather than lift each lambda passed to primitive HOFs like map, we should lift the entire
+; HOF form, remove the anonymous lambda, and rewrite the whole thing to be a tail-recursive fn.
+; if C supported block expressions in toto (not in specific compilers), I could just rewrite this
+; to a "block while", and rely on lexical scope in whiles + returning a result
+(def lift-map (fn (code)
+#f))
+(def lift-foreach-line (fn (code)
+#f))
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
@@ -210,7 +218,7 @@
 ; - useful lambda lifting 
 ; - inclusion of types & typed-syntax expansion
 ; - c-lambdas, c-macros, c-syntax
-(def header-out (fn (p n) 
+(def header-out (fn (p) 
 		 "output C headers & any top-level structure to output file"
 		 (def BASE (gensym 'BASE))
 		 ; would be nice to store which of these headers is needed by which
@@ -236,19 +244,17 @@
 "#include <errno.h>"
 "#include <stdarg.h>"
 "#include \"vesta.h\"
-		   (inner-eris i o))))))
-"static Symbol *tl_env = nil;"))
-		 (display (format "void~%~s()~%{~%\ttl_env = init_env();\n" n) p)))
+"static Symbol *tl_env = nil;"))))
 (def footer-out (fn (p)
 		 "finalize C code to output file"
 		 (display "\t}\n}\n" p)))
-(def eprime (fn ()
+(def eprime (fn (i o name)
 	   "Main code output"
-	   (let ((in (open (nth *command-line* 0) :read)) 
-		 (out (open (nth *command-line* 1) :write))
-		 (name (nth *command-line* 2)))
+	   (let ((in (open i :read)) 
+		 (out (open o :write)))
 	    (header-out out name)
-	    (inner-eris in out)
+
+	    (display (format "void~%~s()~%{~%\ttl_env = init_env();~%" name) out)
 	    (footer-out out)
 	    (close in)
 	    (close out))))
@@ -371,6 +377,9 @@
 })
 (def *prim-proc* {
  :display [0 "f_princ"]
+ :newline [0 "f_newline"]
+ :read [0 "f_read"]
+ :write [0 "f_write"]
  :read-char #t
  :write-char #t
  :read-buffer #t
