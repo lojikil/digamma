@@ -9,6 +9,7 @@
 
 (def *fnarit* {}) ; this is a dict of the various functions' arity
 (def *fnmung* {}) ; maps the program's lambda's name to the munged version
+(def *ooblam* {}) ; lambdas that are lifted can be placed here; for lift-map & friends
 
 (def string-join (fn (strs intersital)
 	(def isj (fn (s i)
@@ -142,7 +143,10 @@
 ; if C supported block expressions in toto (not in specific compilers), I could just rewrite this
 ; to a "block while", and rely on lexical scope in whiles + returning a result
 (def lift-map (fn (code)
-#f))
+	(with name (gensym 'map) 
+	 (if (eq? (caar code) 'fn) ; anonymous lambda
+		#t
+	  	#f))))
 (def lift-foreach-line (fn (code)
 #f))
 (def defined-lambda? (fn (name)
@@ -201,7 +205,7 @@
 			(pair? (car x)) #t
 			(defined-lambda? (car x)) (call-lambda (car x) (cdr x))
 			(primitive-form? (car x)) (gen-primitive x) 
-			(primitive-proc? (car x)) (gen-prim-proc x) ;display & friends
+			(primitive-proc? (car x)) (call-prim-proc x) ;display & friends
 			else 'EVAL-FORM)
 		(if (symbol? x)
 		 (coerce x 'string)
@@ -406,5 +410,6 @@
 	   (error (format "eris: incorrect number of arguments to ~s" (nth f 2))))))))
 (def primitive-proc? (fn (x)
 	(dict-has? *prim-proc* x)))
-(def gen-prim-proc (fn (f)
-#f))
+(def call-prim-proc (fn (x)
+	(let ((f (nth *prim-proc* (car x))) (args (cdr x)))
+	 (format "~s(list(~n,~s),tl_env)" (nth f 1) (length args) (string-join (map gen-code args) ",")))))
