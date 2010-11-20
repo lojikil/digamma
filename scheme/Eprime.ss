@@ -10,7 +10,11 @@
 (def *fnarit* {}) ; this is a dict of the various functions' arity
 (def *fnmung* {}) ; maps the program's lambda's name to the munged version
 (def *ooblam* {}) ; lambdas that are lifted can be placed here; for lift-map & friends
-
+(def *prim-sytnax* {
+ :or #t
+ :and #t
+ :not #t
+ })
 (def string-join (fn (strs intersital)
 	(def isj (fn (s i)
 		(if (null? (cdr s))
@@ -174,7 +178,9 @@
 		{
 			~s
 		}~%" <it> <cond> <it> <it> <it> <it> <it> <then> <else>))))
-	      
+(def ep-syntax-expand (fn (synobj) #f)) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
+(def primitive-syntax? (fn (o)
+	(dict-has? *prim-syntax* o)))
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
@@ -206,6 +212,7 @@
 			(defined-lambda? (car x)) (call-lambda (car x) (cdr x))
 			(primitive-form? (car x)) (gen-primitive x) 
 			(primitive-proc? (car x)) (call-prim-proc x) ;display & friends
+			(primitive-syntax? (car x)) (gen-code (ep-syntax-expand x))
 			else 'EVAL-FORM)
 		(if (symbol? x)
 		 (coerce x 'string)
