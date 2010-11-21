@@ -10,11 +10,125 @@
 (def *fnarit* {}) ; this is a dict of the various functions' arity
 (def *fnmung* {}) ; maps the program's lambda's name to the munged version
 (def *ooblam* {}) ; lambdas that are lifted can be placed here; for lift-map & friends
+(def *primitives* {
+:car [1 #f "car"]
+:cdr [1 #f "cdr"] 
+:cons [2 #f "cons"] 
+:length [1 #f "flength"] 
+:+ [0 #f "fplus"]
+:exact? [1 #f "fexactp"]
+:inexact? [1 #f "finexactp"]
+:real? [1 #f "frealp"]
+:integer? [1 #f "fintegerp"]
+:complex? [1 #f "fcomplexp"]
+:rational? [1 #f "frationalp"]
+:numerator [1 #f "fnum"]
+:denomenator [1 #f "fden"]
+:* [0 #f "fmult"]
+:type [1 #f "ftype"]
+:- [0 #f "fsubt"]
+:/ [0 #f "fdivd"]
+:gcd [0 #f "fgcd"]
+:lcm [0 #f "flcm"]
+:ceil [1 #f "fceil"]
+:floor [1 #f "ffloor"]
+:truncate [1 #f "ftruncate"]
+:round [1 #f "fround"]
+:inexact->exact [1 #f "fin2ex"]
+:eq? [2 #f "eqp"]
+:< [0 #f "flt"] 
+:> [0 #f "fgt"] 
+:<= [0 #f "flte"]
+:>= [0 #f "fgte"]
+:= [0 #f "fnumeq"]
+:quotient [2 #f "fquotient"]
+:modulo [2 #f "fmodulo"]
+:remainder [2 #f "fremainder"]
+:& [2 #f "fbitand"]
+:| [2 #f "fbitor"]
+:^ [2 #f "fbitxor"]
+:~ [2 #f "fbitnot"]
+:make-vector [0 #f "fmkvector"]
+:make-string [0 #f "fmakestring"]
+:append [0 #f "fappend"]
+:first [0 #f "ffirst"]
+:rest [0 #f "frest"]
+:ccons [0 #f "fccons"] 
+:nth [0 #f "fnth"]
+:keys #t 
+:partial-key? #t
+:cset! [0 #f "fcset"]
+:string [0 #f "fstring"]
+:empty? [1 #f "fempty"] 
+:gensym [0 #f "gensym"] 
+:imag-part [1 #f "fimag_part"]
+:real-part [1 #f "freal_part"] 
+:make-rectangular [2 #f "fmake_rect"]
+:make-polar [2 #f "fmake_pole"]
+:magnitude [1 #f "fmag"]
+:argument [1 #f "fimag_part"]
+:conjugate! [1 #f "fconjugate_bang"] 
+:conjugate [1 #f "fconjugate"]
+:polar->rectangular [1 #f "fpol2rect"]
+:rectangular->polar [1 #f "frect2pol"]
+:sin [1 #f "fsin"]
+:cos [1 #f "fcos"]
+:tan [1 #f "ftan"]
+:asin [1 #f "fasin"]
+:acos [1 #f "facos"]
+:atan [1 #f "fatan"]
+:atan2 [2 #f "fatan2"]
+:cosh [1 #f "fcosh"]
+:sinh [1 #f "fsinh"]
+:tanh [1 #f "ftanh"]
+:exp [1 #f "fexp"]
+:ln [1 #f "fln"]
+:abs [1 #f "fnabs"]
+:sqrt [1 #f "fsqrt"]
+:exp2 [1 #f "fexp2"]
+:expm1 [1 #f "fexpm1"]
+:log2 [1 #f "flog2"]
+:log10 [1 #f "flog10"]
+:<< [2 #f "fbitshl"]
+:>> [2 #f "fbitshr"]
+:string-append [0 #f "fstringappend"]
+;:apply #t
+:assq [2 #f "assq"]
+;:defrec #t
+;:set-rec! #t
+:dict [0 #f "fdict"]
+:make-dict #t
+:dict-has? [2 #f "fdicthas"]
+:coerce [2 #f "fcoerce"]
+:error [1 #f "ferror"]
+:cupdate [3 #f "fcupdate"]
+:cslice [3 #f "fcslice"]
+:tconc! [2 #f "tconc"]
+:make-tconc #t
+:tconc-list #t
+:tconc->pair #t
+:tconc-splice! [2 #f "tconc_splice"]
+;:eval #t
+;:meta! #t
+})
+(def *prim-proc* {
+ :display [0 "f_princ"]
+ :newline [0 "f_newline"]
+ :read [0 "f_read"]
+ :write [0 "f_write"]
+ :read-char #t
+ :write-char #t
+ :read-buffer #t
+ :write-buffer #t
+ :read-string #t
+ :write-string #t
+ })
 (def *prim-sytnax* {
  :or #t
  :and #t
  :not #t
  })
+
 (def string-join (fn (strs intersital)
 	(def isj (fn (s i)
 		(if (null? (cdr s))
@@ -287,119 +401,6 @@
 ;    + internal-c-function is the low-level C function that backs this primitive in Vesta's runtime
 ; zlib/png licensed Copyright 2010 Stefan Edwards 
 
-(def *primitives* {
-:car [1 #f "car"]
-:cdr [1 #f "cdr"] 
-:cons [2 #f "cons"] 
-:length [1 #f "flength"] 
-:+ [0 #f "fplus"]
-:exact? [1 #f "fexactp"]
-:inexact? [1 #f "finexactp"]
-:real? [1 #f "frealp"]
-:integer? [1 #f "fintegerp"]
-:complex? [1 #f "fcomplexp"]
-:rational? [1 #f "frationalp"]
-:numerator [1 #f "fnum"]
-:denomenator [1 #f "fden"]
-:* [0 #f "fmult"]
-:type [1 #f "ftype"]
-:- [0 #f "fsubt"]
-:/ [0 #f "fdivd"]
-:gcd [0 #f "fgcd"]
-:lcm [0 #f "flcm"]
-:ceil [1 #f "fceil"]
-:floor [1 #f "ffloor"]
-:truncate [1 #f "ftruncate"]
-:round [1 #f "fround"]
-:inexact->exact [1 #f "fin2ex"]
-:eq? [2 #f "eqp"]
-:< [0 #f "flt"] 
-:> [0 #f "fgt"] 
-:<= [0 #f "flte"]
-:>= [0 #f "fgte"]
-:= [0 #f "fnumeq"]
-:quotient [2 #f "fquotient"]
-:modulo [2 #f "fmodulo"]
-:remainder [2 #f "fremainder"]
-:& [2 #f "fbitand"]
-:| [2 #f "fbitor"]
-:^ [2 #f "fbitxor"]
-:~ [2 #f "fbitnot"]
-:make-vector [0 #f "fmkvector"]
-:make-string [0 #f "fmakestring"]
-:append [0 #f "fappend"]
-:first [0 #f "ffirst"]
-:rest [0 #f "frest"]
-:ccons [0 #f "fccons"] 
-:nth [0 #f "fnth"]
-:keys #t 
-:partial-key? #t
-:cset! [0 #f "fcset"]
-:string [0 #f "fstring"]
-:empty? [1 #f "fempty"] 
-:gensym [0 #f "gensym"] 
-:imag-part [1 #f "fimag_part"]
-:real-part [1 #f "freal_part"] 
-:make-rectangular [2 #f "fmake_rect"]
-:make-polar [2 #f "fmake_pole"]
-:magnitude [1 #f "fmag"]
-:argument [1 #f "fimag_part"]
-:conjugate! [1 #f "fconjugate_bang"] 
-:conjugate [1 #f "fconjugate"]
-:polar->rectangular [1 #f "fpol2rect"]
-:rectangular->polar [1 #f "frect2pol"]
-:sin [1 #f "fsin"]
-:cos [1 #f "fcos"]
-:tan [1 #f "ftan"]
-:asin [1 #f "fasin"]
-:acos [1 #f "facos"]
-:atan [1 #f "fatan"]
-:atan2 [2 #f "fatan2"]
-:cosh [1 #f "fcosh"]
-:sinh [1 #f "fsinh"]
-:tanh [1 #f "ftanh"]
-:exp [1 #f "fexp"]
-:ln [1 #f "fln"]
-:abs [1 #f "fnabs"]
-:sqrt [1 #f "fsqrt"]
-:exp2 [1 #f "fexp2"]
-:expm1 [1 #f "fexpm1"]
-:log2 [1 #f "flog2"]
-:log10 [1 #f "flog10"]
-:<< [2 #f "fbitshl"]
-:>> [2 #f "fbitshr"]
-:string-append [0 #f "fstringappend"]
-;:apply #t
-:assq [2 #f "assq"]
-;:defrec #t
-;:set-rec! #t
-:dict [0 #f "fdict"]
-:make-dict #t
-:dict-has? [2 #f "fdicthas"]
-:coerce [2 #f "fcoerce"]
-:error [1 #f "ferror"]
-:cupdate [3 #f "fcupdate"]
-:cslice [3 #f "fcslice"]
-:tconc! [2 #f "tconc"]
-:make-tconc #t
-:tconc-list #t
-:tconc->pair #t
-:tconc-splice! [2 #f "tconc_splice"]
-;:eval #t
-;:meta! #t
-})
-(def *prim-proc* {
- :display [0 "f_princ"]
- :newline [0 "f_newline"]
- :read [0 "f_read"]
- :write [0 "f_write"]
- :read-char #t
- :write-char #t
- :read-buffer #t
- :write-buffer #t
- :read-string #t
- :write-string #t
- })
 (def primitive-form? (fn (x)
 	(dict-has? *primitives* x)))
 (def gen-begin (fn (l)
