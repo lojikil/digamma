@@ -79,6 +79,7 @@ int quit_note = 0;
 SExp *
 car(SExp *s)
 {
+	//printf("s->type == %d\n",s->type);
 	if(s->type == PAIR)
 		return s->object.clist.first;
 	if(s->type == NIL)
@@ -88,6 +89,7 @@ car(SExp *s)
 SExp *
 cdr(SExp *s)
 {
+	//printf("s->type == %d\n",s->type);
 	if(s->type == PAIR)
 		return s->object.clist.rest;
 	if(s->type == NIL)
@@ -4262,7 +4264,21 @@ __base:
 			__r = car(stk);
 			stk = cdr(stk);
 			if(__val->type == ERROR)
+			{
+				printf("\nbegin stack trace\n-----\n");
+				tmp0 = cons(__r,stk);
+				while(tmp0 != snil)
+				{
+					tmp1 = car(tmp0);
+					if(tmp1 == snil)
+						break;
+					tmp0 = cdr(tmp0);
+					printf("source: ");
+					princ(tmp1->object.vec[0]);
+					printf("\n");
+				}
 				return __val;
+			}
 			/* internal Rationals should *always* be in lowest terms */
 			if(__val->type == NUMBER && NTYPE(__val) == RATIONAL)
 			{
