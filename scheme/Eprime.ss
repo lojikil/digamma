@@ -123,7 +123,7 @@
  :read-string #t
  :write-string #t
  })
-(def *prim-sytnax* {
+(def *prim-syntax* {
  :or #t
  :and #t
  :not #t
@@ -280,8 +280,8 @@
 ;  - if so, do nothing (and make gen-begin set ret = final code...)
 (def gen-if (fn (args)
 	     (let ((<cond> (gen-code (car args)))
-		   (<then> (if (eq? (caadr args) 'begin) (gen-code (cadr args)) (string-append "ret = " (gen-code (cadr args)) ";\n")))
-		   (<else> (if (eq? (caaddr args) 'begin) (gen-code (caddr args)) (string-append "ret = " (gen-code (caddr args)) ";\n")))
+		   (<then> (if (eq? (cadr args) 'begin) (gen-code (cadr args)) (string-append "ret = " (gen-code (cadr args)) ";\n")))
+		   (<else> (if (eq? (caddr args) 'begin) (gen-code (caddr args)) (string-append "ret = " (gen-code (caddr args)) ";\n")))
 		   (<it> (gensym 'it)))
 	      (format "SExp *~s = ~s;~%
 	       if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
@@ -300,7 +300,7 @@
 	       (display x)
 	       (newline)
 	(if (pair? x) 
-		(begin (display "made it here?\n") (cond
+		(cond
 			(eq? (car x) 'def) 
 				(if (not (symbol? (car (cdr x))))
 					(error "def p : SYMBOL e : SEXPRESSION => VOID")
@@ -330,7 +330,7 @@
 			(primitive-form? (car x)) (gen-primitive x) 
 			(primitive-proc? (car x)) (call-prim-proc x) ;display & friends
 			(primitive-syntax? (car x)) (gen-code (ep-syntax-expand x))
-			else 'EVAL-FORM))
+			else 'EVAL-FORM)
 		(if (symbol? x)
 		 (coerce x 'string)
 		 (gen-literal x)))))
