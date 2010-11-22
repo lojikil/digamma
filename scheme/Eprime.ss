@@ -296,9 +296,11 @@
 (def primitive-syntax? (fn (o)
 	(dict-has? *prim-syntax* o)))
 (def gen-code (fn (x)
-	       (display "Made it to gen-code\n")
+	       (display "Made it to gen-code; processing: ")
+	       (display x)
+	       (newline)
 	(if (pair? x) 
-		(cond
+		(begin (display "made it here?\n") (cond
 			(eq? (car x) 'def) 
 				(if (not (symbol? (car (cdr x))))
 					(error "def p : SYMBOL e : SEXPRESSION => VOID")
@@ -315,7 +317,7 @@
 			(eq? (car x) 'from) #t
 			(eq? (car x) 'let) #t ; let should be a top-level form, rather than expand to lambda(s)
 			(eq? (car x) 'with) #t ; same goes for with
-			(eq? (car x) 'quote) (gen-literal (cadr x)))
+			(eq? (car x) 'quote) (gen-literal (cadr x))
 			(eq? (car x) 'module) 'MODULE
 			(eq? (car x) 'if) (gen-if (cdr x)) ; if & other primitive syntax needs to be handled here
 			(eq? (car x) 'cond) (gen-cond (cdr x)) ; should be nearly identical to if, but with more else if's 
@@ -328,7 +330,7 @@
 			(primitive-form? (car x)) (gen-primitive x) 
 			(primitive-proc? (car x)) (call-prim-proc x) ;display & friends
 			(primitive-syntax? (car x)) (gen-code (ep-syntax-expand x))
-			else 'EVAL-FORM)
+			else 'EVAL-FORM))
 		(if (symbol? x)
 		 (coerce x 'string)
 		 (gen-literal x)))))
