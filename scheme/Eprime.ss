@@ -262,7 +262,7 @@
 ; to a "block while", and rely on lexical scope in whiles + returning a result
 (def lift-map (fn (code)
 	(with name (gensym 'map) 
-	 (if (eq? (caar code) 'fn) ; anonymous lambda
+	 (if (eq? (caadr code) 'fn) ; anonymous lambda
 		#t
 	  	#f))))
 (def lift-foreach-line (fn (code)
@@ -296,6 +296,7 @@
 (def primitive-syntax? (fn (o)
 	(dict-has? *prim-syntax* o)))
 (def gen-code (fn (x)
+	       (display "Made it to gen-code\n")
 	(if (pair? x) 
 		(cond
 			(eq? (car x) 'def) 
@@ -314,7 +315,7 @@
 			(eq? (car x) 'from) #t
 			(eq? (car x) 'let) #t ; let should be a top-level form, rather than expand to lambda(s)
 			(eq? (car x) 'with) #t ; same goes for with
-			(eq? (car x) 'quote) (gen-literal (car (cdr x)))
+			(eq? (car x) 'quote) (gen-literal (cadr x)))
 			(eq? (car x) 'module) 'MODULE
 			(eq? (car x) 'if) (gen-if (cdr x)) ; if & other primitive syntax needs to be handled here
 			(eq? (car x) 'cond) (gen-cond (cdr x)) ; should be nearly identical to if, but with more else if's 
@@ -333,6 +334,7 @@
 		 (gen-literal x)))))
 (def foreach-expression (fn (proc in)
 	(with r (read in)
+	 (display "Within foreach-expression\n")
 	 (if (eq? r #e)
 		#v
 	 	(begin
@@ -380,7 +382,9 @@
 	   (let ((in (open i :read)) 
 		 (out (open o :write)))
 	    (header-out out name)
+	    (display "Made it 0\n")
 	    (foreach-expression (fn (e) (display (gen-code e) out)) in)
+	    (display "Made it 1\n")
 	    (display (format "void~%~s()~%{~%\ttl_env = init_env();~%" name) out)
 	    (footer-out out)
 	    (close in)

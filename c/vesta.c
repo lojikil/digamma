@@ -81,14 +81,18 @@ car(SExp *s)
 {
 	if(s->type == PAIR)
 		return s->object.clist.first;
-	return s;
+	if(s->type == NIL)
+		return s;
+	return makeerror(0,0,"car's sole argument *must* be of type PAIR");
 }
 SExp *
 cdr(SExp *s)
 {
 	if(s->type == PAIR)
 		return s->object.clist.rest;
-	return s;
+	if(s->type == NIL)
+		return s;
+	return makeerror(0,0,"cdr's sole argument *must* be of type PAIR");
 }
 SExp *
 cons(SExp *s0, SExp *s1)
@@ -4343,7 +4347,7 @@ macro_expand(SExp *s, Symbol *e)
 			   optional
 			   */
 			if(mcar(tmp0)->type != KEY)
-				return makeerror(1,0,"no arguments given to function with at least one non-optional parameter");
+				return makeerror(1,0,"no arguments given to macro with at least one non-optional parameter");
 			tmp1 = mcar(mcdr(tmp0));
 			tenv = add_env(env,tmp1->object.str,snil);
 		}
