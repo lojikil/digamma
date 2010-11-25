@@ -4265,6 +4265,7 @@ __base:
 			stk = cdr(stk);
 			if(__val->type == ERROR)
 			{
+#ifndef NO_STACK_TRACE
 				printf("\nbegin stack trace\n-----\n");
 				tmp0 = cons(__r,stk);
 				while(tmp0 != snil)
@@ -4277,6 +4278,7 @@ __base:
 					princ(tmp1->object.vec[0]);
 					printf("\n");
 				}
+#endif
 				return __val;
 			}
 			/* internal Rationals should *always* be in lowest terms */
