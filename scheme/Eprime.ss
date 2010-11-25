@@ -174,13 +174,11 @@
 		else (error (format "unsupported data type for code generation: ~s" (type x))))))
 		 
 (def cmung-name (fn (s)
-		 (display "Made it to cmung\n")
 	(def imung (fn (s i thusfar)
 		(cond
 			(>= i (length s)) thusfar 
 			(ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
 			else (imung s (+ i 1) thusfar))))
-	(display "Returning from cmung\n")
 	(apply string (imung (coerce s 'string) 0 '()))))
 (def ascii-acceptable? (fn (c)
 	(or
