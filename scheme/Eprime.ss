@@ -178,8 +178,22 @@
 		(cond
 			(>= i (length s)) thusfar 
 			(ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
+			(mungable? (nth s i)) (imung s (+ i 1) (append thusfar (char-mung (nth s i))))
 			else (imung s (+ i 1) thusfar))))
 	(apply string (imung (coerce s 'string) 0 '()))))
+(def char-mung (fn (c)
+	(cond
+	 	(eq? c #\:) (list #\_)
+		(eq? c #\@) (list #\_ #\a #\t #\_)
+		(eq? c #\%) (list #\_ #\p #\e #\r #\c #\e #\n #\t #\_)
+		(eq? c #\=) (list #\_ #\e #\q #\u #\a #\l #\_)
+		(eq? c #\>) (list #\_ #\m #\o #\r #\e #\_)
+		(eq? c #\<) (list #\_ #\l #\e #\s #\s #\_)
+		(eq? c #\.) (list #\_)
+		(eq? c #\-) (list #\_)
+		(eq? c #\?) (list #\_ #\p))))
+(def mungable? (fn (c)
+	(or (eq? c #\:) (eq? c #\%) (eq? c #\@) (eq? c #\=) (eq? c #\?) (eq? c #\-) (eq? c #\>) (eq? c #\<) (eq? c #\.))))
 (def ascii-acceptable? (fn (c)
 	(or
 		(and (char->=? c #\a) (char-<=? c #\z))
