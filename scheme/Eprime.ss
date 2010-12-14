@@ -305,6 +305,32 @@
 		{
 			~s
 		}~%" <it> <cond> <it> <it> <it> <it> <it> <then> <else>))))
+(def gen-cond (fn (args base)
+    (let ((<cond> (car args))
+          (<then> (cadr args))
+          (<else> (cddr args)))
+     (if (eq? <cond> 'else)
+      (gen-code <then>)
+      (if (eq? base '())
+       (with <it> (gensym 'it)
+        (format "SExp *~s = ~s;~%
+       if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
+       {
+        ~s
+       }
+       else
+       {
+        ~s
+       }~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-cond <else> base)))
+       (format "~s = ~s;~%
+        if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
+        {
+         ~s
+         }
+         else
+         {
+          ~s
+          }~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-cond <else>)))))))
 (def ep-syntax-expand (fn (synobj) #f)) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
 (def primitive-syntax? (fn (o)
 	(dict-has? *prim-syntax* o)))
