@@ -321,7 +321,7 @@
        else
        {
         ~s
-       }~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-cond <else> base)))
+       }~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-cond <else> <it>)))
        (format "~s = ~s;~%
         if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
         {
@@ -330,7 +330,7 @@
          else
          {
           ~s
-          }~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-cond <else>)))))))
+          }~%" base (gen-code <cond>) base base base base base (gen-code <then>) (gen-cond <else> base)))))))
 (def ep-syntax-expand (fn (synobj) #f)) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
 (def primitive-syntax? (fn (o)
 	(dict-has? *prim-syntax* o)))
