@@ -293,8 +293,8 @@
 ;  - if so, do nothing (and make gen-begin set ret = final code...)
 (def gen-if (fn (args)
 	     (let ((<cond> (gen-code (car args)))
-		   (<then> (if (eq? (cadr args) 'begin) (gen-code (cadr args)) (string-append "ret = " (gen-code (cadr args)) ";\n")))
-		   (<else> (if (eq? (caddr args) 'begin) (gen-code (caddr args)) (string-append "ret = " (gen-code (caddr args)) ";\n")))
+		   (<then> (wrap-gen-code (cadr args))) 
+		   (<else> (wrap-gen-code (caddr args))) 
 		   (<it> (gensym 'it)))
 	      (format "SExp *~s = ~s;~%
 	       if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
@@ -321,7 +321,7 @@
        else
        {
         ~s
-       }~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (gen-code <then>) (gen-cond <else> <it>)))
+       }~%" <it> (gen-code <cond>) <it> <it> <it> <it> <it> (wrap-gen-code <then>) (gen-cond <else> <it>)))
        (format "~s = ~s;~%
         if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
         {
@@ -330,10 +330,17 @@
          else
          {
           ~s
-          }~%" base (gen-code <cond>) base base base base base (gen-code <then>) (gen-cond <else> base)))))))
+          }~%" base (gen-code <cond>) base base base base base (wrap gen-code <then>) (gen-cond <else> base)))))))
 (def ep-syntax-expand (fn (synobj) #f)) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
 (def primitive-syntax? (fn (o)
 	(dict-has? *prim-syntax* o)))
+(def wrap-gen-code (fn (body)
+    "a simple wrapper around gen-code, that also helps to alleviate the mess of inline-if's all over\n"
+    (if (pair? x)
+     (if (eq? (car x) 'begin)
+      (gen-code x)
+      (format "ret = ~s;~%" (gen-code body)))
+     (format "ret = ~s;~%" (gen-code body)))))
 (def gen-code (fn (x)
 	(if (pair? x) 
 		(cond
