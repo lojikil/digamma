@@ -310,7 +310,7 @@
           (<then> (cadr args))
           (<else> (cddr args)))
      (if (eq? <cond> 'else)
-      (gen-code <then>)
+      (wrap-gen-code <then>)
       (if (eq? base '())
        (with <it> (gensym 'it)
         (format "SExp *~s = ~s;~%
@@ -330,15 +330,15 @@
          else
          {
           ~s
-          }~%" base (gen-code <cond>) base base base base base (wrap gen-code <then>) (gen-cond <else> base)))))))
+          }~%" base (gen-code <cond>) base base base base base (wrap-gen-code <then>) (gen-cond <else> base)))))))
 (def ep-syntax-expand (fn (synobj) #f)) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
 (def primitive-syntax? (fn (o)
 	(dict-has? *prim-syntax* o)))
 (def wrap-gen-code (fn (body)
     "a simple wrapper around gen-code, that also helps to alleviate the mess of inline-if's all over\n"
-    (if (pair? x)
-     (if (eq? (car x) 'begin)
-      (gen-code x)
+    (if (pair? body)
+     (if (eq? (car body) 'begin)
+      (gen-code body)
       (format "ret = ~s;~%" (gen-code body)))
      (format "ret = ~s;~%" (gen-code body)))))
 (def gen-code (fn (x)
