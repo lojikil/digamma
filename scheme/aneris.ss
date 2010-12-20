@@ -6,7 +6,9 @@
                :cdr cdr
                :cons cons
                :+ +
-               :- -))) 
+               :- -
+               :* *
+               :/ /)))
 (def aneris@lookup (fn (sym env)
 	(if (eq? env '())
 	 #f
