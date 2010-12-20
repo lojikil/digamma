@@ -15,8 +15,12 @@
 	  (aneris@lookup sym (cdr env))))))
 (def aneris@apply (fn (proc args env)
     #f))
-(def aneris@evlis (fn (args env)
-    #f))
+(def aneris@evlis (fn (args builtlist env)
+    (if (eq? args '())
+     builtlist
+     (if (eq? (type (car args)) "Pair")
+        (aneris@evlis (cdr args) (append builtlist (list (aneris@eval (car args) env))) env)
+        (aneris@evlis (cdr args) (append builtlist (list (car args))) env)))))
 (def aneris@eval (fn (s e)
 	(cond
 	 (eq? (type s) "Symbol")
