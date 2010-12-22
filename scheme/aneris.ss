@@ -2,13 +2,13 @@
 ; dead simple, uses the Vesta run time
 (def *tlenv* (list
               (dict
-               :car car
-               :cdr cdr
-               :cons cons
-               :+ +
-               :- -
-               :* *
-               :/ /)))
+               :car :pcar
+               :cdr :pcdr
+               :cons :pcons
+               :+ :p+
+               :- :p-
+               :* :p*
+               :/ :p/)))
 (def aneris@lookup (fn (sym env)
 	(if (eq? env '())
 	 #f
@@ -16,7 +16,19 @@
 	  (list #t (nth (car env) sym))
 	  (aneris@lookup sym (cdr env))))))
 (def aneris@apply (fn (proc args env)
-    #f))
+    (display "proc = ")
+    (display proc)
+    (newline)
+    (cond
+     (eq? proc #f) (begin (display "Aneris error: unknown procedure\n") #v)
+     (eq? (cadr proc) :pcar) (car (car args))
+     (eq? (cadr proc) :pcdr) (cdr (car args))
+     (eq? (cadr proc) :pcons) (cons (car args) (car (cdr args)))
+     (eq? (cadr proc) :p+) (foldl + 0 args)
+     (eq? (cadr proc) :p-) (foldl - (car args) (cdr args))
+     (eq? (cadr proc) :p*) (foldl * 1 args)
+     (eq? (cadr proc) :p/) (foldl / 1 args)
+     else #f)))
 (def aneris@evlis (fn (args builtlist env)
     (if (eq? args '())
      builtlist
@@ -32,10 +44,10 @@
 		  (car (cdr r))))
 	 (eq? (type s) "Pair") 
 	 	(if (eq? (type (car s)) "Pair")
-		 (with r (aneris@eval (car s))
-		  (aneris@apply r (aneris@evlis (cdr s)) env))
-		 (with r (aneris@lookup (car s))
-		  (aneris@apply r (aneris@evlis (cdr s) env) env)))
+		 (with r (aneris@eval (car s) e)
+		  (aneris@apply r (aneris@evlis (cdr s) '() e) e))
+		 (with r (aneris@lookup (car s) e)
+		  (aneris@apply r (aneris@evlis (cdr s) '() e) e)))
 	 else s)))
 (def aneris@repl (fn ()
     (display "; ")
