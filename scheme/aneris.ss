@@ -18,11 +18,9 @@
 	  (nth (car env) sym)
 	  (aneris@lookup sym (cdr env))))))
 (def aneris@apply (fn (proc args env)
-    (display "proc = ")
-    (display proc)
-    (newline)
     (cond
      (eq? proc #f) (begin (display "Aneris error: unknown procedure\n") #v)
+     (eq? (type proc) "Vector") #t ; lambda
      (eq? proc :pcar) (car (car args))
      (eq? proc :pcdr) (cdr (car args))
      (eq? proc :pcons) (cons (car args) (car (cdr args)))
