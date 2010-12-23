@@ -359,7 +359,7 @@
 			(eq? (car x) 'use) #t
 			(eq? (car x) 'from) #t
 			(eq? (car x) 'let) #t ; let should be a top-level form, rather than expand to lambda(s)
-			(eq? (car x) 'with) #t ; same goes for with
+			(eq? (car x) 'with) (format "SExp *~s = ~s;\n ~s" (coerce (car (cdr x)) 'string) (gen-code (caddr x)) (gen-begin (cdddr x))) ; same goes for with
 			(eq? (car x) 'quote) (gen-literal (cadr x))
 			(eq? (car x) 'module) 'MODULE
 			(eq? (car x) 'if) (gen-if (cdr x)) ; if & other primitive syntax needs to be handled here
