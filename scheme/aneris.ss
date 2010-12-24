@@ -1,22 +1,41 @@
 ; a simple digamma subset interpreter, to test out E'
-; dead simple, uses the Vesta run time
-; Ceres could be forked from here...
 
 (def *tlenv* (list
               (dict
                :car :pcar
                :cdr :pcdr
                :cons :pcons
+               :< :p<
+               :> :p>
+               :<= :p<=
+               :>= :p>=
+               := :p=
                :+ :p+
                :- :p-
                :* :p*
                :/ :p/)))
+(def aneris@compare (fn (c s r) ; really need to add cond to rewrite-tail-call
+    (cond
+     (eq? r '()) #t
+     (eq? c '=) (if (= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c '<) (if (< s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c '>) (if (> s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c '<=) (if (<= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c '>=) (if (>= s (car r)) (aneris@compare c (car r) (cdr r)) #f))))
 (def aneris@lookup (fn (sym env)
 	(if (eq? env '())
 	 #f
 	 (if (dict-has? (car env) sym)
 	  (nth (car env) sym)
 	  (aneris@lookup sym (cdr env))))))
+(def aneris@logop? (fn (p)
+    (cond
+     (eq? p :p<) #t
+     (eq? p :p>) #t
+     (eq? p :p=) #t
+     (eq? p :p<=) #t
+     (eq? p :p>=) #t
+     else #f)))
 (def aneris@apply (fn (proc args env)
     (cond
      (eq? proc #f) (begin (display "Aneris error: unknown procedure\n") #v)
@@ -28,6 +47,7 @@
      (eq? proc :p-) (foldl - (car args) (cdr args))
      (eq? proc :p*) (foldl * 1 args)
      (eq? proc :p/) (foldl / 1 args)
+     (aneris@logop? proc) (aneris@compare proc (car args) (cdr args))
      else #f)))
 (def aneris@evlis (fn (args builtlist env)
     (if (eq? args '())
@@ -53,7 +73,7 @@
                   (eq? (car s) 'let) #t
                   (eq? (car s) 'fn) #t
                   (eq? (car s) 'def) #t
-                  (eq? (car s) 'set! #t
+                  (eq? (car s) 'set!) #t
                   (eq? (car s) 'cond) #t 
 		  else (with r (aneris@lookup (car s) e)
 		   (aneris@apply r (aneris@evlis (cdr s) '() e) e))))
