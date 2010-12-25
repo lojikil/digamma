@@ -327,6 +327,7 @@ SExp *makedict();
 SExp *makestring_v(int, char);
 SExp *makestring(const char *);
 SExp *makeatom(char *);
+SExp *makekey(char *);
 SExp *makeenv(Symbol *); /* wrap an Environment in an SEXP */
 /* memory functions */
 int gc_init();

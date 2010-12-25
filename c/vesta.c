@@ -790,6 +790,22 @@ makeatom(char *s)
 	return ret;
 }
 SExp *
+makekey(char *s)
+{
+	SExp *ret = nil;
+	ret = (SExp *)hmalloc(sizeof(SExp));
+	if(ret == nil)
+	{
+		printf("hmalloc returned nil! PANIC!\n");
+		quit_note = 1;
+		return nil;
+	}
+	ret->type = KEY;
+	ret->metadata = nil;
+	set_str(ret,s);
+	return ret;
+}
+SExp *
 makestring_v(int size, char fill)
 {
 	SExp *ret = nil;

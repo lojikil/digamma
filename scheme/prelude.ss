@@ -15,6 +15,7 @@
 (def vector? (fn (n) (eq? (type n) "Vector")))
 (def dict? (fn (n) (eq? (type n) "Dictionary")))
 (def symbol? (fn (n) (eq? (type n) "Symbol")))
+(def key? (fn (n) (eq? (type n) "Key")))
 (def number? (fn (n) (eq? (type n) "Number")))
 (def string? (fn (n) (eq? (type n) "String")))
 (def bool? (fn (n) (eq? (type n) "Boolean")))

@@ -146,6 +146,8 @@
 	(format "makestring(\"~s\")" x)))
 (def gen-symbol (fn (x)
 	(format "makeatom(\"~s\")" x)))
+(def gen-key (fn (x)
+	(format "makekey(\"~s\")" x)))
 (def gen-vector (fn (x)
 	(let ((n (length x)) (p (coerce x 'pair)))
 		(string-append (format "vector(~n," n) (string-join (map gen-literal p) ",") ")"))))
@@ -171,6 +173,7 @@
 		(symbol? x) (gen-symbol x)
 		(bool? x) (gen-bool x)
 		(goal? x) (gen-goal x)
+		(key? x) (gen-key x)
 		else (error (format "unsupported data type for code generation: ~s" (type x))))))
 		 
 (def cmung-name (fn (s)
