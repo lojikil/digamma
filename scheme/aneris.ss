@@ -1,10 +1,20 @@
 ; a simple digamma subset interpreter, to test out E'
+; heading towards full Digamma compliance though
+; will add W7 & delimited continuations before the new year (2011)
 
 (def *tlenv* (list
               (dict
                :car :pcar
                :cdr :pcdr
                :cons :pcons
+               :fn :pfn
+               :if :pif
+               :quote :pquote
+               :quasiquote :pqquote
+               :def :pdef
+               :set! :pset!
+               :list :plist
+               :length :plength
                :< :p<
                :> :p>
                :<= :p<=
@@ -17,11 +27,12 @@
 (def aneris@compare (fn (c s r) ; really need to add cond to rewrite-tail-call
     (cond
      (eq? r '()) #t
-     (eq? c '=) (if (= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
-     (eq? c '<) (if (< s (car r)) (aneris@compare c (car r) (cdr r)) #f)
-     (eq? c '>) (if (> s (car r)) (aneris@compare c (car r) (cdr r)) #f)
-     (eq? c '<=) (if (<= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
-     (eq? c '>=) (if (>= s (car r)) (aneris@compare c (car r) (cdr r)) #f))))
+     (eq? c :p=) (if (= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c :p<) (if (< s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c :p>) (if (> s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c :p<=) (if (<= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     (eq? c :p>=) (if (>= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
+     else #f)))
 (def aneris@lookup (fn (sym env)
 	(if (eq? env '())
 	 #f
@@ -66,26 +77,17 @@
 	 	(if (eq? (type (car s)) "Pair")
 		 (with r (aneris@eval (car s) e)
 		  (aneris@apply r (aneris@evlis (cdr s) '() e) e))
-                 (cond
-                  (eq? (car s) 'quote) (car (cdr s))
-                  (eq? (car s) 'quasiquote) #t
-                  (eq? (car s) 'if) #t
-                  (eq? (car s) 'let) #t
-                  (eq? (car s) 'fn) #t
-                  (eq? (car s) 'def) #t
-                  (eq? (car s) 'set!) #t
-                  (eq? (car s) 'cond) #t 
-		  else (with r (aneris@lookup (car s) e)
-		   (aneris@apply r (aneris@evlis (cdr s) '() e) e))))
+		  (with r (aneris@lookup (car s) e)
+		   (aneris@apply r (aneris@evlis (cdr s) '() e) e)))
 	 else s)))
 (def aneris@repl (fn ()
-    (display "; ")
+    (display "a; ")
     (with r (aneris@eval (read) *tlenv*)
-     (if (eq? r #v)
-      (newline)
+     (if (not (eq? r #v))
       (begin
        (display r)
-       (newline))))
+       (newline))
+      #v))
     (aneris@repl)))
 (def aneris@main (fn ()
     (display "aneris r0\n")
