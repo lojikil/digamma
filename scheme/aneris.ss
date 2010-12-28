@@ -4,26 +4,26 @@
 
 (def *tlenv* (list
               (dict
-               :car :pcar
-               :cdr :pcdr
-               :cons :pcons
-               :fn :pfn
-               :if :pif
-               :quote :pquote
-               :quasiquote :pqquote
-               :def :pdef
-               :set! :pset!
-               :list :plist
-               :length :plength
-               :< :p<
-               :> :p>
-               :<= :p<=
-               :>= :p>=
-               := :p=
-               :+ :p+
-               :- :p-
-               :* :p*
-               :/ :p/)))
+               :car [0 :pcar]
+               :cdr [0 :pcdr]
+               :cons [0 :pcons]
+               :fn [1 :pfn]
+               :if [1 :pif]
+               :quote [1 :pquote]
+               :quasiquote [1 :pqquote]
+               :def [1 :pdef]
+               :set! [1 :pset!]
+               :list [0 :plist]
+               :length [0 :plength]
+               :< [0 :p<]
+               :> [0 :p>]
+               :<= [0 :p<=]
+               :>= [0 :p>=]
+               := [0 :p=]
+               :+ [0 :p+]
+               :- [0 :p-]
+               :* [0 :p*]
+               :/ [0 :p/])))
 (def aneris@compare (fn (c s r) ; really need to add cond to rewrite-tail-call
     (cond
      (eq? r '()) #t
@@ -78,7 +78,9 @@
 		 (with r (aneris@eval (car s) e)
 		  (aneris@apply r (aneris@evlis (cdr s) '() e) e))
 		  (with r (aneris@lookup (car s) e)
-		   (aneris@apply r (aneris@evlis (cdr s) '() e) e)))
+                   (if (= (nth r 0) 0)
+                    (aneris@apply (nth r 1) (cdr s) e)
+		    (aneris@apply (nth r 1) (aneris@evlis (cdr s) '() e) e))))
 	 else s)))
 (def aneris@repl (fn ()
     (display "a; ")
