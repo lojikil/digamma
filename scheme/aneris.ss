@@ -47,6 +47,8 @@
      (eq? p :p<=) #t
      (eq? p :p>=) #t
      else #f)))
+(def aneris@qquote (fn (l e)
+	#t))
 (def aneris@apply (fn (proc args env)
     (cond
      (eq? proc #f) (begin (display "Aneris error: unknown procedure\n") #v)
@@ -58,6 +60,8 @@
      (eq? proc :p-) (foldl - (car args) (cdr args))
      (eq? proc :p*) (foldl * 1 args)
      (eq? proc :p/) (foldl / 1 args)
+     (eq? proc :pquote) (car args)
+     (eq? proc :pqquote) (aneris@qquote args env) 
      (aneris@logop? proc) (aneris@compare proc (car args) (cdr args))
      else #f)))
 (def aneris@evlis (fn (args builtlist env)
@@ -78,7 +82,7 @@
 		 (with r (aneris@eval (car s) e)
 		  (aneris@apply r (aneris@evlis (cdr s) '() e) e))
 		  (with r (aneris@lookup (car s) e)
-                   (if (= (nth r 0) 0)
+                   (if (= (nth r 0) 1)
                     (aneris@apply (nth r 1) (cdr s) e)
 		    (aneris@apply (nth r 1) (aneris@evlis (cdr s) '() e) e))))
 	 else s)))
