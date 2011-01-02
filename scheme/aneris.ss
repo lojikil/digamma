@@ -15,6 +15,7 @@
                :set! [1 :pset!]
                :list [0 :plist]
                :length [0 :plength]
+               :display [0 :pdisplay]
                :< [0 :p<]
                :> [0 :p>]
                :<= [0 :p<=]
@@ -70,6 +71,8 @@
      (eq? proc :p/) (foldl / 1 args)
      (eq? proc :pquote) (car args)
      (eq? proc :pqquote) (aneris@qquote (car args) env) 
+     (eq? proc :pif) (if (not (eq? (aneris@eval (car args) env) #f)) (aneris@eval (car (cdr args)) env) (aneris@eval (car (cdr (cdr args))) env))
+     (eq? proc :pdisplay) (display (car args))
      (aneris@logop? proc) (aneris@compare proc (car args) (cdr args))
      else #f)))
 (def aneris@evlis (fn (args builtlist env)
@@ -103,7 +106,7 @@
     (with r (aneris@eval (read) *tlenv*)
      (if (not (eq? r #v))
       (begin
-       (display r)
+       (write r)
        (newline))
       #v))
     (aneris@repl)))
