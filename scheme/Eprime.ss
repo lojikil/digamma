@@ -453,9 +453,18 @@
 
 (def primitive-form? (fn (x)
 	(dict-has? *primitives* x)))
+(def syntax-form? (fn (f)
+	(if (pair? f)
+	 (cond
+	  (eq? (car f) 'if) #t
+	  (eq? (car f) 'cond) #t
+	  (eq? (car f) 'def) #t
+	  (eq? (car f) 'set!) #t
+	  else #f)
+	 #f)))
 (def gen-begin (fn (l)
 		(if (eq? (cdr l) '())
-		 (if (and (pair? (car l)) (eq? (car (car l)) 'if))
+		 (if (syntax-form? (car l))
 		  (string-append (gen-code (car l)) ";\n") 
 		  (string-append "ret = " (gen-code (car l)) ";\n"))
 		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l))))))
