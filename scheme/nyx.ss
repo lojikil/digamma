@@ -15,6 +15,7 @@
                :set! [1 :pset!]
                :list [0 :plist]
                :length [0 :plength]
+               :nth [0 :pnth]
                :display [0 :pdisplay]
                :< [0 :p<]
                :> [0 :p>]
@@ -59,9 +60,36 @@
       (cons (car l) (nyx@qquote (cdr l) e)))
      l)))
 (def nyx@eval (fn (s state stack e)
-#f))
+    (cond 
+     (eq? state :preapply) #t
+     (eq? state :postapply) #t
+     (eq? state :preturn) #t
+     (eq? state :pcar) #t
+     (eq? state :pcdr) #t
+     (eq? state :pcons) #t
+     (eq? state :pfn) #t
+     (eq? state :pif) #t
+     (eq? state :pquote) #t
+     (eq? state :pqquote) #t
+     (eq? state :pdef) #t
+     (eq? state :pset!) #t
+     (eq? state :pdef) #t
+     (eq? state :plist) #t
+     (eq? state :plength) #t
+     (eq? state :pnth) #t
+     (eq? state :display) #t
+     (eq? state :p<) #t
+     (eq? state :p>) #t
+     (eq? state :p<=) #t
+     (eq? state :p>=) #t
+     (eq? state :p=) #t
+     (eq? state :p-) #t
+     (eq? state :p+) #t
+     (eq? state :p/) #t
+     (eq? state :p*) #t
+     else (error "Invalid state"))))
 (def nyx@repl (fn ()
-    (display "a; ")
+    (display "n; ")
     (with r (nyx@eval (read) :preapply '() *tlenv*)
      (if (not (eq? r #v))
       (begin
