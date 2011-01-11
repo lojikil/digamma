@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #include "vesta.h"
 extern const char *typenames[];
 extern int quit_note;
@@ -27,7 +28,7 @@ main(int ac, char **al, char **el)
 		0
 	};
 	Symbol *tl_env = nil;
-	
+        FILE *dribble = nil;	
 	if(!gc_init())
 	{
 		printf("[-] cannot initialize gc system...\n");
@@ -208,8 +209,6 @@ Digamma/Vesta: %s/%s\n",VER, REL);
 			printf("resuming interaction\n");
 			continue;
 		}
-		if(ret->type == ATOM && !strcmp(ret->object.str,"quit!"))
-			break;
 		if(ret == tl_env->fake_rsqr)
 		{
 			printf("extra trailing vector bracket\n");
@@ -248,14 +247,39 @@ Digamma/Vesta: %s/%s\n",VER, REL);
                     else if(tmp->type == ATOM && !strncasecmp("quit",tmp->object.str,4))
                             break;
                     else if(tmp->type == ATOM && !strncasecmp("dribble",tmp->object.str,7)) // create dribble file in $HOME/.digamma/dribble/DATE-TIME.txt
-                        continue; // should open up a file & print each line & it's result to dribble file
+                    {
+                        char tbuf[256] = {0};
+                        time_t tm = time(nil);
+                        int tlen = 0;
+                        if(dribble == nil)
+                        {
+                            snprintf(tbuf,256,"%s/.digamma/dribble/%s",getenv("HOME"),ctime(&tm));
+                            tlen = strlen(tbuf);
+                            tbuf[tlen - 1] = '\0';
+                            printf("Opening dribble file %s\n",tbuf);
+                            if((dribble = fopen(tbuf,"w+")) == nil)
+                                printf("Unable to open dribble file\n");
+                        }
+                        else
+                        {
+                            fclose(dribble);
+                            dribble = nil;
+                        }
+                        continue;
+                    }
                     else
                     {
                         printf("Unknown command\n");
                         continue;
                     }
                    }
-	        	ret = lleval(ret,tl_env);
+                    if(dribble != nil)
+                    {
+                        fprintf(dribble,"> ");
+                        llprinc(ret,dribble,1);
+                        fprintf(dribble,"\n");
+                    }
+                    ret = lleval(ret,tl_env);
                 }
 		if(quit_note)
 			break;
@@ -268,11 +292,29 @@ Digamma/Vesta: %s/%s\n",VER, REL);
 			printf("\n");
 			if(ret->type != ATOM)
 				tl_env = add_env(tl_env,"_",ret);
+                        if(dribble != nil)
+                        {
+			    fprintf(dribble,"_ : %s = ",typenames[ret->type]);
+			    if(ret->type == PAIR)
+				fprintf(dribble,"'");
+			    llprinc(ret,dribble,1);
+			    fprintf(dribble,"\n");
+                            fflush(dribble);
+                        }
 		}
 		else if(ret != tl_env->svoid)
+                {
 			printf("[-] uncaught error in F interaction: %s (s: %d,l: %d)\n",ret->object.error.message,ret->object.error.source, ret->object.error.level);
+                        if(dribble != nil)
+                        {
+			    fprintf(dribble,"[-] uncaught error in F interaction: %s (s: %d,l: %d)\n",ret->object.error.message,ret->object.error.source, ret->object.error.level);
+                            fflush(dribble);
+                        }
+                }
 	}
 exit_main:
 	clean_env();
+        if(dribble != nil)
+            fclose(dribble);
 	return 0;
 }
