@@ -237,7 +237,26 @@ Digamma/Vesta: %s/%s\n",VER, REL);
 			}
 		}
 		else if(ret->type == PAIR)
-			ret = lleval(ret,tl_env);
+                {
+                   tmp = car(ret);
+                   if(tmp->type == ATOM && !strncasecmp("unquote",tmp->object.str,7))
+                   {
+                    // command mode
+                    tmp = car(cdr(ret));
+                    if(tmp->type == ATOM && !strncasecmp("exit",tmp->object.str,4))
+                            break;
+                    else if(tmp->type == ATOM && !strncasecmp("quit",tmp->object.str,4))
+                            break;
+                    else if(tmp->type == ATOM && !strncasecmp("dribble",tmp->object.str,7)) // create dribble file in $HOME/.digamma/dribble/DATE-TIME.txt
+                        continue; // should open up a file & print each line & it's result to dribble file
+                    else
+                    {
+                        printf("Unknown command\n");
+                        continue;
+                    }
+                   }
+	        	ret = lleval(ret,tl_env);
+                }
 		if(quit_note)
 			break;
 		if(ret->type != ERROR && ret != tl_env->svoid)
