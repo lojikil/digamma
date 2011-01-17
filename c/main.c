@@ -10,7 +10,6 @@
 #include <string.h>
 #include "vesta.h"
 extern const char *typenames[];
-extern int quit_note;
 int
 main(int ac, char **al, char **el)
 {
@@ -281,8 +280,6 @@ Digamma/Vesta: %s/%s\n",VER, REL);
                    }
                    ret = lleval(ret,tl_env);
                 }
-		if(quit_note)
-			break;
 		if(ret->type != ERROR && ret != tl_env->svoid)
 		{
 			printf("_ : %s = ",typenames[ret->type]);

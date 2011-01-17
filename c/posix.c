@@ -24,7 +24,6 @@
 #include <stdarg.h>
 
 #include "vesta.h"
-
 extern int quit_note;
 extern const char **typenames;
 extern const char **numtypes;
