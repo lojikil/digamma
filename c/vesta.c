@@ -538,7 +538,7 @@ init_env()
 	tl_env->cur_size = 64;
 	tl_env->data->env = (Trie *)hmalloc(sizeof(Trie)); // initial "window"
 	tl_env->data->next = nil;
-#elif
+#else
 	tl_env->data = nil;
 	tl_env->cur_offset = 0;
 	tl_env->cur_size = 0;
