@@ -10,6 +10,7 @@
 #include <string.h>
 #include "vesta.h"
 extern const char *typenames[];
+extern int quit_note;
 int
 main(int ac, char **al, char **el)
 {
@@ -85,40 +86,6 @@ main(int ac, char **al, char **el)
 	 * maybe just (use "nix") ^_^
 	 */
 	register_procedure(f_sys,"sys",0,tl_env);
-	/*
-	register_procedure(f_getuid,"sysgetuid",0,tl_env);
-	register_procedure(f_geteuid,"sysgeteuid",0,tl_env);
-	register_procedure(f_getgid,"sysgetgid",0,tl_env);
-	register_procedure(f_getegid,"sysgetegid",0,tl_env);
-	register_procedure(f_setsid,"sysset*id",0,tl_env);
-	register_procedure(f_sysopen,"sysopen",0,tl_env);
-	register_procedure(f_sysclose,"sysclose",0,tl_env);
-	register_procedure(f_sysread,"sysread",0,tl_env);
-	register_procedure(f_syswrite,"syswrite",0,tl_env);
-	register_procedure(f_syspipe,"syspipe",0,tl_env);
-	register_procedure(f_fork,"sysfork",0,tl_env);
-	register_procedure(f_waitpid,"syswait",0,tl_env);
-	register_procedure(f_execve,"sysexec",0,tl_env);
-	register_procedure(f_popen,"syspopen",0,tl_env);
-	register_procedure(f_pclose,"syspclose",0,tl_env);
-	register_procedure(f_vfork,"sysvfork",0,tl_env);
-	register_procedure(f_kill,"syskill",0,tl_env);
-	register_procedure(f_stat,"sysstat",0,tl_env);
-	register_procedure(f_ssockopt,"sys*sockopt",0,tl_env);
-	register_procedure(f_gettimeofday,"sysgettimeofday",0,tl_env);
-	register_procedure(f_time,"systime",0,tl_env);
-	register_procedure(f_chown,"syschown",0,tl_env);
-	register_procedure(f_chmod,"syschmod",0,tl_env);
-	register_procedure(f_chroot,"syschroot",0,tl_env);
-	register_procedure(f_getenv,"sysgetenv",0,tl_env);
-	register_procedure(f_setenv,"syssetenv",0,tl_env);
-	register_procedure(f_sysfcntl,"sysfcntl",0,tl_env);
-	register_procedure(f_sysfcntlconst,"sysfcntl-const",0,tl_env);
-	register_procedure(f_syssleep,"syssleep",0,tl_env);
-	register_procedure(f_sysusleep,"sysusleep",0,tl_env);
-	register_procedure(f_sysnanosleep,"sysnanosleep",0,tl_env);
-	register_procedure(f_sysselect,"sysselect",0,tl_env);
-	*/
 	/* load prelude out of paths */
 	while(paths[iter] != 0)
 	{
@@ -130,7 +97,7 @@ main(int ac, char **al, char **el)
 			if(!rc)
 			{
 				ret = f_load(cons(makestring(buf),tl_env->snil),(void *)tl_env);
-				if(ret != tl_env->strue)
+				if(ret != tl_env->svoid)
 				{
 					if(ret->type == ERROR)
 						printf("Error: could not load prelude from %s: %s\n",buf,ret->object.error.message);
@@ -280,6 +247,8 @@ Digamma/Vesta: %s/%s\n",VER, REL);
                    }
                    ret = lleval(ret,tl_env);
                 }
+		if(quit_note)
+			break;
 		if(ret->type != ERROR && ret != tl_env->svoid)
 		{
 			printf("_ : %s = ",typenames[ret->type]);

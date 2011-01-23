@@ -1278,7 +1278,7 @@ f_load(SExp *s, Symbol *env)
 		printf("Error on expression: %d\n",exprcnt);
 		return ret;
 	}
-	return env->strue;	
+	return env->svoid;	
 }
 SExp *
 f_princ(SExp *s, Symbol *env)
