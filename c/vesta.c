@@ -7186,10 +7186,10 @@ fcslice(SExp *col, SExp *start, SExp *end)
 			 */
 			 if(i < 0)
 			 	return makeerror(1,0,"cslice's start argument *must* be greater than 0");
-			 ret = makestring_v((j - i) + 1,' ');
+			 ret = makestring_v((j - i),' ');
 			 for(;i < j;i++, base++)
 			 	ret->object.str[base] = col->object.str[i];
-			 ret->object.str[base] = nul;
+			 ret->object.str[base+1] = nul;
 			 break;	
 		case VECTOR:
 			j = AINT(end);
