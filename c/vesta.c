@@ -7101,6 +7101,7 @@ flength(SExp *tmp1)
 SExp *
 fempty(SExp *tmp0)
 {
+	Trie *hd = nil;
 	if(tmp0->type == VECTOR || tmp0->type == STRING)
 	{
 		if(tmp0->length > 0)
@@ -7111,6 +7112,13 @@ fempty(SExp *tmp0)
 		return sfalse;
 	else if(tmp0 == snil)
 		return strue;
+	else if(tmp0->type == DICT)
+	{
+		hd = tmp0->object.dict;
+		if(hd->n_cur == 0)
+			return strue;
+		return sfalse;
+	}
 	return sfalse;
 }
 SExp *

@@ -175,7 +175,10 @@
 		(goal? x) (gen-goal x)
 		(key? x) (gen-key x)
 		else (error (format "unsupported data type for code generation: ~s" (type x))))))
-		 
+(def gen-dict (fn (d)
+ (if (empty? (keys d)) ; have to update empty? to check keys automagically...
+  	"makedict()"
+	(format "dict(~s)" (string-join ...))))) ; ... has to be the normal map dance
 (def cmung-name (fn (s)
 	(def imung (fn (s i thusfar)
 		(cond
