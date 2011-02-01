@@ -107,6 +107,19 @@
 		s
 		(foldl op (op s (first l)) (rest l))))
 (def require (let ((paths ["~/.digamma/lib" "."]) (loaded {})) (fn (x) #f)))
+(defn tilde-expand (f) ; need to flush this out & support ~user as well...
+ (if (eq? (nth f 0) #\~)
+  (string-append (sys :getenv "HOME") (cslice f 1 (length f)))
+  f))
+(def *lib-path* ["~/.digamma/lib" "."])
+; Incredible inefficient definition of 'use, but works for now
+(def use (with loaded {}
+    (fn (l)
+       (defn subuse (l paths)
+        (if (eq? (sys :stat (string-append (tilde-expand (first paths)) "/" l)) #f)
+         (subuse l (rest paths))
+         (load (string-append (tilde-expand (first paths)) "/" l))))
+      (subuse l *lib-path*)))) 
 (def char->=? (fn (a b) (>= (coerce a 'int) (coerce b 'int))))
 (def char->? (fn (a b) (> (coerce a 'int) (coerce b 'int))))
 (def char-<=? (fn (a b) (<= (coerce a 'int) (coerce b 'int))))
