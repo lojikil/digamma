@@ -419,6 +419,8 @@ assq(SExp *item, SExp *alist)
 		if(eqp(car(tmp1),item) == strue)
 			return tmp1;
 		tmp0 = cdr(tmp0);
+        if(tmp0 == snil)
+            return sfalse;
 	}
 	return nil;	
 }

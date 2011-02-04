@@ -48,10 +48,10 @@
 	(if (null? <body>)
 		<item>
 		(list 'if <item> #t (cons 'or <body>))))
-(def endswith? (fn (ending str)
-	(eq? (cslice str (- 0 (length ending)) -1) ending)))
-(def beginswith? (fn (b str)
-	(eq? (cslice str 0 (length b)) b)))
+;(def endswith? (fn (ending str)
+;	(eq? (cslice str (- 0 (length ending)) -1) ending)))
+;(def beginswith? (fn (str b)
+;	(eq? (cslice str 0 (length b)) b)))
 (define-macro with (name value :body body) (list (cons 'fn (cons (cons name '()) body)) value))
 (define-macro let (bind :body letbody)
 	((fn (unbounds) (cons (cons 'fn (cons (car unbounds) letbody)) (car (cdr unbounds)))) (unzip bind)))
@@ -66,6 +66,16 @@
 	(if (eq? <if> 'else)
 		<then>
 		(list 'if <if> <then> (append (ncons 'cond) <else>))))
+(defn endswith? (src suffix)
+    (cond
+        (< (length src) (length suffix)) #f
+        (= (length src) (length suffix)) (eq? src suffix)
+        else (eq? (cslice src (- (length src) (length suffix)) (length src)) suffix)))
+(defn beginswith? (src prefix)
+    (cond
+        (< (length src) (length prefix)) #f
+        (= (length src) (length prefix)) (eq? src prefix)
+        else (eq? (cslice src 0 (length prefix)) prefix)))
 (defn match (str pat) #f)
 (defn split (str pat) #f)
 (defn subst (str pat) #f)
