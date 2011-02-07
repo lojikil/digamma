@@ -233,12 +233,12 @@
                    (tail-call? name (cons 'cond (cdddr code)))))
 			else (eq? (car code) name))
 		#f)))
-(def rewrite-tail-cond (fn (name params state code)
+(def rewrite-tail-cond (fn (name params lstate state code)
      #f))
 (def rewrite-tail-call (fn (name params state code)
         (cond
 	    (not (pair? code)) (gen-code code)
-            (eq? (car code) 'cond) (rewrite-tail-cond name params state code)
+            (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code)
             (eq? (car code) 'if)
 				(with <cond> (gen-code (cadr code))
 					(if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?

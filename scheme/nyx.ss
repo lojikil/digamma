@@ -61,6 +61,7 @@
      l)))
 (def nyx@eval (fn (s state stack e)
     (cond 
+     (not (eq? (type s) "Pair")) s
      (eq? state :preapply) #t
      (eq? state :postapply) #t
      (eq? state :preturn) #t
@@ -90,13 +91,21 @@
      else (error "Invalid state"))))
 (def nyx@repl (fn ()
     (display "n; ")
-    (with r (nyx@eval (read) :preapply '() *tlenv*)
-     (if (not (eq? r #v))
-      (begin
-       (write r)
-       (newline))
-      #v))
-    (nyx@repl)))
+    (with inp (read)
+     (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
+        (cond
+         (eq? (cadr inp) 'exit) (display "Exit\n") 
+         (eq? (cadr inp) 'quit) #t
+         (eq? (cadr inp) 'dribble) #t
+         (eq? (cadr inp) 'save) #t
+         else #f)
+        (with r (nyx@eval inp :preapply '() *tlenv*)
+            (if (not (eq? r #v))
+                (begin
+                    (write r)
+                    (newline))
+                #v)))
+    (nyx@repl))))
 (def nyx@main (fn ()
     (display "nyx r0\n")
     (nyx@repl)))    
