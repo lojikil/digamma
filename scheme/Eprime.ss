@@ -7,6 +7,11 @@
 ; :D
 ; zlib/png licensed (c) 2010 Stefan Edwards
 
+; E' generates human-readable C code from a strict Digamma subset. It focuses on
+; self-tail call optimization & research. Eventually, with the addition of 
+; contracts, I hope to make this a decent compiler, and grow it into the full
+; Enyo, which should support inference, whole program analysis & unboxing
+
 (def *fnarit* {}) ; this is a dict of the various functions' arity
 (def *fnmung* {}) ; maps the program's lambda's name to the munged version
 (def *ooblam* {}) ; lambdas that are lifted can be placed here; for lift-map & friends
@@ -228,9 +233,12 @@
                    (tail-call? name (cons 'cond (cdddr code)))))
 			else (eq? (car code) name))
 		#f)))
+(def rewrite-tail-cond (fn (name params state code)
+     #f))
 (def rewrite-tail-call (fn (name params state code)
         (cond
 	    (not (pair? code)) (gen-code code)
+            (eq? (car code) 'cond) (rewrite-tail-cond name params state code)
             (eq? (car code) 'if)
 				(with <cond> (gen-code (cadr code))
 					(if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?
