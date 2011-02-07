@@ -220,6 +220,12 @@
  				(tail-call? name (nth code (- (length code) 1)))
 			(eq? (car code) 'fn)
 				(tail-call? name (nth code (- (length code) 1)))
+            (eq? (car code) 'cond) 
+                (if (tail-call? name (caddr code))
+                  #t
+                  (if (eq? (cdr code) '())
+                   #f
+                   (tail-call? name (cons 'cond (cdddr code)))))
 			else (eq? (car code) name))
 		#f)))
 (def rewrite-tail-call (fn (name params state code)
