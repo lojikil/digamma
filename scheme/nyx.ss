@@ -94,8 +94,8 @@
     (with inp (read)
      (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
         (cond
-         (eq? (cadr inp) 'exit) (display "Exit\n") 
-         (eq? (cadr inp) 'quit) #t
+         (eq? (cadr inp) 'exit) #v 
+         (eq? (cadr inp) 'quit) #v
          (eq? (cadr inp) 'dribble) #t
          (eq? (cadr inp) 'save) #t
          else #f)
@@ -104,8 +104,8 @@
                 (begin
                     (write r)
                     (newline))
-                #v)))
-    (nyx@repl))))
+                #v)
+            (nyx@repl))))))
 (def nyx@main (fn ()
-    (display "nyx r0\n")
+    (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Nyx: 2009.3/r0\n")
     (nyx@repl)))    
