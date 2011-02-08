@@ -61,6 +61,13 @@
      l)))
 (def nyx@eval (fn (s state stack e)
     (cond 
+     (eq? (type s) "Symbol") 
+        (with res (nyx@lookup s e)
+         (if (eq? res #f)
+          (begin 
+           (display (format "Undefined Symbol: ~a\n" s))
+           #v)
+          res))
      (not (eq? (type s) "Pair")) s
      (eq? state :preapply) #t
      (eq? state :postapply) #t
