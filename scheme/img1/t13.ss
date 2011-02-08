@@ -6,6 +6,7 @@
 ;  - add flood fill colour to rectangle & circle
 ;  - text rendering
 ;  - predefined chart rendering (ala gnuplot)
+;  - more NodeBox-like API
 
 (define-macro with (var val :body b)
 	(list (cons fn (cons (cons var '()) b)) val))
@@ -43,10 +44,10 @@
         (foreach-proc (fn (theta)
                 (let ((xp (* r (abs (cos theta)))) (yp (* r (abs (sin theta)))))
                   (display (format "xp => ~n ; yp => ~n ~%" xp yp))
-                  (plot-fixed canvas (truncate (+ x xp)) (truncate (+ y yp)) x-size y-size offset colour)
-                  (plot-fixed canvas (truncate (- x xp)) (truncate (- y yp)) x-size y-size offset colour)
-                  (plot-fixed canvas (truncate (+ x xp)) (truncate (- y yp)) x-size y-size offset colour)
-                  (plot-fixed canvas (truncate (- x xp)) (truncate (+ y yp)) x-size y-size offset colour)))
+                  (plot-fixed i (truncate (+ x xp)) (truncate (+ y yp)) x-size y-size offset colour)
+                  (plot-fixed i (truncate (- x xp)) (truncate (- y yp)) x-size y-size offset colour)
+                  (plot-fixed i (truncate (+ x xp)) (truncate (- y yp)) x-size y-size offset colour)
+                  (plot-fixed i (truncate (- x xp)) (truncate (+ y yp)) x-size y-size offset colour)))
                 (step-range 0.0 90.0 0.1))))
 (def plot-fixed-rectangle (fn (i x0 y0 w h x-size y-size colour)
 	(plot-fixed-line i x0 y0 (+ x0 w) y0 x-size y-size colour)
