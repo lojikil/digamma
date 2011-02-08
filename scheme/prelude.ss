@@ -123,15 +123,17 @@
   f))
 (def *lib-path* ["~/.digamma/lib" "."])
 ; Incredible inefficient definition of 'use, but works for now
-(def use (with loaded {}
+(def use 
     (fn (l)
        (defn subuse (l paths)
-        (if (eq? (sys :stat (string-append (tilde-expand (first paths)) "/" l)) #f)
-         (subuse l (rest paths))
-         (load (string-append (tilde-expand (first paths)) "/" l))))
+        (if (empty? paths)
+         (error (format "Unable to load library: ~s" l))
+         (if (eq? (sys :stat (string-append (tilde-expand (first paths)) "/" l)) #f)
+          (subuse l (rest paths))
+          (load (string-append (tilde-expand (first paths)) "/" l)))))
     (if (endswith? l ".ss")
      (subuse l *lib-path*)
-     (subuse (string-append l ".ss") *lib-path*)))))
+     (subuse (string-append l ".ss") *lib-path*))))
 (def char->=? (fn (a b) (>= (coerce a 'int) (coerce b 'int))))
 (def char->? (fn (a b) (> (coerce a 'int) (coerce b 'int))))
 (def char-<=? (fn (a b) (<= (coerce a 'int) (coerce b 'int))))
