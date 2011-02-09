@@ -69,7 +69,16 @@
            #v)
           res))
      (not (eq? (type s) "Pair")) s
-     (eq? state :preapply) #t
+     (eq? state :preapply) 
+     	(with fst (nyx@lookup (car s) e)
+	 (if (eq? fst #f)
+	  (begin 
+	   (display (format "Undefined symbol, ~a in ~A\n" (car s) s))
+	   #v)
+	  (cond
+	   (eq? (type fst) "Vector") #t
+	   (eq? (type fst) "Dict") #t
+	   else (display "Some sort of error...\n"))))
      (eq? state :postapply) #t
      (eq? state :preturn) #t
      (eq? state :pcar) #t
