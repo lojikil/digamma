@@ -81,8 +81,18 @@
 	   else (display "Some sort of error...\n"))))
      (eq? state :postapply) #t
      (eq? state :preturn) #t
-     (eq? state :pcar) #t
-     (eq? state :pcdr) #t
+     (eq? state :pcar) 
+        (if (eq? (type (car s)) "Pair")
+         (car (car s))
+         (begin
+          (display "Type error: car operates on PAIRs only!\n")
+          #v))
+     (eq? state :pcdr) 
+        (if (eq? (type (car s)) "Pair")
+         (cdr (car s))
+         (begin
+          (display "Type error: cdr operates on PAIRs only!\n")
+          #v))
      (eq? state :pcons) #t
      (eq? state :pfn) #t
      (eq? state :pif) #t
