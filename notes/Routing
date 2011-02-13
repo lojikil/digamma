@@ -1,0 +1,26 @@
+; should support context paths, so as to have multiple apps on one server
+; I wonder if there is some way to make this all cleaner...
+
+; simpleapp
+(use "web-routes")
+(use "mystak") ; yay! mustache templates
+
+(define-route "/" ; support put, delete, &c &c
+	:post index-post
+	:get index-get)
+(define-route "/author/:id?"
+	:post author-post
+	:get author-get)
+(define-static "/static/"
+    :file-path "./static")
+(define-static-cgi "/cgi-bin"
+    :file-path "./cgi")
+
+
+;;;; Server config ;;;;
+(server-port 8090)
+
+(application-load "simpleapp" :context "/simpleapp")
+(application-load "fwa-admin" :context "/admin")
+; make this like tomcat: when you do some action to the admin
+; it should scan the "web app" directory & load any new web apps
