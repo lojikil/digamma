@@ -3422,7 +3422,7 @@ __base:
 										// these should be evaluted at bind time, not now. Fix this
 										if(tmp2->type == PAIR) // *should* do the jump/shuck, but for now, laze out...
 										{
-											printf("\tMade it to the \"should have done the jump/shuck\" call?\n");
+											//printf("\tMade it to the \"should have done the jump/shuck\" call?\n");
 											tmp2 = __seval(tmp2,env);
 											//stk = cons(list(5,src,fst,cdr(rst),ret,tenv),stk);
 										}
