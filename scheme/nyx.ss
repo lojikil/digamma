@@ -93,10 +93,12 @@
          (begin
           (display "Type error: cdr operates on PAIRs only!\n")
           #v))
-     (eq? state :pcons) #t
+     (eq? state :pcons) 
+	(cons (caar s) (cadar s))
      (eq? state :pfn) #t
      (eq? state :pif) #t
-     (eq? state :pquote) #t
+     (eq? state :pquote) 
+	(car s)
      (eq? state :pqquote) #t
      (eq? state :pdef) #t
      (eq? state :pset!) #t
