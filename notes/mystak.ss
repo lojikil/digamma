@@ -1,4 +1,4 @@
-; vim:setf digamma: 
+; vim:set filetype=digamma: 
 ; Pystache session:
 ;>>> import pystache
 ;>>> pystache.render('Hello {{    person}}!',{'person':'You'})
