@@ -121,6 +121,12 @@
  (if (eq? (nth f 0) #\~)
   (string-append (sys :getenv "HOME") (cslice f 1 (length f)))
   f))
+(def string-join (fn (strs intersital)
+                      (def isj (fn (s i)
+                                        (if (null? (cdr s)) 
+                                                     (cons (car s) '())
+                                                                 (cons (car s) (cons i (isj (cdr s) i))))))
+                          (apply string-append (isj strs intersital))))
 (def *lib-path* ["~/.digamma/lib" "."])
 ; Incredible inefficient definition of 'use, but works for now
 (def use 

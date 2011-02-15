@@ -6,8 +6,22 @@
 
 (def *base-dir* (tilde-expand "~/.anaxagoras"))
 (def *notes* {})
+(defn prompt-string (s)
+ (display s)
+ (read-string))
 (defn new-note () ; read until "^.$"
- (display "New Note.\n"))
+ (defn int-read ()
+  (with r (read-string)
+   (cond
+    (eq? r ".") '()
+    (eq? r #e) '()
+    else (cons r (int-read)))))
+ (let ((stamp (sys :time)) (data (int-read)))
+  (let ((f (open (format "~s/~a" *base-dir* stamp) :write)) (title (prompt-string "title: ")))
+   (display (format "~s\n" title) f)
+   (display (string-join data "\n") f)
+   (newline f)
+   (close f))))
 (defn new-url ()
  (display "New URL.\n"))
 (defn list-notes ()
