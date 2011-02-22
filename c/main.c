@@ -90,15 +90,12 @@ main(int ac, char **al, char **el)
 	/* load prelude out of paths */
 	while(paths[iter] != 0)
 	{
-		printf("Iter == %d; paths[iter] == \"%s\"\n",iter,paths[iter]);
 		if(paths[iter][0] == '~') // search home directory, but expand ~ 
 		{
-			printf("Dying here?\n");
 			tnam = getenv("HOME");
 			if(!tnam)
 				continue;
 			snprintf(buf,4096,"%s%s",tnam,&paths[iter][1]);
-			printf("nope\n");
 			//printf("buf == %s\n",buf);
 			rc = stat(buf,&st);
 			if(!rc)
@@ -165,9 +162,9 @@ printf("\t()\n\
 Digamma/Vesta: %s/%s\n",VER, REL);
 #endif /* STEALTH */
 	add_env(tl_env,"*command-line*",tl_env->snil);
-	printf("Rigors:\n");
+	/*printf("Rigors:\n");
 	printf("tl_env->snil == nil? %s\n", (tl_env->snil == nil ? "true" : "false"));
-	printf("tl_env->snil->type == %d\n",tl_env->snil->type);
+	printf("tl_env->snil->type == %d\n",tl_env->snil->type);*/
 	while(1)
 	{
 		printf("; ");
