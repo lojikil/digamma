@@ -5,6 +5,7 @@
  * library.
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
@@ -17,7 +18,7 @@ main(int ac, char **al, char **el)
 	/* tmp is used for building *command-line* */
 	SExp *ret = nil, *tmp = nil;
 	int iter = 0, rc = 0;
-	char choice = 0, buf[256] = {0};
+	char choice = 0, buf[4096] = {0}, *tnam = nil;
 	struct stat st;
 	const char *VER = "2009.3", *REL = "6.6-theta";
 	const char *paths[] = {
@@ -89,9 +90,15 @@ main(int ac, char **al, char **el)
 	/* load prelude out of paths */
 	while(paths[iter] != 0)
 	{
+		printf("Iter == %d; paths[iter] == \"%s\"\n",iter,paths[iter]);
 		if(paths[iter][0] == '~') // search home directory, but expand ~ 
 		{
-			snprintf(buf,256,"%s%s",getenv("HOME"),&paths[iter][1]);
+			printf("Dying here?\n");
+			tnam = getenv("HOME");
+			if(!tnam)
+				continue;
+			snprintf(buf,4096,"%s%s",tnam,&paths[iter][1]);
+			printf("nope\n");
 			//printf("buf == %s\n",buf);
 			rc = stat(buf,&st);
 			if(!rc)
@@ -158,9 +165,9 @@ printf("\t()\n\
 Digamma/Vesta: %s/%s\n",VER, REL);
 #endif /* STEALTH */
 	add_env(tl_env,"*command-line*",tl_env->snil);
-	/*printf("Rigors:\n");
+	printf("Rigors:\n");
 	printf("tl_env->snil == nil? %s\n", (tl_env->snil == nil ? "true" : "false"));
-	printf("tl_env->snil->type == %d\n",tl_env->snil->type);*/
+	printf("tl_env->snil->type == %d\n",tl_env->snil->type);
 	while(1)
 	{
 		printf("; ");
