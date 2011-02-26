@@ -3533,11 +3533,37 @@ __base:
 		case OPMKDICT:
 			__return(makedict());
 		case OPEVAL:
-			if(pairlength(rst) != 1)
+			itmp = pairlength(rst);
+			if(itmp != 1 && itmp != 2)
 			{
-				__return(makeerror(1,0,"eval f : FORM => S-EXPRESSION"));
+				__return(makeerror(1,0,"eval f : FORM [e : ENVIRONMENT] => S-EXPRESSION"));
 			}
-			__return(__seval(car(rst),env));
+			if(itmp == 1)
+			{
+				__return(__seval(car(rst),env));
+			}
+			else
+			{
+				tmp0 = car(cdr(rst));
+				if(tmp0->type == ATOM)
+				{
+					tmp0 = symlookup(tmp0->object.str,env);
+					if(tmp0 == nil)
+					{
+						__return(makeerror(1,0,"unbound symbol for eval's environment parameter"));
+					}
+				}
+				else if(tmp0->type == PAIR)
+				{
+					tmp0 = __seval(tmp0,env);
+				}
+				if(tmp0->type != ENVIRONMENT)
+				{
+					__return(makeerror(1,0,"eval's second parameter *must* be of type environment"));
+				}
+				__return(__seval(car(rst),(Symbol *)tmp0->object.foreign));
+			}
+			break;
 		case OPAPPLY:
 			if(pairlength(rst) != 2)
 			{
@@ -4260,18 +4286,51 @@ __base:
 			}
 			__return(cloneenv(car(rst)));
 		case OPDEFENV:
-			if(pairlength(rst) != 2)
+			if(pairlength(rst) != 3)
 			{
-				__return(makeerror(1,0,"def sym : SYMBOL s : SEXPRESSION => #v"));
+				__return(makeerror(1,0,"bind-environment sym : SYMBOL s : SEXPRESSION e : ENVIROMENT => #v"));
 			}
-			__return(fdef(car(rst),car(cdr(rst)),(Symbol *)car(cdr(cdr(rst)))->object.foreign));
+			tmp0 = car(cdr(cdr(rst)));
+			if(tmp0->type == ATOM)
+			{
+				tmp0 = symlookup(tmp0->object.str,env);
+				if(tmp0 == nil)
+				{
+					__return(makeerror(1,0,"no such symbol bound in bind-environment"));
+				}
+			}
+			else if(tmp0->type == PAIR)
+				tmp0 = __seval(tmp0,env);
+
+			if(tmp0->type != ENVIRONMENT)
+			{
+				__return(makeerror(1,0,"bind-environment's last argument *must* be an ENVIROMENT"));
+			}
+			__return(fdef(car(rst),car(cdr(rst)),(Symbol *)tmp0->object.foreign));
 		case OPSETENV:
-			if(pairlength(rst) != 2)
+			if(pairlength(rst) != 3)
 			{
-				__return(makeerror(1,0,"set! expects exactly two arguments..."));
+				__return(makeerror(1,0,"set!-enviroment expects exactly three arguments..."));
 			}
-			__return(fset(car(rst),car(cdr(rst)),(Symbol *)car(cdr(cdr(rst)))->object.foreign));
+			tmp0 = car(cdr(cdr(rst)));
+			if(tmp0->type == ATOM)
+			{
+				tmp0 = symlookup(tmp0->object.str,env);
+				if(tmp0 == nil)
+				{
+					__return(makeerror(1,0,"no such symbol bound in set!-environment"));
+				}
+			}
+			else if(tmp0->type == PAIR)
+				tmp0 = __seval(tmp0,env);
+			
+			if(tmp0->type != ENVIRONMENT)
+			{
+				__return(makeerror(1,0,"set!-environment's last argument *must* be an ENVIRONMENT"));
+			}
+			__return(fset(car(rst),car(cdr(rst)),(Symbol *)tmp0->object.foreign));
 		case OPDEFAULTENV:
+			__return(makeenv(e));
 		case OPNULLENV:
 		case OPSTDENV:
 			__return(svoid);
