@@ -655,6 +655,7 @@ init_env()
 	add_env(tl_env,"set-environment!",makeprimitive(OPSETENV,"set-environment!",1));
 	add_env(tl_env,"default-environment",makeprimitive(OPDEFAULTENV,"default-environment",0));
 	add_env(tl_env,"null-environment",makeprimitive(OPNULLENV,"null-environment",0));
+	add_env(tl_env,"from-environment",makeprimitive(OPFROMENV,"from-environment",0));
 	add_env(tl_env,"coerce",makeprimitive(OPCOERCE,"coerce",0));
 	add_env(tl_env,"error",makeprimitive(OPERROR,"error",0));
 	add_env(tl_env,"cupdate",makeprimitive(OPCUPDATE,"cupdate",0));
@@ -4334,6 +4335,27 @@ __base:
 		case OPNULLENV:
 		case OPSTDENV:
 			__return(svoid);
+		case OPFROMENV:
+			if(pairlength(rst) != 2)
+			{
+				__return(makeerror(1,0,"from-environment expects exactly two arguments..."));
+			}
+			tmp0 = car(rst);
+			if(tmp0->type != ATOM && tmp0->type != STRING && tmp0->type != KEY)
+			{
+				__return(makeerror(1,0,"from-environment's first argument must be of type (ATOM|STRING|KEY)"));
+			}
+			tmp1 = car(cdr(rst));
+			if(tmp1->type != ENVIRONMENT)
+			{
+				__return(makeerror(1,0,"from-environment's second argument *must* be of type ENVIRONMENT"));
+			}
+			tmp0 = symlookup(tmp0->object.str,(Symbol *)tmp1->object.foreign);
+			if(tmp0 == nil)
+			{
+				__return(makeerror(1,0,"no so symbol in requested environment"));
+			}
+			__return(tmp0);	
 		case __INTERNAL_RETURN:
 			/* basically, this is the old __retstate;
 			 * Flattening everything should help with total speed...
