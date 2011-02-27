@@ -130,7 +130,7 @@
          (error (format "Unable to load library: ~s" l))
          (if (eq? (sys :stat (string-append (tilde-expand (first paths)) "/" l)) #f)
           (subuse l (rest paths))
-          (load (string-append (tilde-expand (first paths)) "/" l)))))
+          (eval (list 'load (string-append (tilde-expand (first paths)) "/" l)) (default-environment)))))
     (if (endswith? l ".ss")
      (subuse l *lib-path*)
      (subuse (string-append l ".ss") *lib-path*))))

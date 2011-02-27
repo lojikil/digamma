@@ -223,6 +223,10 @@
                         		(tail-call? name (cadddr code)))
 			(eq? (car code) 'begin)
  				(tail-call? name (nth code (- (length code) 1)))
+			(eq? (car code) 'let)
+ 				(tail-call? name (nth code (- (length code) 1)))
+			(eq? (car code) 'with)
+ 				(tail-call? name (nth code (- (length code) 1)))
 			(eq? (car code) 'fn)
 				(tail-call? name (nth code (- (length code) 1)))
             (eq? (car code) 'cond) 
@@ -234,7 +238,9 @@
 			else (eq? (car code) name))
 		#f)))
 (def rewrite-tail-cond (fn (name params lstate state code)
-     #f))
+	(if (eq? state '())
+		#F
+	 	#T)))
 (def rewrite-tail-call (fn (name params state code)
         (cond
 	    (not (pair? code)) (gen-code code)
