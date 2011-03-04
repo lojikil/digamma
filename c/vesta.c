@@ -559,6 +559,7 @@ init_env()
 	add_env(tl_env,"quote",makeprimitive(OPQUOTE,"quote",1));
 	add_env(tl_env,"length",makeprimitive(OPLENGTH,"length",0));
 	add_env(tl_env,"def",makeprimitive(OPDEF,"def",1));
+    add_env(tl_env,"define",makeprimitive(OPDEF,"define",1));
 	add_env(tl_env,"+",makeprimitive(OPPLUS,"+",0));
 	add_env(tl_env,"exact?",makeprimitive(OPEXACT,"exact?",0));
 	add_env(tl_env,"inexact?",makeprimitive(OPINEXACT,"inexact?",0));
@@ -589,7 +590,8 @@ init_env()
 	add_env(tl_env,"modulo", makeprimitive(OPMOD,"modulo",0));
 	add_env(tl_env,"remainder",makeprimitive(OPREMAINDER,"remainder",0));
 	add_env(tl_env,"set!",makeprimitive(OPSET,"set!",1)); /* (set! x '(1 2 3)) ; should we break w/ Scheme again? (set! 'x '(1 2 3)) */
-	add_env(tl_env,"fn",makeprimitive(OPLAMBDA,"fn",1));
+	add_env(tl_env,"fn",makeprimitive(OPLAMBDA,"fn",2));
+    add_env(tl_env,"lambda",makeprimitive(OPLAMBDA,"lambda",2));
 	add_env(tl_env,"&",makeprimitive(OPAND,"&",0));
 	add_env(tl_env,"|",makeprimitive(OPOR,"|",0));
 	add_env(tl_env,"^",makeprimitive(OPXOR,"^",0));
@@ -656,6 +658,7 @@ init_env()
 	add_env(tl_env,"default-environment",makeprimitive(OPDEFAULTENV,"default-environment",0));
 	add_env(tl_env,"null-environment",makeprimitive(OPNULLENV,"null-environment",0));
 	add_env(tl_env,"from-environment",makeprimitive(OPFROMENV,"from-environment",0));
+    add_env(tl_env,"current-environment",makeprimitive(OPSTDENV,"current-environment",0));
 	add_env(tl_env,"coerce",makeprimitive(OPCOERCE,"coerce",0));
 	add_env(tl_env,"error",makeprimitive(OPERROR,"error",0));
 	add_env(tl_env,"cupdate",makeprimitive(OPCUPDATE,"cupdate",0));
@@ -900,7 +903,23 @@ makeenv(Symbol *e)
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = ENVIRONMENT;
 	ret->metadata = nil;
-	ret->object.foreign = (void *) e;
+    if(e == nil)
+    {
+       /* this should most likely be a nullenv, but it's possible that
+        * there should be another flag here, so that this can also
+        * call init_env...
+        * also, maybe we should just cloneenv & re-malloc the Trie, or
+        * something similar, because we still want nil &al to be the same values
+        */
+        e = (Symbol *)hmalloc(sizeof(Symbol));
+        e->data = (Window *)hmalloc(sizeof(Window));
+        e->cur_offset = 0;
+        e->cur_size = 64;
+        e->data->env = (Trie *)hmalloc(sizeof(Trie));
+        e->data->next = nil;
+    }
+    else
+	    ret->object.foreign = (void *) e;
 	return ret;
 }
 char *
@@ -4333,8 +4352,9 @@ __base:
 		case OPDEFAULTENV:
 			__return(makeenv(e));
 		case OPNULLENV:
-		case OPSTDENV:
-			__return(svoid);
+            __return(makeenv(nil));
+		case OPSTDENV: // i.e. copy the environment stack that the current lexical above is using
+            __return(makeenv(env));
 		case OPFROMENV:
 			if(pairlength(rst) != 2)
 			{

@@ -8,14 +8,14 @@
 ;  - predefined chart rendering (ala gnuplot)
 ;  - more NodeBox-like API
 
-(define-macro with (var val :body b)
-	(list (cons fn (cons (cons var '()) b)) val))
-(def foreach-proc (fn (proc col)
-	(if (empty? col)
-		#v	
-		(begin 
-			(proc (first col))
-			(foreach-proc proc (rest col))))))
+;(define-macro with (var val :body b)
+;	(list (cons fn (cons (cons var '()) b)) val))
+;(def foreach-proc (fn (proc col)
+;	(if (empty? col)
+;		#v	
+;		(begin 
+;			(proc (first col))
+;			(foreach-proc proc (rest col))))))
 (def step-range (fn (start end step)
       (if (< step 0)
               (if (> end start)

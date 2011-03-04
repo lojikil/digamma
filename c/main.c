@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <time.h>
 #include "vesta.h"
 extern const char *typenames[];
 extern int quit_note;
@@ -229,7 +230,8 @@ Digamma/Vesta: %s/%s\n",VER, REL);
                         int tlen = 0;
                         if(dribble == nil)
                         {
-                            snprintf(tbuf,256,"%s/.digamma/dribble/%s",getenv("HOME"),ctime(&tm));
+			    tnam = getenv("HOME"); 
+                            snprintf(tbuf,256,"%s/.digamma/dribble/%s",tnam,ctime(&tm));
                             tlen = strlen(tbuf);
                             tbuf[tlen - 1] = '\0';
                             printf("Opening dribble file %s\n",tbuf);
