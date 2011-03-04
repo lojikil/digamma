@@ -187,3 +187,8 @@
 			(= x y)
 		else
 			(eq? x y))))
+
+(def exact->inexact (fn (x)
+    (if (rational? x) 
+     (* x 1.0) ; works because rational? is satisfied for integer?
+     x)))
