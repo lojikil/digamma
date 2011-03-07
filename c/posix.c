@@ -627,41 +627,68 @@ SExp *
 f_stat(SExp *s, Symbol *e)
 {
 	struct stat st;
-	SExp *ret = e->snil, *tmp = e->snil;
-	int iter = 0,rc = 0;
-	if(pairlength(s) != 1)
-		return makeerror(2,0,"sysstat accepts one & only one argument, which is a path to a file object");
-	tmp = car(s);
+	SExp *ret = e->snil, *tmp = e->snil, *opt = e->snil;
+	int iter = 0,rc = 0, rettype = 0;
+    rc = pairlength(s);
+	if(rc < 1 || rc > 2)
+		return makeerror(2,0,"sysstat fp : STRING [option : BOOLEAN] => VECTOR|DICT");
+    tmp = car(s);
+    if(rc == 2)
+    {
+          opt = car(cdr(s));
+          if(opt->type == BOOL || opt->type == GOAL)
+          {
+                  if(opt->object.c)
+                          rettype = 1;
+          }
+    }
 	if(tmp->type != STRING)
 		return makeerror(2,0,"sysstat's sole argument must be a string");
 	rc = stat(tmp->object.str,&st);
 	if(rc == -1)
 		return e->sfalse;
-	ret = makevector(15,nil);
-	ret->object.vec[0] = makeinteger(st.st_dev);
-	ret->object.vec[1] = makeinteger(st.st_ino);
-	ret->object.vec[2] = makeinteger(st.st_mode);
-	ret->object.vec[3] = makeinteger(st.st_nlink);
-	ret->object.vec[4] = makeinteger(st.st_uid);
-	ret->object.vec[5] = makeinteger(st.st_gid);
-	ret->object.vec[6] = makeinteger(st.st_rdev);
-	ret->object.vec[7] = e->snil;
-	ret->object.vec[8] = e->snil;
-	ret->object.vec[9] = e->snil;
-	ret->object.vec[10] = makeinteger(st.st_size);
-	ret->object.vec[11] = makeinteger(st.st_blocks);
-	ret->object.vec[12] = makeinteger(st.st_blksize);
+    if(!rettype)
+    {
+	    ret = makevector(15,nil);
+	    ret->object.vec[0] = makeinteger(st.st_dev);
+	    ret->object.vec[1] = makeinteger(st.st_ino);
+	    ret->object.vec[2] = makeinteger(st.st_mode);
+	    ret->object.vec[3] = makeinteger(st.st_nlink);
+	    ret->object.vec[4] = makeinteger(st.st_uid);
+	    ret->object.vec[5] = makeinteger(st.st_gid);
+	    ret->object.vec[6] = makeinteger(st.st_rdev);
+	    ret->object.vec[7] = e->snil;
+	    ret->object.vec[8] = e->snil;
+	    ret->object.vec[9] = e->snil;
+	    ret->object.vec[10] = makeinteger(st.st_size);
+	    ret->object.vec[11] = makeinteger(st.st_blocks);
+	    ret->object.vec[12] = makeinteger(st.st_blksize);
 	/* when everything is split into individual files, there 
 	 * should be a low-level OS interaction file for each
 	 * system, including Mac OS X...
 	 */
 #ifdef MACSRC
-	ret->object.vec[13] = makeinteger(st.st_flags);
-	ret->object.vec[14] = makeinteger(st.st_gen);
+	    ret->object.vec[13] = makeinteger(st.st_flags);
+	    ret->object.vec[14] = makeinteger(st.st_gen);
 #else
-	ret->object.vec[13] = makeinteger(0);
-	ret->object.vec[14] = makeinteger(0);
+	    ret->object.vec[13] = makeinteger(0);
+	    ret->object.vec[14] = makeinteger(0);
 #endif
+    }
+    else
+    {
+        ret = makedict();
+        trie_put("st_dev",makeinteger(st.st_dev),ret->object.dict);
+        trie_put("st_ino",makeinteger(st.st_ino),ret->object.dict);
+        trie_put("st_mode",makeinteger(st.st_mode),ret->object.dict);
+        trie_put("st_nlink",makeinteger(st.st_nlink),ret->object.dict);
+        trie_put("st_uid",makeinteger(st.st_uid),ret->object.dict);
+        trie_put("st_gid",makeinteger(st.st_gid),ret->object.dict);
+        trie_put("st_rdev",makeinteger(st.st_rdev),ret->object.dict);
+        trie_put("st_size",makeinteger(st.st_size),ret->object.dict);
+        trie_put("st_blocks",makeinteger(st.st_blocks),ret->object.dict);
+        trie_put("st_blksize",makeinteger(st.st_blksize),ret->object.dict);
+    }
 	return ret;
 }
 SExp *
