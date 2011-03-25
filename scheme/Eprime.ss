@@ -241,6 +241,8 @@
 	(if (eq? state '())
 		#F
 	 	#T)))
+(def generate-aux-vars (fn (l)
+	(map (fn (x) (coerce (gensym x) 'string)) l)))
 (def rewrite-tail-call (fn (name params state code)
         (cond
 	    (not (pair? code)) (gen-code code)
@@ -287,7 +289,8 @@
 (def lift-tail-lambda (fn (name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
 	(let ((state (gensym 's))
-	      (fixname (cmung-name name)))
+	      (fixname (cmung-name name))
+	      (auxvs (generate-aux-vars (car code))))
 	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}}" 
 	  	fixname 
 		(string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") 
