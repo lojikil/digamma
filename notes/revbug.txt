@@ -1,0 +1,60 @@
+(defn foo (z x)
+	(if (< z 10)
+		(begin  
+			(display (format "z == ~a\n" z))
+			x)
+		(begin
+			(display "Woah, another type of z!")
+			(display z)
+			(newline)
+			x)))
+			
+			
+			
+			; (defn foo (z x)
+	(if (< z 10)
+		(begin  
+			(display (format "z == ~a\n" z))
+			x)
+		(begin
+			(display "Woah, another type of z!")
+			(display z)
+			(newline)
+			x)))
+; (foo 10 10)
+Woah, another type of z!10
+_ : Number = 10
+; (foo 9 10
+)
+z == 9
+_ : Number = 10
+; 
+(load 'scheme/s19.ss)
+; (string-reverse "hello, worlD!" 12 '())
+In begin; offset == 12; nu == nil
+In begin; offset == 11; nu == ! 
+In begin; offset == 10; nu == ! D 
+In begin; offset == 9; nu == ! D l 
+In begin; offset == 8; nu == ! D l r 
+In begin; offset == 7; nu == ! D l r o 
+In begin; offset == 6; nu == ! D l r o w 
+In begin; offset == 5; nu == ! D l r o w   
+In begin; offset == 4; nu == ! D l r o w   , 
+In begin; offset == 3; nu == ! D l r o w   , o 
+In begin; offset == 2; nu == ! D l r o w   , o l 
+In begin; offset == 1; nu == ! D l r o w   , o l l 
+In begin; offset == 0; nu == ! D l r o w   , o l l e 
+nu == ! D l r o w   , o l l e h 
+nu isn't null
+Welcome to INTERROGATE, the F debugger (of sorts)...
+INTERROGATE> nu
+INTERROGATE> val nu
+(! D l r o w   , o l l e h)
+INTERROGATE> type nu
+nu->type == 6
+INTERROGATE> quit 
+returning from INTERROGATE...
+_ : Nil = ()
+
+
+^ Shouldn't return nil here, as nu != nil, and nu is the last thing eval'd.
