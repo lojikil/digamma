@@ -3233,10 +3233,10 @@ __base:
 	princ(src);
 	printf("\n");*/
 	// add interpreter tick here.
-	e->tick++;
 	switch(state)
 	{
 		case __PRE_APPLY:
+			e->tick++;
 			if(src->type == PAIR)
 			{
 				/*printf("ret(0) == ");
