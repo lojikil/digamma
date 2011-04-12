@@ -141,12 +141,12 @@
 			(cons (car s) (cons i (isj (cdr s) i))))))
 	(apply string-append (isj strs intersital))))
 (def gen-number (fn (x)
-        (cond
-                (integer? x) (format "makeinteger(~n)" x)
-		(rational? x) (format "makerational(~n,~n)" (numerator x) (denomenator x))
-                (real? x) (format "makereal(~n)" x)
-                (complex? x) (format "makecomplex(~n,~n)" (real-part x) (imag-part x))
-                else (error "NaN"))))
+    (cond
+        (integer? x) (format "makeinteger(~n)" x)
+        (rational? x) (format "makerational(~n,~n)" (numerator x) (denomenator x))
+        (real? x) (format "makereal(~n)" x)
+        (complex? x) (format "makecomplex(~n,~n)" (real-part x) (imag-part x))
+        else (error "NaN"))))
 (def gen-string (fn (x)
 	(format "makestring(\"~s\")" x)))
 (def gen-symbol (fn (x)
@@ -217,10 +217,10 @@
         - a bottom begin has a self-call in the tail\n"
 	(if (pair? code)
 		(cond
-                	(eq? (car code) 'if)
-                        	(if (tail-call? name (caddr code))
-                                	#t
-                        		(tail-call? name (cadddr code)))
+            (eq? (car code) 'if)
+                (if (tail-call? name (caddr code))
+                    #t
+                    (tail-call? name (cadddr code)))
 			(eq? (car code) 'begin)
  				(tail-call? name (nth code (- (length code) 1)))
 			(eq? (car code) 'let)
@@ -238,20 +238,35 @@
 			else (eq? (car code) name))
 		#f)))
 (def rewrite-tail-cond (fn (name params lstate state code)
+    "rewrite a cond form in the tail position, using inline-if (rather than nested ones!)
+    "
 	(if (eq? state '())
 		#F
 	 	#T)))
 (def generate-aux-vars (fn (l)
+    " generate auxillary variable names from a list of parameters.
+      Parameters:
+       - l: list containing name of parameters to be used as argument to gensym
+    "
 	(map (fn (x) (coerce (gensym x) 'string)) l)))
-(def rewrite-tail-call (fn (name params state code)
-        (cond
+(def rewrite-tail-call (fn (name params state code auxvs )
+    "rewrite-tail-call: take code in the tail position, and rewrite it to be a simple jump, walking
+     through syntax (cond,if,begin,let,with) to find the final call. 
+     Parameters:
+      - name: the function name we're looking for
+      - params: parameters to the function
+      - state: the state variable used in rewriting
+      - code: the body of the function
+      - auxvs: auxillary variables, used to avoid clobbering our parameters on assignment
+     "
+     (cond
 	    (not (pair? code)) (gen-code code)
             (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code)
             (eq? (car code) 'if)
 				(with <cond> (gen-code (cadr code))
 					(if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?
-					 (let ((<then> (rewrite-tail-call name params state (caddr code)))
-						(<else> (rewrite-tail-call name params state (cadddr code)))
+					 (let ((<then> (rewrite-tail-call name params state (caddr code) auxvs))
+						(<else> (rewrite-tail-call name params state (cadddr code) auxvs))
 						(<it> (gensym 'it)))
                         (format "SExp *~s = ~s;~%
 		if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
@@ -263,8 +278,8 @@
                 ~s = 0;
                 ret = ~s;
         }~%" <it> <cond> <it> <it> <it> <it> <it> <then> state <else>))
-					 (let ((<then> (rewrite-tail-call name params state (caddr code)))
-						(<else> (rewrite-tail-call name params state (cadddr code)))
+					 (let ((<then> (rewrite-tail-call name params state (caddr code) auxvs))
+						(<else> (rewrite-tail-call name params state (cadddr code) auxvs))
 						(<it> (gensym 'it)))
                         (format "SExp *~s = ~s;~%
                 if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
@@ -277,15 +292,42 @@
                 ~s
         }~%" <it> <cond> <it> <it> <it> <it> <it> state <then> <else>))))
                 (eq? (car code) 'begin)
-                        (rewrite-tail-call name params (nth code (- (length code) 1)))
+                        (rewrite-tail-call name params (nth code (- (length code) 1)) auxvs)
                 (eq? (car code) name)
-                       (string-append (string-join (map (fn (x)  (format "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x)))) (zip params (cdr code))) ";\n") ";\n")
+                     (string-append 
+                       (string-join ; assign auxillary variables to avoid clobbering params
+                         (map 
+                           (fn (x) 
+                               (format "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x)))) 
+                           (zip auxvs (cdr code))) 
+                         ";\n") 
+                       (string-join ; assing params the values of their respective auxillaries
+                         (map 
+                           (fn (x) 
+                               (format "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x)))) 
+                           (zip params auxvs)) 
+                         ";\n") 
+                       ";\n")
                 else (gen-code code))))
+
 (def lift-lambda (fn (name code)
+    " creates a function in C with C-safe name and generates code for the lambda's body.
+      Parameters:
+       - name: the function's name, which will be fed to cmung-name
+       - code: the rest of the lambda
+    "
 	(let ((fixname (cmung-name name)))
 	 (cset! *fnmung* name fixname)
 	 (cset! *fnarit* name (length (car code)))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" fixname (string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") (gen-begin (cdr code))))))
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" 
+             fixname 
+             (string-join 
+               (map 
+                 (fn (x) (format "SExp *~a" x)) 
+                 (car code)) 
+               ",") 
+             (gen-begin (cdr code))))))
+
 (def lift-tail-lambda (fn (name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
 	(let ((state (gensym 's))
@@ -297,7 +339,8 @@
 		state 
 		state 
 		;(gen-begin (cslice code 0 (- (length code) 1)))
-		(rewrite-tail-call name (car code) state (nth code (- (length code) 1)))))))
+		(rewrite-tail-call name (car code) state (nth code (- (length code) 1)) auxvs)))))
+
 ; rather than lift each lambda passed to primitive HOFs like map, we should lift the entire
 ; HOF form, remove the anonymous lambda, and rewrite the whole thing to be a tail-recursive fn.
 ; if C supported block expressions in toto (not in specific compilers), I could just rewrite this
