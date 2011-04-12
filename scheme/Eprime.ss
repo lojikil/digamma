@@ -282,7 +282,7 @@
 						(<else> (rewrite-tail-call name params state (cadddr code) auxvs))
 						(<it> (gensym 'it)))
                         (format "SExp *~s = ~s;~%
-                if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
+        if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
         {
                 ~s = 0;
                 ret = ~s;
@@ -298,13 +298,14 @@
                        (string-join ; assign auxillary variables to avoid clobbering params
                          (map 
                            (fn (x) 
-                               (format "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x)))) 
+                               (format "~s = ~s" (car x) (gen-code (cadr x)))) 
                            (zip auxvs (cdr code))) 
                          ";\n") 
+                       ";\n"
                        (string-join ; assing params the values of their respective auxillaries
                          (map 
                            (fn (x) 
-                               (format "~s = ~s" (coerce (car x) 'string) (gen-code (cadr x)))) 
+                               (format "~s = ~s" (coerce (car x) 'string) (cadr x))) 
                            (zip params auxvs)) 
                          ";\n") 
                        ";\n")
@@ -333,7 +334,7 @@
 	(let ((state (gensym 's))
 	      (fixname (cmung-name name))
 	      (auxvs (generate-aux-vars (car code))))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tSExp *~s;int ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}\n}" 
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tSExp *~s;int ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}\n\treturn ret;\n}\n" 
 	  	fixname 
 		(string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") 
         (string-join (map (fn (x) (format "~a = nil" x)) auxvs) ",")
