@@ -259,6 +259,10 @@
       - code: the body of the function
       - auxvs: auxillary variables, used to avoid clobbering our parameters on assignment
      "
+     (display "within rewrite-tail-call\n")
+     (display "params: ")
+     (display (list name: name params: params state: state :code code :auxvs auxvs))
+     (newline)
      (cond
 	    (not (pair? code)) (gen-code code)
             (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code)
@@ -294,7 +298,8 @@
                 (eq? (car code) 'begin)
                         (rewrite-tail-call name params (nth code (- (length code) 1)) auxvs)
                 (eq? (car code) name)
-                     (string-append 
+                     (with t (string-append 
+                       (display "Within name rewrite\n")
                        (string-join ; assign auxillary variables to avoid clobbering params
                          (map 
                            (fn (x) 
@@ -308,6 +313,10 @@
                            (zip params auxvs)) 
                          ";\n") 
                        ";\n")
+                       (display "t == ")
+                       (display t)
+                       (newline)
+                       t)
                 else (gen-code code))))
 
 (def lift-lambda (fn (name code)
@@ -333,13 +342,14 @@
 	(let ((state (gensym 's))
 	      (fixname (cmung-name name))
 	      (auxvs (generate-aux-vars (car code))))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}}" 
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tSExp *~s;int ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}\n}" 
 	  	fixname 
 		(string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") 
+        (string-join (map (fn (x) (format "~a = nil" x)) auxvs) ",")
 		state 
 		state 
 		;(gen-begin (cslice code 0 (- (length code) 1)))
-		(rewrite-tail-call name (car code) state (nth code (- (length code) 1)) auxvs)))))
+		(display (rewrite-tail-call name (car code) state (nth code (- (length code) 1)) auxvs))))))
 
 ; rather than lift each lambda passed to primitive HOFs like map, we should lift the entire
 ; HOF form, remove the anonymous lambda, and rewrite the whole thing to be a tail-recursive fn.
