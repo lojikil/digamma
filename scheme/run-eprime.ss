@@ -1,2 +1,7 @@
 (load 'eprime.ss)
 (eprime "j5.ss" "j5.c" "j5_init")
+(eprime "j4.ss" "j4.c" "j4_init")
+(eprime "j3.ss" "j3.c" "j3_init")
+(eprime "j2.ss" "j2.c" "j2_init")
+(eprime "j1.ss" "j1.c" "j1_init")
+(eprime "j0.ss" "j0.c" "j0_init")
