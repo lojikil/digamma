@@ -135,11 +135,11 @@
  })
 
 (def string-join (fn (strs intersital)
-	(def isj (fn (s i)
-		(if (null? (cdr s))
-			(cons (car s) '())
-			(cons (car s) (cons i (isj (cdr s) i))))))
-	(apply string-append (isj strs intersital))))
+    (def isj (fn (s i)
+        (if (null? (cdr s))
+            (cons (car s) '())
+            (cons (car s) (cons i (isj (cdr s) i))))))
+    (apply string-append (isj strs intersital))))
 (def gen-number (fn (x)
     (cond
         (integer? x) (format "makeinteger(~n)" x)
@@ -148,107 +148,107 @@
         (complex? x) (format "makecomplex(~n,~n)" (real-part x) (imag-part x))
         else (error "NaN"))))
 (def gen-string (fn (x)
-	(format "makestring(\"~s\")" x)))
+    (format "makestring(\"~s\")" x)))
 (def gen-symbol (fn (x)
-	(format "makeatom(\"~s\")" x)))
+    (format "makeatom(\"~s\")" x)))
 (def gen-key (fn (x)
-	(format "makekey(\"~s\")" x)))
+    (format "makekey(\"~s\")" x)))
 (def gen-vector (fn (x)
-	(let ((n (length x)) (p (coerce x 'pair)))
-		(string-append (format "vector(~n," n) (string-join (map gen-literal p) ",") ")"))))
+    (let ((n (length x)) (p (coerce x 'pair)))
+        (string-append (format "vector(~n," n) (string-join (map gen-literal p) ",") ")"))))
 (def gen-pair (fn (x)
-	(let ((n (length x)))
-		(string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")"))))
+    (let ((n (length x)))
+        (string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")"))))
 (def gen-bool (fn (x)
-	       (if x
-		"strue"
-		"sfalse")))
+    (if x
+        "strue"
+        "sfalse")))
 (def gen-goal (fn (x)
-	       (if (eq? x #s)
-		"ssucc"
-		"sunsucc")))
+    (if (eq? x #s)
+        "ssucc"
+        "sunsucc")))
 (def gen-literal (fn (x)
-	(cond
-		(number? x) (gen-number x)
-		(string? x) (gen-string x)
-		(vector? x) (gen-vector x)
-		(pair? x) (gen-pair x) ; really, need to tell what type of code to generate here...
-		(dict? x) (gen-dict x)
-		(eq? x '()) "snil"
-		(symbol? x) (gen-symbol x)
-		(bool? x) (gen-bool x)
-		(goal? x) (gen-goal x)
-		(key? x) (gen-key x)
-		else (error (format "unsupported data type for code generation: ~s" (type x))))))
+    (cond
+        (number? x) (gen-number x)
+        (string? x) (gen-string x)
+        (vector? x) (gen-vector x)
+        (pair? x) (gen-pair x) ; really, need to tell what type of code to generate here...
+        (dict? x) (gen-dict x)
+        (eq? x '()) "snil"
+        (symbol? x) (gen-symbol x)
+        (bool? x) (gen-bool x)
+        (goal? x) (gen-goal x)
+        (key? x) (gen-key x)
+        else (error (format "unsupported data type for code generation: ~s" (type x))))))
 (def gen-dict (fn (d)
- (if (empty? (keys d)) ; have to update empty? to check keys automagically...
-  	"makedict()"
-	(format "dict(~s)" (string-join))))) ; ... has to be the normal map dance
+    (if (empty? (keys d)) ; have to update empty? to check keys automagically...
+    "makedict()"
+    (format "dict(~s)" (string-join))))) ; ... has to be the normal map dance
 (def cmung-name (fn (s)
-	(def imung (fn (s i thusfar)
-		(cond
-			(>= i (length s)) thusfar 
-			(ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
-			(mungable? (nth s i)) (imung s (+ i 1) (append thusfar (char-mung (nth s i))))
-			else (imung s (+ i 1) thusfar))))
-	(apply string (imung (coerce s 'string) 0 '()))))
+    (def imung (fn (s i thusfar)
+        (cond
+            (>= i (length s)) thusfar 
+            (ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
+            (mungable? (nth s i)) (imung s (+ i 1) (append thusfar (char-mung (nth s i))))
+            else (imung s (+ i 1) thusfar))))
+    (apply string (imung (coerce s 'string) 0 '()))))
 (def char-mung (fn (c)
-	(cond
-	 	(eq? c #\:) (list #\_)
-		(eq? c #\@) (list #\_ #\a #\t #\_)
-		(eq? c #\%) (list #\_ #\p #\e #\r #\c #\e #\n #\t #\_)
-		(eq? c #\=) (list #\_ #\e #\q #\u #\a #\l #\_)
-		(eq? c #\>) (list #\_ #\m #\o #\r #\e #\_)
-		(eq? c #\<) (list #\_ #\l #\e #\s #\s #\_)
-		(eq? c #\.) (list #\_)
-		(eq? c #\-) (list #\_)
-		(eq? c #\?) (list #\_ #\p))))
+    (cond
+        (eq? c #\:) (list #\_)
+        (eq? c #\@) (list #\_ #\a #\t #\_)
+        (eq? c #\%) (list #\_ #\p #\e #\r #\c #\e #\n #\t #\_)
+        (eq? c #\=) (list #\_ #\e #\q #\u #\a #\l #\_)
+        (eq? c #\>) (list #\_ #\m #\o #\r #\e #\_)
+        (eq? c #\<) (list #\_ #\l #\e #\s #\s #\_)
+        (eq? c #\.) (list #\_)
+        (eq? c #\-) (list #\_)
+        (eq? c #\?) (list #\_ #\p))))
 (def mungable? (fn (c)
-	(or (eq? c #\:) (eq? c #\%) (eq? c #\@) (eq? c #\=) (eq? c #\?) (eq? c #\-) (eq? c #\>) (eq? c #\<) (eq? c #\.))))
+    (or (eq? c #\:) (eq? c #\%) (eq? c #\@) (eq? c #\=) (eq? c #\?) (eq? c #\-) (eq? c #\>) (eq? c #\<) (eq? c #\.))))
 (def ascii-acceptable? (fn (c)
-	(or
-		(and (char->=? c #\a) (char-<=? c #\z))
-		(and (char->=? c #\A) (char-<=? c #\Z))
-		(and (char->=? c #\0) (char-<=? c #\9))
-		(eq? c #\_))))
+    (or
+        (and (char->=? c #\a) (char-<=? c #\z))
+        (and (char->=? c #\A) (char-<=? c #\Z))
+        (and (char->=? c #\0) (char-<=? c #\9))
+        (eq? c #\_))))
 (def tail-call? (fn (name code)
-	"walk through the code of proc, and check if it calls itself; return #t if:
-        - a bottom if has a call in either it's <then> or <else> suite
-        - a bottom begin has a self-call in the tail\n"
-	(if (pair? code)
-		(cond
+    "walk through the code of proc, and check if it calls itself; return #t if:
+    - a bottom if has a call in either it's <then> or <else> suite
+    - a bottom begin has a self-call in the tail\n"
+    (if (pair? code)
+        (cond
             (eq? (car code) 'if)
                 (if (tail-call? name (caddr code))
                     #t
                     (tail-call? name (cadddr code)))
-			(eq? (car code) 'begin)
- 				(tail-call? name (nth code (- (length code) 1)))
-			(eq? (car code) 'let)
- 				(tail-call? name (nth code (- (length code) 1)))
-			(eq? (car code) 'with)
- 				(tail-call? name (nth code (- (length code) 1)))
-			(eq? (car code) 'fn)
-				(tail-call? name (nth code (- (length code) 1)))
+            (eq? (car code) 'begin)
+                (tail-call? name (nth code (- (length code) 1)))
+            (eq? (car code) 'let)
+                (tail-call? name (nth code (- (length code) 1)))
+            (eq? (car code) 'with)
+                (tail-call? name (nth code (- (length code) 1)))
+            (eq? (car code) 'fn)
+                (tail-call? name (nth code (- (length code) 1)))
             (eq? (car code) 'cond) 
                 (if (tail-call? name (caddr code))
-                  #t
-                  (if (eq? (cdr code) '())
-                   #f
-                   (tail-call? name (cons 'cond (cdddr code)))))
-			else (eq? (car code) name))
-		#f)))
+                    #t
+                    (if (eq? (cdr code) '())
+                        #f
+                        (tail-call? name (cons 'cond (cdddr code)))))
+            else (eq? (car code) name))
+        #f)))
 (def rewrite-tail-cond (fn (name params lstate state code)
     "rewrite a cond form in the tail position, using inline-if (rather than nested ones!)
     "
-	(if (eq? state '())
-		#F
-	 	#T)))
+    (if (eq? state '())
+        #F
+        #T)))
 (def generate-aux-vars (fn (l)
     " generate auxillary variable names from a list of parameters.
       Parameters:
        - l: list containing name of parameters to be used as argument to gensym
     "
-	(map (fn (x) (coerce (gensym x) 'string)) l)))
+    (map (fn (x) (coerce (gensym x) 'string)) l)))
 (def rewrite-tail-call (fn (name params state code auxvs )
     "rewrite-tail-call: take code in the tail position, and rewrite it to be a simple jump, walking
      through syntax (cond,if,begin,let,with) to find the final call. 
@@ -259,14 +259,14 @@
       - code: the body of the function
       - auxvs: auxillary variables, used to avoid clobbering our parameters on assignment
      "
-     (cond
-	    (not (pair? code)) (gen-code code)
-            (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code)
-            (eq? (car code) 'if)
-				(with <cond> (gen-code (cadr code))
-					(if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?
-					 (let ((<then> (rewrite-tail-call name params state (caddr code) auxvs))
-						(<else> (rewrite-tail-call name params state (cadddr code) auxvs))
+    (cond
+        (not (pair? code)) (gen-code code)
+        (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code)
+        (eq? (car code) 'if)
+            (with <cond> (gen-code (cadr code))
+                (if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?
+                    (let ((<then> (rewrite-tail-call name params state (caddr code) auxvs))
+                        (<else> (rewrite-tail-call name params state (cadddr code) auxvs))
 						(<it> (gensym 'it)))
                         (format "SExp *~s = ~s;~%
 		if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
