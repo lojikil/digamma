@@ -240,9 +240,15 @@
 (def rewrite-tail-cond (fn (name params lstate state code)
     "rewrite a cond form in the tail position, using inline-if (rather than nested ones!)
     "
-    (if (eq? state '())
-        #F
-        #T)))
+    (if (eq? lstate '())
+        ; actually, I need to call tail-call? here for each <else> datum, since if it
+        ; isn't a tail call, we want to set the state to 0
+        ; rewrite-tail-call falls into a simple gen-code if no rewrite rules match;
+        ; maybe this can be used? It's a bit expensive to rewrite something if it isn't
+        ; a tail call. Need to see what can be done here...
+        (with tstate (gensym 'it)
+            (format "SExp *~s = nil;~%if((~s = ~s) != nil && (~s->type != NIL) && ((~s->type == GOAL || ~s->type == BOOL) && ~s->object.c))\n{~% ~s = 0; //state~% ~s; // code~%}~%"))
+        #f)))
 (def generate-aux-vars (fn (l)
     " generate auxillary variable names from a list of parameters.
       Parameters:
