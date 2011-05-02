@@ -135,6 +135,11 @@
  })
 
 (def string-join (fn (strs intersital)
+    (display "string-join:: recieved: ")
+    (display strs)
+    (display " ")
+    (display intersital)
+    (newline)
     (def isj (fn (s i)
         (if (null? (cdr s))
             (cons (car s) '())
@@ -459,11 +464,14 @@
 		 (gen-literal x)))))
 (def foreach-expression (fn (proc in)
 	(with r (read in)
+     (display "foreach-expression:: r == ")
+     (display r)
+     (newline)
 	 (if (eq? r #e)
 		#v
 	 	(begin
 			(proc r)
-		       (foreach-expression proc in))))))
+		    (foreach-expression proc in))))))
 ; Awesome things to do:
 ; - call graphs
 ; - function instrumentation (for debugging)
@@ -506,8 +514,8 @@
 	   "Main code output"
 	   (let ((in (open i :read)) 
 		 (out (open o :write)))
-	    (header-out out name)
-	    (foreach-expression (fn (e) (display (gen-code e) out)) in)
+	    (header-out out)
+	    (foreach-expression (fn (e) (display e) (newline) (with cde (gen-code e) (display cde) (newline) (display cde out))) in)
 	    (display (format "void~%~s()~%{~%\ttl_env = init_env();~%" name) out)
 	    (footer-out out)
 	    (close in)
