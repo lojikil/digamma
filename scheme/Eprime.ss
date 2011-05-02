@@ -427,6 +427,9 @@
       (format "ret = ~s;~%" (gen-code body)))
      (format "ret = ~s;~%" (gen-code body)))))
 (def gen-code (fn (x)
+    (display "gen-code:: x == ")
+    (display x)
+    (newline)
 	(if (pair? x) 
 		(cond
 			(eq? (car x) 'def) 
