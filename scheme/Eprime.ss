@@ -345,6 +345,8 @@
 	(let ((state (gensym 's))
 	      (fixname (cmung-name name))
 	      (auxvs (generate-aux-vars (car code))))
+	 (cset! *fnmung* name fixname)
+	 (cset! *fnarit* name (length (car code)))
 	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tSExp *~s;int ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}\n\treturn ret;\n}\n" 
 	  	fixname 
 		(string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") 
@@ -439,9 +441,9 @@
 						(format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
 						(if (not (eq? (car (car (cdr (cdr x)))) 'fn))
 							(format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-code (car (cdr (cdr x)))))
-							(if (tail-call? (cadr x) (cadr (cdaddr x)))
-							 (lift-tail-lambda (cadr x) (cdaddr x))
-							 (lift-lambda (cadr x) (cdaddr x))))))
+                            (if (tail-call? (cadr x) (cadr (cdaddr x)))
+							    (lift-tail-lambda (cadr x) (cdaddr x))
+							    (lift-lambda (cadr x) (cdaddr x))))))
 			(eq? (car x) 'load) #t
 			(eq? (car x) 'import) #t
 			(eq? (car x) 'use) #t
@@ -461,7 +463,7 @@
 			(primitive-form? (car x)) (gen-primitive x) 
 			(primitive-proc? (car x)) (call-prim-proc x) ;display & friends
 			(primitive-syntax? (car x)) (gen-code (ep-syntax-expand x))
-			else 'EVAL-FORM)
+			else (call-lambda (car x) (cdr x)))
 		(if (symbol? x)
 		 (coerce x 'string)
 		 (gen-literal x)))))
