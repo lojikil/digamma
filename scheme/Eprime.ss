@@ -371,8 +371,10 @@
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
  (if (= (length args) (nth *fnarit* name))
-  (format "~s(~s)" (nth *fnmung* name) (string-join (map (fn (x) (gen-code x)) args) ","))
-  (error (format "incorrect arity for ~S~%" (coerce name 'string))))))
+    (if (= (length args) 0)
+        (format "~s()" (nth *fnmung* name))
+        (format "~s(~s)" (nth *fnmung* name) (string-join (map (fn (x) (gen-code x)) args) ",")))
+    (error (format "incorrect arity for ~S~%" (coerce name 'string))))))
 
 ; need to change this:
 ;  - check if <then> or <else> is a (begin ...)
@@ -561,10 +563,12 @@
 (def gen-primitive (fn (x)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
 	 (if (= (nth f 0) 0) ; arity
-	  (format "~s(list(~n,~s))" (nth f 2) (length args) (string-join (map gen-code args) ","))
+        (if (= (length args) 0)
+          (format "~s(snil)" (nth f 2))
+	      (format "~s(list(~n,~s))" (nth f 2) (length args) (string-join (map gen-code args) ",")))
 	  (if (= (length args) (nth f 0))
 	   (format "~s(~s)" (nth f 2) (string-join (map gen-code args) ","))
-	   (error (format "eris: incorrect number of arguments to ~s" (nth f 2))))))))
+	   (error (format "enyalios: incorrect number of arguments to ~s" (nth f 2))))))))
 (def primitive-proc? (fn (x)
 	(dict-has? *prim-proc* x)))
 (def call-prim-proc (fn (x)
