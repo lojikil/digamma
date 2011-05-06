@@ -347,10 +347,10 @@
 	      (auxvs (generate-aux-vars (car code))))
 	 (cset! *fnmung* name fixname)
 	 (cset! *fnarit* name (length (car code)))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\tSExp *~s;int ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}\n\treturn ret;\n}\n" 
+	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil, ~s;\n\tint ~s = 1;\n\twhile(~s)\n\t{\n\t\t\n~s\n\t}\n\treturn ret;\n}\n" 
 	  	fixname 
 		(string-join (map (fn (x) (format "SExp *~a" x)) (car code)) ",") 
-        (string-join (map (fn (x) (format "~a = nil" x)) auxvs) ",")
+        (string-join (map (fn (x) (format "*~a = nil" x)) auxvs) ",")
 		state 
 		state 
 		;(gen-begin (cslice code 0 (- (length code) 1)))
