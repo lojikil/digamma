@@ -328,17 +328,21 @@
        - name: the function's name, which will be fed to cmung-name
        - code: the rest of the lambda
     "
-	(let ((fixname (cmung-name name)))
+	(let ((fixname (cmung-name name))
+          (body (gen-begin (cdr code))))
 	 (cset! *fnmung* name fixname)
 	 (cset! *fnarit* name (length (car code)))
-	 (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" 
+     (if (= (length (car code)) 0)
+       (format "SExp *~%~s()~%{~%\tSExp *ret = nil;\n\t~s\n\treturn ret;\n}\n"
+             fixname body)
+	   (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" 
              fixname 
              (string-join 
                (map 
                  (fn (x) (format "SExp *~a" x)) 
                  (car code)) 
                ",") 
-             (gen-begin (cdr code))))))
+             body)))))
 
 (def lift-tail-lambda (fn (name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
@@ -370,6 +374,7 @@
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
+    (display (format "length of args: ~a; arity of function ~s: ~a~%" (length args) name (nth *fnarit* name)))
  (if (= (length args) (nth *fnarit* name))
     (if (= (length args) 0)
         (format "~s()" (nth *fnmung* name))
@@ -513,6 +518,12 @@
 "#include <errno.h>"
 "#include <stdarg.h>"
 "#include \"vesta.h\""
+"#define nil NULL"
+"#define strue tl_env->strue"
+"#define sfalse tl_env->sfalse"
+"#define ssucc tl_env->ssucc"
+"#define sunsucc tl_env->sunsucc"
+"#define snil tl_env->snil"
 "static Symbol *tl_env = nil;"))))
 (def footer-out (fn (p)
 		 "finalize C code to output file"
