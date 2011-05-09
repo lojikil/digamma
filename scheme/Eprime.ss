@@ -135,11 +135,6 @@
  })
 
 (def string-join (fn (strs intersital)
-    (display "string-join:: recieved: ")
-    (display strs)
-    (display " ")
-    (display intersital)
-    (newline)
     (def isj (fn (s i)
         (if (null? (cdr s))
             (cons (car s) '())
@@ -166,12 +161,12 @@
         (string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")"))))
 (def gen-bool (fn (x)
     (if x
-        "strue"
-        "sfalse")))
+        "STRUE"
+        "SFALSE")))
 (def gen-goal (fn (x)
     (if (eq? x #s)
-        "ssucc"
-        "sunsucc")))
+        "SSUCC"
+        "SUNSUCC")))
 (def gen-literal (fn (x)
     (cond
         (number? x) (gen-number x)
@@ -179,7 +174,7 @@
         (vector? x) (gen-vector x)
         (pair? x) (gen-pair x) ; really, need to tell what type of code to generate here...
         (dict? x) (gen-dict x)
-        (eq? x '()) "snil"
+        (eq? x '()) "SNIL"
         (symbol? x) (gen-symbol x)
         (bool? x) (gen-bool x)
         (goal? x) (gen-goal x)
@@ -187,8 +182,8 @@
         else (error (format "unsupported data type for code generation: ~s" (type x))))))
 (def gen-dict (fn (d)
     (if (empty? (keys d)) ; have to update empty? to check keys automagically...
-    "makedict()"
-    (format "dict(~s)" (string-join))))) ; ... has to be the normal map dance
+        "makedict()"
+        (format "dict(~s)" (string-join))))) ; ... has to be the normal map dance
 (def cmung-name (fn (s)
     (def imung (fn (s i thusfar)
         (cond
@@ -374,7 +369,6 @@
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
-    (display (format "length of args: ~a; arity of function ~s: ~a~%" (length args) name (nth *fnarit* name)))
  (if (= (length args) (nth *fnarit* name))
     (if (= (length args) 0)
         (format "~s()" (nth *fnmung* name))
@@ -436,9 +430,6 @@
       (format "ret = ~s;~%" (gen-code body)))
      (format "ret = ~s;~%" (gen-code body)))))
 (def gen-code (fn (x)
-    (display "gen-code:: x == ")
-    (display x)
-    (newline)
 	(if (pair? x) 
 		(cond
 			(eq? (car x) 'def) 
@@ -476,9 +467,6 @@
 		 (gen-literal x)))))
 (def foreach-expression (fn (proc in)
 	(with r (read in)
-     (display "foreach-expression:: r == ")
-     (display r)
-     (newline)
 	 (if (eq? r #e)
 		#v
 	 	(begin
@@ -519,11 +507,11 @@
 "#include <stdarg.h>"
 "#include \"vesta.h\""
 "#define nil NULL"
-"#define strue tl_env->strue"
-"#define sfalse tl_env->sfalse"
-"#define ssucc tl_env->ssucc"
-"#define sunsucc tl_env->sunsucc"
-"#define snil tl_env->snil"
+"#define STRUE tl_env->strue"
+"#define SFALSE tl_env->sfalse"
+"#define SSUCC tl_env->ssucc"
+"#define SUNSUCC tl_env->sunsucc"
+"#define SNIL tl_env->snil"
 "static Symbol *tl_env = nil;"))))
 (def footer-out (fn (p)
 		 "finalize C code to output file"
@@ -533,7 +521,7 @@
 	   (let ((in (open i :read)) 
 		 (out (open o :write)))
 	    (header-out out)
-	    (foreach-expression (fn (e) (display e) (newline) (with cde (gen-code e) (display cde) (newline) (display cde out))) in)
+	    (foreach-expression (fn (e) (with cde (gen-code e) (display cde out))) in)
 	    (display (format "void~%~s()~%{~%\ttl_env = init_env();~%" name) out)
 	    (footer-out out)
 	    (close in)
