@@ -4,7 +4,7 @@
 ; with Web, JSON, GUI & CLI versions.
 ; released under zlib/png license, and (c) 2010 Stefan Edwards
 
-(def *base-dir* (tilde-expand "~/.anaxagoras"))
+(def *base-dir* (tilde-expand "~/.digamma/anaxagoras"))
 (def *notes* {})
 (defn prompt-string (s)
  (display s)
