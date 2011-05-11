@@ -118,7 +118,7 @@
 })
 (def *prim-proc* {
  :display [0 "f_princ"]
- :newline [0 "f_newline"]
+ :newline [0 "newline"]
  :read [0 "f_read"]
  :write [0 "f_write"]
  :read-char #t
