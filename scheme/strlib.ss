@@ -19,7 +19,7 @@
         (if (empty? (cdr l))
                 (apply string-append (append acc (list (car l))))
                 (string-join (cdr l) i (append acc (list (car l) i)))))
-(def string-reverse (fn (s offset nu )
+(defn string-reverse (s offset nu )
 	(cond 
 		(< offset 0) 
 			(begin 
@@ -37,4 +37,4 @@
 			(begin
 				(display (format "In begin; offset == ~a; nu == ~a\n" offset nu))
 				(cset! nu offset (nth s offset))
-				(string-reverse s (- offset 1) nu)))))
+				(string-reverse s (- offset 1) nu))))
