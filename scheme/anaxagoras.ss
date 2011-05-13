@@ -12,13 +12,13 @@
 (defn prompt-string (s)
  (display s)
  (read-string))
-(defn new-note () ; read until "^.$"
- (defn int-read ()
-  (with r (read-string)
-   (cond
-    (eq? r ".") '()
-    (eq? r #e) '()
-    else (cons r (int-read)))))
+(defn int-read () ; read until "^\.$"
+ (with r (read-string)
+  (cond
+   (eq? r ".") '()
+   (eq? r #e) '()
+   else (cons r (int-read)))))
+(defn new-note () 
  (let ((stamp (sys :time)) 
        (title (prompt-string "title: "))
        (data (int-read)))
