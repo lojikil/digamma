@@ -53,16 +53,6 @@
      (eq? p :p<=) #t
      (eq? p :p>=) #t
      else #f)))
-(def nyx@qquote (fn (l e)
-    (if (eq? (type l) "Pair")
-     (if (eq? (type (car l)) "Pair")
-      (if (eq? (car (car l)) 'unquote)
-       (cons (nyx@eval (car (cdr (car l))) :preapply '() e) (nyx@qquote (cdr l) e))
-       (if (eq? (car (car l)) 'unquote-splice)
-        (append (nyx@eval (car (cdr (car l))) :preapply '() e) (nyx@qquote (cdr l) e))          
-        (cons (nyx@qquote (car l) e) (nyx@qquote (cdr l) e))))
-      (cons (car l) (nyx@qquote (cdr l) e)))
-     l)))
 (def nyx@eval (fn (s state stack e)
     (cond 
      (eq? (type s) "Symbol") 
@@ -123,6 +113,16 @@
      (eq? state :p/) #t
      (eq? state :p*) #t
      else (error "Invalid state"))))
+(def nyx@qquote (fn (l e)
+    (if (eq? (type l) "Pair")
+     (if (eq? (type (car l)) "Pair")
+      (if (eq? (car (car l)) 'unquote)
+       (cons (nyx@eval (car (cdr (car l))) :preapply '() e) (nyx@qquote (cdr l) e))
+       (if (eq? (car (car l)) 'unquote-splice)
+        (append (nyx@eval (car (cdr (car l))) :preapply '() e) (nyx@qquote (cdr l) e))          
+        (cons (nyx@qquote (car l) e) (nyx@qquote (cdr l) e))))
+      (cons (car l) (nyx@qquote (cdr l) e)))
+     l)))
 (def nyx@repl (fn ()
     (display "n; ")
     (with inp (read)

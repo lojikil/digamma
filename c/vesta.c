@@ -7129,7 +7129,10 @@ fnth(SExp *tmp0, SExp *tmp1)
 		case DICT:
 			tmp2 = trie_get(tmp1->object.str,tmp0->object.dict);
 			if(tmp2 == nil)
+            {
+                printf("key == %s\n",tmp1->object.str);
 				return makeerror(1,0,"No such key");
+            }
 			return tmp2;
 		default: 
 			return makeerror(1,0,"nth operates on collections only...");

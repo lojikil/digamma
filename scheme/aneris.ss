@@ -71,7 +71,12 @@
      (eq? proc :p/) (foldl / 1 args)
      (eq? proc :pquote) (car args)
      (eq? proc :pqquote) (aneris@qquote (car args) env) 
-     (eq? proc :pif) (if (not (eq? (aneris@eval (car args) env) #f)) (aneris@eval (car (cdr args)) env) (aneris@eval (car (cdr (cdr args))) env))
+     (eq? proc :pif) 
+        (if (not (eq? (aneris@eval (car args) env) #f)) 
+            (aneris@eval (car (cdr args)) env)
+            (if (null? (caddr args))
+                #f
+                (aneris@eval (car (cdr (cdr args))) env)))
      (eq? proc :pdisplay) (display (car args))
      (aneris@logop? proc) (aneris@compare proc (car args) (cdr args))
      else #f)))
@@ -104,12 +109,13 @@
 (def aneris@repl (fn ()
     (display "a; ")
     (with r (aneris@eval (read) *tlenv*)
-     (if (not (eq? r #v))
-      (begin
-       (write r)
-       (newline))
-      #v))
-    (aneris@repl)))
+        (cond
+            (eq? r #e) #v
+            else 
+                (begin 
+                    (write r)
+                    (newline)
+                    (aneris@repl))))))
 (def aneris@main (fn ()
     (display "aneris r0\n")
     (aneris@repl)))    
