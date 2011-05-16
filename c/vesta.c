@@ -407,22 +407,36 @@ eqp(SExp *s0, SExp *s1)
 SExp *
 assq(SExp *item, SExp *alist)
 {
-	SExp *tmp0 = snil, *tmp1 = snil;
-	if(alist == nil || alist->type != PAIR)
-		return makeerror(1,0,"assq item : EQABLE-SEXPRESSION alist : ASSOC-LIST => sexpression");
-	tmp0 = alist;
-	while(tmp0 != snil)
-	{
-		tmp1 = car(tmp0);
-		if(tmp1->type != PAIR)
-			return makeerror(1,0,"ASSOCI-LIST : (EQABLE-SEXPRESSION SEXPRESSION)*");
-		if(eqp(car(tmp1),item) == strue)
-			return tmp1;
-		tmp0 = cdr(tmp0);
-        if(tmp0 == snil)
-            return sfalse;
-	}
-	return nil;	
+    SExp *tmp0 = snil, *tmp1 = snil;
+    if(alist == nil || alist->type != PAIR)
+        return makeerror(1,0,"assq item : EQABLE-SEXPRESSION alist : ASSOC-LIST => sexpression");
+    tmp0 = alist;
+    while(tmp0 != snil)
+    {
+        tmp1 = car(tmp0);
+        if(tmp1->type != PAIR)
+            return makeerror(1,0,"ASSOC-LIST : (EQABLE-SEXPRESSION SEXPRESSION)*");
+        if(eqp(car(tmp1),item) == strue)
+            return tmp1;
+        tmp0 = cdr(tmp0);
+    }
+    return sfalse;	
+}
+SExp *
+memq(SExp *item, SExp *mlist)
+{
+    SExp *tmp0 = snil, *tmp1 = snil;
+    if(mlist == nil || mlist->type != PAIR)
+        return makeerror(1,0,"memq item : EQABLE-SEXPRESSION member-list : PAIR => (PAIR | FALSE)");
+    tmp0 = mlist;
+    while(tmp0 != snil)
+    {
+        tmp1 = car(tmp0);
+        if(eqp(tmp1,item) == strue)
+            return tmp0;
+        tmp0 = cdr(tmp0);
+    }
+    return sfalse;
 }
 SExp *
 list(int n, ...)
@@ -647,6 +661,7 @@ init_env()
 	add_env(tl_env,"string-append",makeprimitive(OPSTRAP, "string-append",0));
 	add_env(tl_env,"apply",makeprimitive(OPAPPLY,"apply",0));
 	add_env(tl_env,"assq",makeprimitive(OPASSQ,"assq",0));
+        add_env(tl_env,"memq",makeprimitive(OPMEMQ,"memq",0));
 	add_env(tl_env,"defrec",makeprimitive(OPDEFREC,"defrec",1));
 	add_env(tl_env,"set-rec!",makeprimitive(OPSETREC,"set-rec!",1));
 	add_env(tl_env,"dict",makeprimitive(OPDICT,"dict",0));
@@ -4193,6 +4208,18 @@ __base:
 				__return(makeerror(1,0,"alist must be an ASSOC-LIST (an hence a pair)"));
 			}
 			__return(assq(tmp0,tmp1));
+		case OPMEMQ:
+			if(pairlength(rst) != 2)
+			{
+				__return(makeerror(1,0,"memq item : EQABLE-SEXPRESSION member-list : PAIR => (PAIR | FALSE)"));
+			}
+			tmp0 = car(rst);
+			tmp1 = car(cdr(rst));
+			if(tmp1->type != PAIR)
+			{
+				__return(makeerror(1,0,"member-list must be a pair"));
+			}
+			__return(memq(tmp0,tmp1));
 		case OPDICHAS:
 			/* simple key test that returns true or false, and does not signal an error */
 			if(pairlength(rst) != 2)
