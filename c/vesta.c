@@ -7825,10 +7825,10 @@ fdef(SExp *tmp0, SExp *tmp1, Symbol *env)
         d = car(tmp0);
         if(d->type != ATOM)
             return makeerror(1,0,"the first member of a procedure-define *must* be an ATOM");
-        princ(tmp0);
+        /*princ(tmp0);
         printf("\n");
         princ(tmp1);
-        printf("\n");
+        printf("\n");*/
         add_env(env,d->object.str,ffn(cons(cdr(tmp0),cdr(tmp1)),env));
         return svoid; 
     }
@@ -7913,9 +7913,9 @@ ffn(SExp *rst, Symbol *env)
 		(fn ((x default: 3) a) ...) ; => this isn't an error, but probably should be (a should either have a default or be opt:)
 	   The default issue should be handled like Python: as an error for functions...
 	 */
-	printf("Rst: ");
+	/*printf("Rst: ");
 	princ(rst);
-	printf("\n");
+	printf("\n");*/
 	if(pairlength(rst) < 2)
 		return makeerror(1,0,"fn (bindings*) (form*) => closure");
 	tmp0 = (SExp *)hmalloc(sizeof(SExp));
