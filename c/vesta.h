@@ -461,9 +461,6 @@ SExp *fintegerp(SExp *);
 double log2(double);
 #endif
 /* syntactic primitives */
-SExp *fbaselet(SExp *, Symbol *);
-SExp *fdotimes(SExp *, Symbol *);
-SExp *fdocol(SExp *, Symbol *);
 SExp *fset(SExp *, SExp *, Symbol *);
 SExp *fdef(SExp *, SExp *, Symbol *);
 SExp *fcond(SExp *, Symbol *);

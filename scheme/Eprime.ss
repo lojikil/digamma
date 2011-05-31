@@ -573,5 +573,5 @@
 (def call-prim-proc (fn (x)
     (let ((f (nth *prim-proc* (car x))) (args (cdr x)))
         (if (= (length args) 0)
-            (format "~s(snil,tl_env)" (nth f 1)) 
+            (format "~s(SNIL,tl_env)" (nth f 1)) 
             (format "~s(list(~n,~s),tl_env)" (nth f 1) (length args) (string-join (map gen-code args) ","))))))
