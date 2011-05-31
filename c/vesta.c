@@ -3526,7 +3526,7 @@ __base:
 			{
 				__return(makeerror(1,0,"def sym : SYMBOL s : SEXPRESSION => #v"));
 			}
-			__return(fdef(car(rst),car(cdr(rst)),env)); // do we really need to __return? I guess if you want the #v...
+			__return(fdef(car(rst),rst,env)); // do we really need to __return? I guess if you want the #v...
 		case OPLENGTH:
 			if(pairlength(rst) != 1)
 			{
@@ -7820,20 +7820,35 @@ SExp *
 fdef(SExp *tmp0, SExp *tmp1, Symbol *env)
 {
 	SExp *d = nil;
-	if(tmp0->type != ATOM)
-		return makeerror(1,0,"type clash: define's first argument must be an atom...");
-	if(tmp1->type == PAIR)
-		tmp1 = lleval(tmp1,env);
-	else if(tmp1->type == ATOM)
-	{
-		tmp1 = symlookup(tmp1->object.str,env);
-		if(tmp1 == nil)
-			return makeerror(1,0,"unknown atom in def's second argument!");
-	}
-	if(tmp1->type == ERROR)
-		return tmp1;
-	add_env(env,tmp0->object.str,tmp1);
-	return svoid;
+    if(tmp0->type == PAIR)
+    {
+        d = car(tmp0);
+        if(d->type != ATOM)
+            return makeerror(1,0,"the first member of a procedure-define *must* be an ATOM");
+        princ(tmp0);
+        printf("\n");
+        princ(tmp1);
+        printf("\n");
+        add_env(env,d->object.str,ffn(cons(cdr(tmp0),cdr(tmp1)),env));
+        return svoid; 
+    }
+	else if(tmp0->type == ATOM)
+    {
+        tmp1 = car(cdr(tmp1));
+	    if(tmp1->type == PAIR)
+		    tmp1 = lleval(tmp1,env);
+	    else if(tmp1->type == ATOM)
+	    {
+		    tmp1 = symlookup(tmp1->object.str,env);
+		    if(tmp1 == nil)
+			    return makeerror(1,0,"unknown atom in def's second argument!");
+	    }
+	    if(tmp1->type == ERROR)
+	    	return tmp1;
+	    add_env(env,tmp0->object.str,tmp1);
+        return svoid;
+    }
+    return makeerror(1,0,"def's first argument *must* be SYMBOL | PAIR");
 }
 SExp *
 fdefmacro(SExp *tmp0, SExp *tmp1, SExp *body, Symbol *env)
@@ -7898,16 +7913,16 @@ ffn(SExp *rst, Symbol *env)
 		(fn ((x default: 3) a) ...) ; => this isn't an error, but probably should be (a should either have a default or be opt:)
 	   The default issue should be handled like Python: as an error for functions...
 	 */
-	/*printf("Rst: ");
+	printf("Rst: ");
 	princ(rst);
-	printf("\n");*/
+	printf("\n");
 	if(pairlength(rst) < 2)
 		return makeerror(1,0,"fn (bindings*) (form*) => closure");
 	tmp0 = (SExp *)hmalloc(sizeof(SExp));
 	tmp0->type = CLOSURE;
 	tmp1 = car(rst);
-	if(tmp1->type != PAIR && tmp1->type != NIL)
-		return makeerror(1,0,"bindings must be either a PAIR, NIL");
+	if(tmp1->type != PAIR && tmp1->type != NIL && tmp1->type != ATOM)
+		return makeerror(1,0,"bindings must be either a PAIR, NIL or a SYMBOL");
 	if(tmp1->type == PAIR)
 	{
 		/* let's check args, to test for what was mentioned above... */
