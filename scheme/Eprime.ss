@@ -433,15 +433,18 @@
 	(if (pair? x) 
 		(cond
 			(eq? (car x) 'def) 
-				(if (not (symbol? (car (cdr x))))
-					(error "def p : SYMBOL e : SEXPRESSION => VOID")
-					(if (not (pair? (car (cdr (cdr x)))))
-						(format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
-						(if (not (eq? (car (car (cdr (cdr x)))) 'fn))
-							(format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-code (car (cdr (cdr x)))))
-                            (if (tail-call? (cadr x) (cadr (cdaddr x)))
-							    (lift-tail-lambda (cadr x) (cdaddr x))
-							    (lift-lambda (cadr x) (cdaddr x))))))
+                (cond
+                    (symbol? (car (cdr x)))
+					    (if (not (pair? (car (cdr (cdr x)))))
+						    (format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
+						    (if (not (eq? (car (car (cdr (cdr x)))) 'fn))
+							    (format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-code (car (cdr (cdr x)))))
+                                (if (tail-call? (cadr x) (cadr (cdaddr x)))
+							        (lift-tail-lambda (cadr x) (cdaddr x))
+							        (lift-lambda (cadr x) (cdaddr x)))))
+                     (pair? (car (cdr x))) ; (def (foo x) ...)
+                        #t
+                     else (error "def's first argument *must* be SYMBOL | PAIR"))
 			(eq? (car x) 'load) #t
 			(eq? (car x) 'import) #t
 			(eq? (car x) 'use) #t

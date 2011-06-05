@@ -3522,10 +3522,6 @@ __base:
 		case OPLAMBDA:
 			__return(ffn(rst,env));
 		case OPDEF:
-			if(pairlength(rst) != 2)
-			{
-				__return(makeerror(1,0,"def sym : SYMBOL s : SEXPRESSION => #v"));
-			}
 			__return(fdef(car(rst),rst,env)); // do we really need to __return? I guess if you want the #v...
 		case OPLENGTH:
 			if(pairlength(rst) != 1)
