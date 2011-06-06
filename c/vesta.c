@@ -3260,7 +3260,7 @@ __base:
 				if(ret != snil && mcar(ret) != snil)
 					fst = mcar(mcar(ret));
 				else*/
-					fst = car(src);
+				fst = car(src);
 				/*printf("fst == ");
 				princ(fst);
 				printf("\n");*/
@@ -3441,59 +3441,25 @@ __base:
 							}
 							add_env(env,tmp1->object.str,car(rst));
 						}
-						else if(tmp1->type == KEY)
+                                                else if(tmp1->type == PAIR)
 						{
-							tmp2 = car(cdr(tmp0));
-							if(!strncasecmp(tmp1->object.str,"opt",3))
+                                                        tmp2 = tmp1;
+							tmp1 = car(tmp2);
+							tmp2 = car(cdr(tmp2));
+							if(rst != snil)
+							    add_env(env,tmp1->object.str,car(rst));
+							else
 							{
-								if(tmp2->type == PAIR)
-								{
-									tmp1 = car(tmp2);
-									tmp2 = car(cdr(tmp2));
-									if(rst != snil)
-										add_env(env,tmp1->object.str,car(rst));
-									else
-									{
-										// these should be evaluted at bind time, not now. Fix this
-										if(tmp2->type == PAIR) // *should* do the jump/shuck, but for now, laze out...
-										{
-											//printf("\tMade it to the \"should have done the jump/shuck\" call?\n");
-											tmp2 = __seval(tmp2,env);
-											//stk = cons(list(5,src,fst,cdr(rst),ret,tenv),stk);
-										}
-										else if(tmp2->type == ATOM)
-										{
-											tmp2 = symlookup(tmp2->object.str,env);
-											if(tmp2 == nil)
-											{
-												__return(makeerror(1,0,"Unknown atom in default position"));
-											}
-										}
-										add_env(env,tmp1->object.str,tmp2);
-									}
-								}	
-								else if(tmp2->type == ATOM)
-									add_env(env,tmp1->object.str,car(rst));
+							    tmp2 = __seval(tmp2,env);
+						            add_env(env,tmp1->object.str,tmp2);
 							}
-							else if(!strncasecmp(tmp1->object.str,"rest",4))
-							{
-								tmp1 = car(cdr(tmp0));
-								add_env(env,tmp1->object.str,rst);
-								rst = snil;
-							}
-							else if(!strncasecmp(tmp1->object.str,"body",4))
-							{
-								tmp1 = car(cdr(tmp0));
-								if(rst == snil)
-								{
-									__return(makeerror(1,0,":body specified, but argument list was nil"));
-								}
-								add_env(env,tmp1->object.str,rst);
-								rst = snil;
-							}
-							tmp0 = cdr(tmp0);
-						}
+                                                }
 						tmp0 = cdr(tmp0);
+                                                if(tmp0->type == ATOM)
+                                                {
+                                                    add_env(env,tmp0->object.str,rst);
+                                                    break;
+                                                }
 						rst = cdr(rst);
 					}
 					rst = fst->object.closure.data;
