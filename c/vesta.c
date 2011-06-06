@@ -3447,7 +3447,10 @@ __base:
 							tmp1 = car(tmp2);
 							tmp2 = car(cdr(tmp2));
 							if(rst != snil)
+                                                        {
 							    add_env(env,tmp1->object.str,car(rst));
+                                                            rst = cdr(rst);
+                                                        }
 							else
 							{
 							    tmp2 = __seval(tmp2,env);
@@ -7902,6 +7905,8 @@ ffn(SExp *rst, Symbol *env)
 				if(strcasecmp("rest",tmp2->object.str) && strcasecmp("body",tmp2->object.str) && strcasecmp("opt",tmp2->object.str))
 					return makeerror(1,0,"the only keyword objects for function definition are opt, rest & body");
 			tmp1 = cdr(tmp1);
+                        if(tmp1->type == ATOM) // hit a rest arg
+                            break;
 		}
 	}
 	//tmp0->object.closure.env = (void *)shallow_clone_env(env);
