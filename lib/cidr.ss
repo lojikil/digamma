@@ -1,0 +1,28 @@
+(def ip->hex (fn (ip)
+    (with res (map (fn (x) (coerce x 'int)) (string-split-charset ip "."))
+          (+
+            (<< (& (nth res 0) 255) 24)
+            (<< (& (nth res 1) 255) 16)
+            (<< (& (nth res 2) 255) 8)
+            (& (nth res 3) 255)))))
+(def hex->ip (fn (hexip)
+    (format "~n.~n.~n.~n"
+        (>> (& hexip #xFF000000) 24)
+        (>> (& hexip #x00FF0000) 16)
+        (>> (& hexip #x0000FF00) 8)
+        (& hexip #x000000FF))))
+(def bitvec->hint (fn (x :opt (idx 0))
+    (if (>= idx (length x))
+        0     
+        (+ (<< (if (nth x idx) 1 0) (- 31 idx)) (bitvec->hint x (+ idx 1))))))
+(def gen-netmask (fn (l)
+    (bitvec->hint (make-vector l #t))))
+(def useable-ips (fn (cidr-len)
+    (- (exp2 (- 32 cidr-len)) 2)))
+
+(def cidr->ip-list (fn (baseip mask)
+    (def foobar (fn (b o l)
+        (if (< o l)
+         (cons (hex->ip (+ b o)) (foobar b (+ o 1) l))
+         '())))
+    (foobar (+ (ip->hex baseip) 1) 0 (useable-ips mask))))

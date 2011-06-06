@@ -7845,7 +7845,7 @@ fdefsyntax(SExp *tmp0, SExp *body, Symbol *env)
 SExp *
 ffn(SExp *rst, Symbol *env)
 {
-	SExp *tmp0 = nil, *tmp1 = nil, *tmp2 = nil;
+	SExp *tmp0 = nil, *tmp1 = nil, *tmp2 = nil, *tmp3 = nil;
 	/* need to add checks for positional args after 
 	   keyword args...
 	   Basically, we're making SRFI-89 (which is, by the way, completely
@@ -7900,13 +7900,31 @@ ffn(SExp *rst, Symbol *env)
 			{
 				if(mcar(tmp2)->type == KEY && mcar(mcdr(tmp1))->type == ATOM)
 					return makeerror(1,0,"a positional argument may not come after a keyword argument");
+                tmp3 = car(cdr(tmp2));
+                switch(tmp3->type)
+                {
+                    case PAIR:
+                        tmp3 = __seval(tmp3,env);
+                        if(tmp3 == nil || tmp3->type == ERROR)
+                            return makeerror(1,0,"evaluation of optional argument default failed");
+                        mcar(mcdr(tmp2)) = tmp3;
+                        break;
+                    case ATOM:
+                        tmp3 = symlookup(tmp3->object.str,env);
+                        if(tmp3 == nil)
+                            return makeerror(1,0,"optional argument is unknown at instantiation time");
+                        mcar(mcdr(tmp2)) = tmp3;
+                        break;
+                    default:
+                        break;
+                }
 			}
 			else if(tmp2->type == KEY)
 				if(strcasecmp("rest",tmp2->object.str) && strcasecmp("body",tmp2->object.str) && strcasecmp("opt",tmp2->object.str))
 					return makeerror(1,0,"the only keyword objects for function definition are opt, rest & body");
 			tmp1 = cdr(tmp1);
-                        if(tmp1->type == ATOM) // hit a rest arg
-                            break;
+            if(tmp1->type == ATOM) // hit a rest arg
+                break;
 		}
 	}
 	//tmp0->object.closure.env = (void *)shallow_clone_env(env);
