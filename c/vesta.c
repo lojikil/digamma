@@ -7784,7 +7784,7 @@ fset(SExp *tmp0, SExp *tmp1, Symbol *env)
 SExp *
 fdef(SExp *tmp0, SExp *tmp1, Symbol *env)
 {
-	SExp *d = nil;
+    SExp *d = nil, *tmp2 = nil;
     if(tmp0->type == PAIR)
     {
         d = car(tmp0);
@@ -7794,23 +7794,26 @@ fdef(SExp *tmp0, SExp *tmp1, Symbol *env)
         printf("\n");
         princ(tmp1);
         printf("\n");*/
-        add_env(env,d->object.str,ffn(cons(cdr(tmp0),cdr(tmp1)),env));
+        tmp2 = ffn(cons(cdr(tmp0),cdr(tmp1)),env);
+        if(tmp2->type == ERROR)
+            return tmp2;
+        add_env(env,d->object.str,tmp2);
         return svoid; 
     }
-	else if(tmp0->type == ATOM)
+    else if(tmp0->type == ATOM)
     {
         tmp1 = car(cdr(tmp1));
-	    if(tmp1->type == PAIR)
-		    tmp1 = lleval(tmp1,env);
-	    else if(tmp1->type == ATOM)
-	    {
-		    tmp1 = symlookup(tmp1->object.str,env);
-		    if(tmp1 == nil)
-			    return makeerror(1,0,"unknown atom in def's second argument!");
-	    }
-	    if(tmp1->type == ERROR)
-	    	return tmp1;
-	    add_env(env,tmp0->object.str,tmp1);
+        if(tmp1->type == PAIR)
+            tmp1 = lleval(tmp1,env);
+        else if(tmp1->type == ATOM)
+        {
+            tmp1 = symlookup(tmp1->object.str,env);
+            if(tmp1 == nil)
+                return makeerror(1,0,"unknown atom in def's second argument!");
+        }
+        if(tmp1->type == ERROR)
+            return tmp1;
+        add_env(env,tmp0->object.str,tmp1);
         return svoid;
     }
     return makeerror(1,0,"def's first argument *must* be SYMBOL | PAIR");
