@@ -31,11 +31,11 @@ Digamma/Vesta 2009.3
 
 #include "vesta.h"
 const char *typenames[] = {
-        "Symbol", "Number","Character","Boolean","Goal", "Vector",
-	"Pair","String","Procedure","Closure","Foreign", "Nil",
-	"Error","Port","Macro","User","TConc","Primitive",
-	"Dictionary","Key","Syntax","End of File","Void",
-	"Environment","Unsafe Foreign","Continuation",0
+    "Symbol", "Number","Character","Boolean","Goal", "Vector",
+    "Pair","String","Procedure","Closure","Foreign", "Nil",
+    "Error","Port","Macro","User","TConc","Primitive",
+    "Dictionary","Key","Syntax","End of File","Void",
+    "Environment","Unsafe Foreign","Continuation",0
 };
 const char *toknames[] = {
         "TOK_LPAREN",
