@@ -443,7 +443,9 @@
 							        (lift-tail-lambda (cadr x) (cdaddr x))
 							        (lift-lambda (cadr x) (cdaddr x)))))
                      (pair? (car (cdr x))) ; (def (foo x) ...)
-                        #t
+                        (if (tail-call? (caadr x) (cddr x))
+                            (lift-tail-lambda (caadr x) (cons (cdadr x) (cddr x)))
+                            (lift-lambda (caadr x) (cons (cdadr x) (cddr x))))
                      else (error "def's first argument *must* be SYMBOL | PAIR"))
 			(eq? (car x) 'load) #t
 			(eq? (car x) 'import) #t
