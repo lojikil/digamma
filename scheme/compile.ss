@@ -1,3 +1,4 @@
+#!/usr/bin/env vesta
 (load 'Eprime.ss)
 
 (if (= (length *command-line*) 3)
