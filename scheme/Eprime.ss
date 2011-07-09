@@ -135,12 +135,11 @@
  :not #t
  })
 
-(def string-join (fn (strs intersital)
-    (def isj (fn (s i)
-        (if (null? (cdr s))
-            (cons (car s) '())
-            (cons (car s) (cons i (isj (cdr s) i))))))
-    (apply string-append (isj strs intersital))))
+(def (string-join l ij)
+  (if (null? (cdr l))
+        (car l)
+             (string-append (car l) ij (string-join (cdr l) ij))))
+
 (def gen-number (fn (x)
     (cond
         (integer? x) (format "makeinteger(~n)" x)
