@@ -138,7 +138,7 @@
 (def (string-join l ij)
   (if (null? (cdr l))
         (car l)
-             (string-append (car l) ij (string-join (cdr l) ij))))
+        (string-append (car l) ij (string-join (cdr l) ij))))
 
 (def gen-number (fn (x)
     (cond
@@ -359,13 +359,13 @@
 ; HOF form, remove the anonymous lambda, and rewrite the whole thing to be a tail-recursive fn.
 ; if C supported block expressions in toto (not in specific compilers), I could just rewrite this
 ; to a "block while", and rely on lexical scope in whiles + returning a result
-(def lift-map (fn (code)
+(def (lift-map code)
 	(with name (gensym 'map) 
 	 (if (eq? (caadr code) 'fn) ; anonymous lambda
 		#t
-	  	#f))))
-(def lift-foreach-line (fn (code)
-#f))
+	  	#f)))
+(def (lift-foreach-line code)
+#f)
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
 (def call-lambda (fn (name args)
@@ -454,6 +454,8 @@
 			(eq? (car x) 'let) #t ; let should be a top-level form, rather than expand to lambda(s)
 			(eq? (car x) 'with) 
                 (format "SExp *~s = ~s;\n~s" (coerce (car (cdr x)) 'string) (gen-code (caddr x)) (gen-begin (cdddr x)))
+            (eq? (car x) 'map)
+                (lift-map x)
 			(eq? (car x) 'quote) (gen-literal (cadr x))
 			(eq? (car x) 'module) 'MODULE
 			(eq? (car x) 'if) (gen-if (cdr x)) ; if & other primitive syntax needs to be handled here
