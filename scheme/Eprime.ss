@@ -353,7 +353,7 @@
 		state 
 		state 
 		(string-join (list 
-                       (gen-begin (cslice code 0 (- (length code) 1)))
+                       (gen-begin (cslice code 1 (- (length code) 1))) ;; start at one to slice off the args
 		               (rewrite-tail-call name (car code) state (nth code (- (length code) 1)) auxvs)) 
                      "\n"))))
 
