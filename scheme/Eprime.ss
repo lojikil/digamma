@@ -339,7 +339,7 @@
                ",") 
              body)))))
 
-(def lift-tail-lambda (fn (name code)
+(def (lift-tail-lambda name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
 	(let ((state (gensym 's))
 	      (fixname (cmung-name name))
@@ -352,8 +352,10 @@
         (string-join (map (fn (x) (format "*~a = nil" x)) auxvs) ",")
 		state 
 		state 
-		;(gen-begin (cslice code 0 (- (length code) 1)))
-		(rewrite-tail-call name (car code) state (nth code (- (length code) 1)) auxvs)))))
+		(string-join (list 
+                       (gen-begin (cslice code 0 (- (length code) 1)))
+		               (rewrite-tail-call name (car code) state (nth code (- (length code) 1)) auxvs)) 
+                     "\n"))))
 
 ; rather than lift each lambda passed to primitive HOFs like map, we should lift the entire
 ; HOF form, remove the anonymous lambda, and rewrite the whole thing to be a tail-recursive fn.
@@ -361,9 +363,12 @@
 ; to a "block while", and rely on lexical scope in whiles + returning a result
 (def (lift-map code)
 	(with name (gensym 'map) 
-	 (if (eq? (caadr code) 'fn) ; anonymous lambda
-		#t
-	  	#f)))
+     ;; generate the C function skeleton
+     ;; this should be placed in *ooblam*
+	 (if (eq? (caadr code) 'fn) ; anonymous lambda or not
+        #t ;; insert the lambda's body directly into the while loop
+	  	#f) ;; just place a call to ret for each proc iteration
+     (format "~s(~s)" (coerce name 'string) (gen-code (caddr code)))))
 (def (lift-foreach-line code)
 #f)
 (def defined-lambda? (fn (name)
