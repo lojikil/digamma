@@ -361,16 +361,23 @@
 ; HOF form, remove the anonymous lambda, and rewrite the whole thing to be a tail-recursive fn.
 ; if C supported block expressions in toto (not in specific compilers), I could just rewrite this
 ; to a "block while", and rely on lexical scope in whiles + returning a result
+; Also, I should look into how to make this more general: reduce, filter, &c are going to
+; be pretty damn similar, as is map-vector, map-string, map-apply, &c.
 (def (lift-map code)
 	(let ((name (coerce (gensym 'map) 'string))
-          (skeleton '()))
-     (set! skeleton (format "SExp *\n~s(SExp *lst)\n{\n" name))
+          (header '())
+          (footer '())
+          (body '()))
+     (set! header (format "SExp *\n~s(SExp *lst)\n{\n" name))
+     (set! footer (format "\nreturn mret;\n}\n"))
      ;; generate the C function skeleton
      ;; this should be placed in *ooblam*
 	 (if (eq? (caadr code) 'fn) ; anonymous lambda or not
         #t ;; insert the lambda's body directly into the while loop
 	  	#f) ;; just place a call to ret for each proc iteration
-     (format "~s(~s)" name (gen-code (caddr code)))))
+     (format "~s(~s)" name (gen-code (caddr code)))
+     (string-append header footer body)))
+
 (def (lift-foreach-line code)
 #f)
 (def defined-lambda? (fn (name)
