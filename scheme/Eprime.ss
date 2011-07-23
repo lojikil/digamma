@@ -375,10 +375,17 @@
 	 (if (eq? (caadr code) 'fn) ; anonymous lambda or not
         #t ;; insert the lambda's body directly into the while loop
 	  	#f) ;; just place a call to ret for each proc iteration
-     (format "~s(~s)" name (gen-code (caddr code)))
-     (string-append header footer body)))
+     (cset! *ooblam* name (string-append header footer body)) ; add the definition to ooblam
+     (format "~s(~s)" name (gen-code (caddr code)))))
 
-(def (lift-foreach-line code)
+; from TSPL:
+; for-each is similar to map except that for-each does not create
+; and return a list of the resulting values, and for-each
+; guarantees to perform the applications in sequence over the
+; lists from left to right.
+; -> while loop :D
+;
+(def (lift-foreach code)
 #f)
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
