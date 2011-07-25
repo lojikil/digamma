@@ -484,7 +484,10 @@
 			(eq? (car x) 'list) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'vector) (format "vector(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'string) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
-            (eq? (car x) 'apply) #t ;; basically, calling apply means don't build a list, just run the fn on the operand
+            (eq? (car x) 'apply) ;; basically, calling apply means don't build a list, just run the fn on the operand
+                (if (primitive-form (cadr x))
+                  (format "~s(~s,tl_env)" "junk" "goes_here")
+                  (format "~s(~s)" "more_junk" "goes here"))
 			(pair? (car x)) #t
 			(defined-lambda? (car x)) (call-lambda (car x) (cdr x))
 			(primitive-form? (car x)) (gen-primitive x) 
