@@ -366,10 +366,9 @@
 (def (lift-map code)
 	(let ((name (coerce (gensym 'map) 'string))
           (header '())
-          (footer '())
+          (footer (format "\nreturn mret;\n}\n"))
           (body '()))
      (set! header (format "SExp *\n~s(SExp *lst)\n{\n" name))
-     (set! footer (format "\nreturn mret;\n}\n"))
      ;; generate the C function skeleton
      ;; this should be placed in *ooblam*
 	 (if (eq? (caadr code) 'fn) ; anonymous lambda or not
