@@ -486,8 +486,8 @@
 			(eq? (car x) 'string) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
             (eq? (car x) 'apply) ;; basically, calling apply means don't build a list, just run the fn on the operand
                 (if (primitive-form (cadr x))
-                  (format "~s(~s,tl_env)" "junk" "goes_here")
-                  (format "~s(~s)" "more_junk" "goes here"))
+                  (format "~s(~s,tl_env)" (cadr x)  (gen-code (caddr x)))
+                  (format "~s(~s)" (cadr x)  (gen-code (caddr x))))
 			(pair? (car x)) #t
 			(defined-lambda? (car x)) (call-lambda (car x) (cdr x))
 			(primitive-form? (car x)) (gen-primitive x) 
