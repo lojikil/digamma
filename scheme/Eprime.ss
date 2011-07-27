@@ -383,8 +383,9 @@
 ; guarantees to perform the applications in sequence over the
 ; lists from left to right.
 ; -> while loop :D
-;
-(def (lift-foreach code)
+; Doesn't process more than one list at a time, which should be 
+; fixed
+(def (gen-foreach code)
 #f)
 (def defined-lambda? (fn (name)
 	(dict-has? *fnmung* name)))
