@@ -372,7 +372,22 @@
      ;; generate the C function skeleton
      ;; this should be placed in *ooblam*
 	 (if (eq? (caadr code) 'fn) ; anonymous lambda or not
-        #t ;; insert the lambda's body directly into the while loop
+        ;; insert the lambda's body directly into the while loop
+        (set! body (string-append
+            "SExp *mret = SNIL, *ret = SNIL, *head = SNIL,"
+            (coerce (car (cadadr x)) 'string)
+            " = nil;\n\tif(lst == nil || lst == SNIL)\n\t\treturn SNIL;"
+            "\nmret = cons(SNIL,SNIL); head = mret;\n"
+            "while(lst != SNIL)\n{\n"
+            (coerce (car (cadadr x)) 'string)
+            " = car(lst);\n"
+            (gen-begin (cddadr x))
+            "\nmcar(head) = ret;\n"
+            "lst = cdr(lst);\n"
+            "if(lst == SNIL)\n\tbreak;\n"
+            "mcdr(head) = cons(SNIL,SNIL);\n"
+            "head = mcdr(head);\n}\n"
+            "return mret;\n}"))
 	  	#f) ;; just place a call to ret for each proc iteration
      (cset! *ooblam* name (string-append header footer body)) ; add the definition to ooblam
      (format "~s(~s)" name (gen-code (caddr code)))))
