@@ -363,6 +363,10 @@
 ; to a "block while", and rely on lexical scope in whiles + returning a result
 ; Also, I should look into how to make this more general: reduce, filter, &c are going to
 ; be pretty damn similar, as is map-vector, map-string, map-apply, &c.
+; It would be great if this were actually just syntax; need to implement syntax-rules stat,
+; to simplify these types of tasks, since this could be rewritten to a simple tail-recursive
+; lambda & lifted with the normal tail-lambda, rather than hoisted in this fashion (and that
+; goes for a good portion of code here). 
 (def (lift-map code)
 	(let ((name (coerce (gensym 'map) 'string))
           (header '())
@@ -388,8 +392,22 @@
             "mcdr(head) = cons(SNIL,SNIL);\n"
             "head = mcdr(head);\n}\n"
             "return mret;\n}"))
-	  	#f) ;; just place a call to ret for each proc iteration
-     (cset! *ooblam* name (string-append header footer body)) ; add the definition to ooblam
+	  	 ;; just place a call to ret for each proc iteration
+         (with tmp (coerce (gensym 'tmp) 'string)
+            (set! body (string-append
+               "SExp *mret = SNIL, *head = SNIL, *" 
+               tmp
+               " = SNIL;\n"
+               "if(lst == nil || lst == SNIL)\n return mret;\n"
+               "mret = cons(SNIL,SNIL);\nhead = mret;\n"
+               "while(lst != SNIL)\n{\n"
+               tmp
+               " = car(lst); mcar(head) = "
+               (cmung proc) "(" tmp ");"
+               "lst = cdr(lst);"
+               "if(lst == SNIL)\nbreak;\n"
+               "mcdr(head) = cons(SNIL,SNIL);\nhead = mcdr(head);\n")))
+     (cset! *ooblam* name (string-append header body footer)) ; add the definition to ooblam
      (format "~s(~s)" name (gen-code (caddr code)))))
 
 ; from TSPL:
