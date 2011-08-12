@@ -4,36 +4,42 @@
 ; with Web, JSON, GUI & CLI versions.
 ; released under zlib/png license, and (c) 2010 Stefan Edwards
 ;
+; More ideas:
+;  - add title & body search
+;  - notes edited via internal ed-like editor or whatever is in $EDITOR
+;  - List & Edit URLS, descriptions
+;  - list notes & URLs, with paging
+;  - ~/.digamma/anaxagoras/profile (simple dict)
+;  - Server interface for uploading & syncing
 
 (use "strlib")
 
 (def *base-dir* (tilde-expand "~/.digamma/anaxagoras"))
 (def *notes* {})
-(defn prompt-string (s)
+(def (prompt-string s)
  (display s)
  (read-string))
-(defn int-read () ; read until "^\.$"
+(def (int-read ) ; read until "^\.$"
  (with r (read-string)
   (cond
    (eq? r ".") '()
    (eq? r #e) '()
    else (cons r (int-read)))))
-(defn new-note () 
- (let ((stamp (sys :time)) 
+(def (new-note) 
+ (let  ((f (open (format "~s/~a" *base-dir* (sys :time)) :write)) 
        (title (prompt-string "title: "))
        (data (int-read)))
-  (let ((f (open (format "~s/~a" *base-dir* stamp) :write)))
    (display (format "~s\n" title) f)
    (display (string-join data "\n") f)
    (newline f)
-   (close f))))
-(defn new-url ()
+   (close f)))
+(def (new-url)
  (display "New URL.\n"))
-(defn list-notes ()
+(def (list-notes)
  (display "List Notes.\n"))
-(defn rebuild-db ()
+(def (rebuild-db)
  (display "Rebuild.\n"))
-(defn about-anaxagoras ()
+(def (about-anaxagoras)
  (display "Anaxagoras is a simple Note & URL organzier. It is named \"anaxagoras\" in honor of the 
  Pre-Socratic philosopher, who placed \"Nous\" (mind) as the organizing principle of Reality.
  Usage:
@@ -45,7 +51,7 @@
   ?         - show this message
   r[ebuild] - rebuild index from messages
   q[uit]    - exit anaxagoras\n"))
-(defn anaxagoras ()
+(def (anaxagoras)
  (display "> ")
  (with c (read-string)
   (begin
