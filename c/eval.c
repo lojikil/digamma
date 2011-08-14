@@ -23,7 +23,8 @@
 SExp *
 __seval(SExp *s, Symbol *e)
 {
-	SExp *src = s, *fst = snil, *rst = snil, *tmp0 = snil, *tmp1 = snil, *tmp2 = snil, *stk = snil, *__r = snil, *__val = snil, *ret = snil;
+    SExp *src = s, *fst = snil, *rst = snil, *tmp0 = snil, *tmp1 = snil;
+    SExp *tmp2 = snil, *stk = snil, *__r = snil, *__val = snil, *ret = snil;
 	Symbol *tenv = nil, *env = e;
 	int state = __PRE_APPLY, itmp = 0,tail = 0; /* tail is a flag for __PRE_APPLY & OPBEGIN */
 	SExp *(*proc)(SExp *, Symbol *) = nil;
