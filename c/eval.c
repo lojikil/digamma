@@ -20,16 +20,18 @@
 #include <stdarg.h>
 #include "vesta.h"
 
+extern const char *typenames[];
+
 SExp *
 __seval(SExp *s, Symbol *e)
 {
-    SExp *src = s, *fst = snil, *rst = snil, *tmp0 = snil, *tmp1 = snil;
-    SExp *tmp2 = snil, *stk = snil, *__r = snil, *__val = snil, *ret = snil;
+    SExp *src = s, *fst = e->snil, *rst = e->snil, *tmp0 = e->snil, *tmp1 = e->snil;
+    SExp *tmp2 = e->snil, *stk = e->snil, *__r = e->snil, *__val = e->snil, *ret = e->snil;
 	Symbol *tenv = nil, *env = e;
 	int state = __PRE_APPLY, itmp = 0,tail = 0; /* tail is a flag for __PRE_APPLY & OPBEGIN */
 	SExp *(*proc)(SExp *, Symbol *) = nil;
 	if(s == nil)
-		return svoid;
+		return e->svoid;
 	env = shallow_clone_env(e);
 __base:
 	/*printf("Stack depth: %d; State: %d\n",pairlength(stk),state);
@@ -46,7 +48,7 @@ __base:
 				/*printf("ret(0) == ");
 				princ(ret);
 				printf("\n");
-				if(ret != snil && mcar(ret) != snil)
+				if(ret != e->snil && mcar(ret) != e->snil)
 					fst = mcar(mcar(ret));
 				else*/
 				fst = car(src);
@@ -54,7 +56,7 @@ __base:
 				princ(fst);
 				printf("\n");*/
 				rst = cdr(src);
-				ret = tconcify(snil);
+				ret = tconcify(e->snil);
 				/*printf("rst == ");
 				princ(rst);
 				printf("\nret(1) == ");
@@ -145,7 +147,7 @@ __base:
 			 * whilst processing args for application, but for now
 			 * I'll keep the two separate
 			 */
-			while(tmp0 != snil)
+			while(tmp0 != e->snil)
 			{
 				tmp1 = car(tmp0);
 				tmp0 = cdr(tmp0);
@@ -192,14 +194,14 @@ __base:
 					env->data = (Window *) fst->object.closure.env;
 					tmp0 = fst->object.closure.params;
 					/* add test for tail here... */
-					if(rst == snil)
+					if(rst == e->snil)
 					{
 						if(tmp0->type != NIL && mcar(tmp0)->type != KEY)
 						{
 							// attempt a stack trace
 							printf("Stack trace: \n");
 							tmp1 = stk;
-							while(tmp1 != snil)
+							while(tmp1 != e->snil)
 							{
 								tmp2 = car(car(tmp1));
 								llprinc(tmp2,stdout,1);
@@ -219,12 +221,12 @@ __base:
 					else
 						tail = 0;*/
 					new_window(env);
-					while(tmp0 != snil)
+					while(tmp0 != e->snil)
 					{
 						tmp1 = car(tmp0);
 						if(tmp1->type == ATOM)
 						{
-							if(rst == snil)
+							if(rst == e->snil)
 							{
 								__return(makeerror(1,0,"Unsatisfied non-optional procedure argument"));
 							}
@@ -235,7 +237,7 @@ __base:
                                                         tmp2 = tmp1;
 							tmp1 = car(tmp2);
 							tmp2 = car(cdr(tmp2));
-							if(rst != snil)
+							if(rst != e->snil)
                                                         {
 							    add_env(env,tmp1->object.str,car(rst));
                                                             rst = cdr(rst);
@@ -397,7 +399,7 @@ __base:
 			{
 				__return(makeerror(1,0,"Keys currently only operates on dictionaries"));
 			}
-			__return(mcar(trie_keys(tmp0->object.dict,tconcify(snil))));
+			__return(mcar(trie_keys(tmp0->object.dict,tconcify(e->snil))));
 		case OPPARTIAL: // partial-key?
 			if(pairlength(rst) != 2)
 			{
@@ -465,7 +467,7 @@ __base:
 			}
 			__return(eqp(car(rst), car(cdr(rst))));
 		case OPCALLCC:
-			__return(snil);
+			__return(e->snil);
 		case OPLT: /* < */
 			__return(flt(rst));
 		case OPLTE:
@@ -479,11 +481,11 @@ __base:
 		case OPIF:
 			itmp = pairlength(rst);
 			//printf("Made it to OPIF\n");
-			if(itmp < 2 && mcar(ret) == snil)
+			if(itmp < 2 && mcar(ret) == e->snil)
 			{
 				__return(makeerror(1,0,"if c : S-EXPRESSION if-true : S-EXRESSION [if-false : S-EXPRESSION] => S-EXPRESSION"));
 			}
-			if((ret->type == TCONC && mcar(ret) == snil) || ret->type != TCONC) /* should be the initial eval... */
+			if((ret->type == TCONC && mcar(ret) == e->snil) || ret->type != TCONC) /* should be the initial eval... */
 			{
 				tmp0 = car(rst);
 				if(tmp0->type == PAIR)
@@ -522,9 +524,9 @@ __base:
 								__return(makeerror(1,0,"unknown symbol in if then clause"));
 							}
 						}
-						if(tmp1 == snil && cdr(cdr(rst)) == snil)
+						if(tmp1 == e->snil && cdr(cdr(rst)) == e->snil)
 						{
-							__return(sfalse);
+							__return(e->sfalse);
 						}
 						__return(tmp1);
 					}
@@ -545,9 +547,9 @@ __base:
 								__return(makeerror(1,0,"unknown symbol in if then clause"));
 							}
 						}
-						if(tmp1 == snil && cdr(rst) == snil)
+						if(tmp1 == e->snil && cdr(rst) == e->snil)
 						{
-							__return(sfalse);
+							__return(e->sfalse);
 						}
 						__return(tmp1);
 					}
@@ -584,9 +586,9 @@ __base:
 								__return(makeerror(1,0,"unknown symbol in if then clause"));
 							}
 						}
-						if(tmp1 == snil && cdr(rst) == snil)
+						if(tmp1 == e->snil && cdr(rst) == e->snil)
 						{
-							__return(sfalse);
+							__return(e->sfalse);
 						}
 						__return(tmp1);
 					}
@@ -607,17 +609,17 @@ __base:
 								__return(makeerror(1,0,"unknown symbol in if then clause"));
 							}
 						}
-						if(tmp1 == snil && cdr(rst) == snil)
+						if(tmp1 == e->snil && cdr(rst) == e->snil)
 						{
-							__return(sfalse);
+							__return(e->sfalse);
 						}
 						__return(tmp1);
 					}
 				 }
 			}
-			__return(sfalse);
+			__return(e->sfalse);
 		case OPUNWIND:
-			__return(snil);
+			__return(e->snil);
 		case OPEXACT:
 			if(pairlength(rst) != 1)
 			{
@@ -676,7 +678,7 @@ __base:
 				if(tmp1->type == PAIR)
 				{
 					// state == OPBEGIN
-					if(fst->type == CLOSURE && tmp0 == snil)
+					if(fst->type == CLOSURE && tmp0 == e->snil)
 					{
 						/* Ok, so what we're doing here:
 						 * if it's a tail call in a closure,
@@ -1033,7 +1035,7 @@ __base:
 			switch(itmp)
 			{
 				case 0:
-					__return(tconcify(snil));
+					__return(tconcify(e->snil));
 				case 1:
 					__return(tconcify(car(rst)));
 				default:
@@ -1046,7 +1048,7 @@ __base:
 			}
 			__return(tconc(car(rst),car(cdr(rst))));
 		case OPTCONCL:
-			__return(snil);
+			__return(e->snil);
 		case OPT2P:
 			if(pairlength(rst) != 1)
 			{
@@ -1073,7 +1075,7 @@ __base:
 			__return(makeinteger(env->tick));
 		case __PROC:
 			proc = (SExp *(*)(SExp *, Symbol *))fst->object.procedure;
-			if(env->snil == nil)
+			if(e->snil == nil)
 				printf("SNIL == NIL in __seval before procedure call!\n");
 			__return(proc(rst,env));
 		case OPCLONENV:
@@ -1168,10 +1170,10 @@ __base:
 #ifndef NO_STACK_TRACE
 				printf("\nbegin stack trace\n-----\n");
 				tmp0 = cons(__r,stk);
-				while(tmp0 != snil)
+				while(tmp0 != e->snil)
 				{
 					tmp1 = car(tmp0);
-					if(tmp1 == snil)
+					if(tmp1 == e->snil)
 						break;
 					tmp0 = cdr(tmp0);
 					printf("source: ");
@@ -1201,7 +1203,7 @@ __base:
                                		__val->object.n->nobject.z = itmp;
                                 }   
 			}
-			if(stk == snil && __r == snil)
+			if(stk == e->snil && __r == e->snil)
 			{
 				if(__val->type == NUMBER && NTYPE(__val) == RATIONAL)
 				{
@@ -1224,13 +1226,13 @@ __base:
 		default:
 			break;
 	}
-	return svoid;
+	return e->svoid;
 }
 
 SExp *
 macro_expand(SExp *s, Symbol *e)
 {
-	SExp *tmp0 = snil, *tmp1 = snil, *tmp2 = snil, *rst = snil, *fst = snil, *src = s;
+	SExp *tmp0 = e->snil, *tmp1 = e->snil, *tmp2 = e->snil, *rst = e->snil, *fst = e->snil, *src = s;
 	Symbol *tenv = nil, *env = e;
 	/* bind variables, iterate over the list of binds, 
 	 * macro-expand everything else in between
@@ -1251,15 +1253,15 @@ macro_expand(SExp *s, Symbol *e)
 	//LINE_DEBUG;
 	tenv = fst->object.closure.env;
 	//LINE_DEBUG;
-	/*if(tmp0 == snil)
-		printf("[!] tmp0 == snil\n");*/
-	if(tmp0 == snil && rst != snil)
+	/*if(tmp0 == e->snil)
+		printf("[!] tmp0 == e->snil\n");*/
+	if(tmp0 == e->snil && rst != e->snil)
 		return makeerror(1,0,"function has 0 arguments, so any amount of given arguments are incorrect...");
 	new_window(env);
 	//LINE_DEBUG;
-	if(tmp0 != snil)
+	if(tmp0 != e->snil)
 	{
-		if(rst == snil)
+		if(rst == e->snil)
 		{
 			/* before throwing an error, I simply need to check if the only 
 			   parameter is a rest arg, which would mean completely
@@ -1268,13 +1270,13 @@ macro_expand(SExp *s, Symbol *e)
 			if(mcar(tmp0)->type != KEY)
 				return makeerror(1,0,"no arguments given to macro with at least one non-optional parameter");
 			tmp1 = mcar(mcdr(tmp0));
-			tenv = add_env(env,tmp1->object.str,snil);
+			tenv = add_env(env,tmp1->object.str,e->snil);
 		}
 		else
 		{
 			/* process args... */
 			//LINE_DEBUG;
-			while(tmp0 != snil)
+			while(tmp0 != e->snil)
 			{
 				/* look where we are by position, assign that variable... 
 				 * need to implement :opt/:optional, which only copies a single
@@ -1288,24 +1290,24 @@ macro_expand(SExp *s, Symbol *e)
 					//LINE_DEBUG;
 					if(!strncasecmp(mcar(tmp0)->object.str,"rest",4))
 					{
-						if(cdr(tmp0) == snil)
+						if(cdr(tmp0) == e->snil)
 							return makeerror(1,0,":rest modfier found without variable name");
 						tmp1 = rst;
-						rst = snil;
+						rst = e->snil;
 					}
 					else if(!strncasecmp(mcar(tmp0)->object.str,"body",4))
 					{
 						/* body is like rest, but checks if rst if nil first */
-						if(rst == snil)
+						if(rst == e->snil)
 							return makeerror(1,0,"empty list for variable marked as :body");
-						if(cdr(tmp0) == snil)
+						if(cdr(tmp0) == e->snil)
 							return makeerror(1,0,":body modfier found without variable name");
 						tmp1 = rst;
-						rst = snil;
+						rst = e->snil;
 					}
 					else if(!strncasecmp(mcar(tmp0)->object.str,"opt",3) || !strncasecmp(mcar(tmp0)->object.str,"optional",8))
 					{
-						if(cdr(tmp0) == snil)
+						if(cdr(tmp0) == e->snil)
 							return makeerror(1,0,":opt modifier found without variable name");
 						tmp1 = car(rst);
 					}
@@ -1328,7 +1330,7 @@ macro_expand(SExp *s, Symbol *e)
 				}
 				else
 				{
-					if(rst == snil)
+					if(rst == e->snil)
 						makeerror(1,0,"too few arguments to macro...");
 					//LINE_DEBUG;
 					tmp1 = car(rst);
@@ -1343,7 +1345,7 @@ macro_expand(SExp *s, Symbol *e)
 				//LINE_DEBUG;
 				rst = cdr(rst);
 			}
-			if(tmp0 != snil)
+			if(tmp0 != e->snil)
 			{
 				/*printf("tmp0 == ");
 				princ(tmp0);
@@ -1356,7 +1358,7 @@ macro_expand(SExp *s, Symbol *e)
 	tmp0 = fst->object.closure.data;
 	//LINE_DEBUG;
 	/* iterate over tmp0 (data), with the constructed env... */
-	while(tmp0 != snil)
+	while(tmp0 != e->snil)
 	{
 		/*printf("car(tmp0) == ");
 		princ(car(tmp0));
@@ -1385,7 +1387,7 @@ macro_expand(SExp *s, Symbol *e)
  * recursing over pairs, and consing anything else in place
  */
 SExp *
-__build(SExp *src, SExp *alist)
+__build(SExp *src, SExp *alist, Symbol *e)
 {
 	SExp *holder = nil, *iter = nil, *ret = nil, *tmp = nil, *name = nil;
 	if(src == nil)
@@ -1401,16 +1403,16 @@ __build(SExp *src, SExp *alist)
 	{
 		//printf("Am I looking at the correct area?\n");
 		holder = src;
-		ret = cons(nil,snil);
+		ret = cons(nil,e->snil);
 		tmp = ret;
-		while(holder != snil)
+		while(holder != e->snil)
 		{
 			iter = car(holder);
 			/*printf("iter: ");
 			princ(iter);
 			printf("\n");*/
 			if(iter->type == PAIR)
-				iter = __build(iter,alist);
+				iter = __build(iter,alist,e);
 			else if(iter->type == ATOM)
 			{
 				name = assq(iter,alist);
@@ -1431,9 +1433,9 @@ __build(SExp *src, SExp *alist)
 			princ(tmp);
 			printf("\n");*/
 			holder = cdr(holder);
-			if(holder != snil)
+			if(holder != e->snil)
 			{	
-				mcdr(tmp) = cons(snil,snil);
+				mcdr(tmp) = cons(e->snil,e->snil);
 				tmp = mcdr(tmp);
 			}
 		}
@@ -1460,10 +1462,10 @@ syntax_expand(SExp *src, Symbol *e)
 	rules = t0->object.closure.data;
 	if(rules->type != PAIR)
 		return makeerror(1,0,"syntax-expand: mal-formed rules");
-	while(rules != snil)
+	while(rules != e->snil)
 	{
 	
 		rules = cdr(rules);	
 	}
-	return snil;
+	return e->snil;
 }

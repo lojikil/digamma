@@ -114,7 +114,7 @@ SExp *
 snoc(SExp *s0, SExp *s1)
 {
 	SExp *ret = nil;
-	printf("%s %s\n",typenames[TYPE(s0)],typenames[TYPE(s1)]);
+	/*printf("%s %s\n",typenames[TYPE(s0)],typenames[TYPE(s1)]);*/
 	if(s0->type == PAIR)
 	{
 		ret = s0;

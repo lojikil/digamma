@@ -311,6 +311,7 @@ static Symbol *tl_env = nil;*/
 
 SExp *eqp(SExp *,SExp *); /* eq? */
 SExp *assq(SExp *, SExp *); /* standard assq */
+SExp *memq(SExp *, SExp *); /* standard memq */
 
 /* make functions */
 SExp *makenumber(int);
