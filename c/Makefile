@@ -1,7 +1,7 @@
 CC=cc
 #LIBPATH=-L/home/jis/resdev/sedwards/opt/lib
 #INCPATH=-I/home/jis/resdev/sedwards/opt/include
-OBJS=vesta.o ffi.o posix.o main.o
+OBJS=vesta.o ffi.o posix.o main.o eval.o
 LIBPATH=
 INCPATH=
 LIBS=-lgc -lm
