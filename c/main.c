@@ -36,7 +36,7 @@ main(int ac, char **al, char **el)
 		printf("[-] cannot initialize gc system...\n");
 		return 1;
 	}
-	tl_env = init_env(); /* initialize constants */
+	tl_env = init_env(1); /* initialize constants */
 	if(tl_env == nil)
 	{
 		printf("wtf\n");

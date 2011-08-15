@@ -494,7 +494,7 @@ _igcd(int a, int b)
 	return a;
 }
 Symbol *
-init_env()
+init_env(int full_env)
 {
 	/*static SExp *snil = nil, *sfalse = nil, *strue = nil, *ssucc = nil, *sunsucc = nil, *mem_err = nil; */
 	Symbol *tl_env = nil;
@@ -550,17 +550,7 @@ init_env()
 	svoid = (SExp *)hmalloc(sizeof(SExp));
 	svoid->type = SVOID;
 	tl_env = (Symbol *)hmalloc(sizeof(Symbol));
-#ifndef RT_ONLY
-	tl_env->data = (Window *)hmalloc(sizeof(Window)); // 64 initial "windows"
-	tl_env->cur_offset = 0;
-	tl_env->cur_size = 64;
-	tl_env->data->env = (Trie *)hmalloc(sizeof(Trie)); // initial "window"
-	tl_env->data->next = nil;
-#else
-	tl_env->data = nil;
-	tl_env->cur_offset = 0;
-	tl_env->cur_size = 0;
-#endif
+
 	tl_env->snil = snil;
 	tl_env->svoid = svoid;
 	tl_env->seof = seof;
@@ -568,7 +558,21 @@ init_env()
 	tl_env->sfalse = sfalse;
 	tl_env->ssucc = ssucc;
 	tl_env->sunsucc = sunsucc;
-#ifndef RT_ONLY
+    
+    if(!full_env)
+    {
+	    tl_env->data = nil;
+	    tl_env->cur_offset = 0;
+	    tl_env->cur_size = 0;
+        return tl_env;
+    }
+    
+	tl_env->data = (Window *)hmalloc(sizeof(Window)); // 64 initial "windows"
+	tl_env->cur_offset = 0;
+	tl_env->cur_size = 64;
+	tl_env->data->env = (Trie *)hmalloc(sizeof(Trie)); // initial "window"
+	tl_env->data->next = nil;
+
 	add_env(tl_env,"car",makeprimitive(OPCAR,"car",0));
 	add_env(tl_env,"cdr",makeprimitive(OPCDR,"cdr",0));
 	add_env(tl_env,"cons",makeprimitive(OPCONS,"cons",0));
@@ -605,7 +609,7 @@ init_env()
 	add_env(tl_env,"quotient", makeprimitive(OPQUOTIENT,"quotient",0));
 	add_env(tl_env,"modulo", makeprimitive(OPMOD,"modulo",0));
 	add_env(tl_env,"remainder",makeprimitive(OPREMAINDER,"remainder",0));
-	add_env(tl_env,"set!",makeprimitive(OPSET,"set!",1)); /* (set! x '(1 2 3)) ; should we break w/ Scheme again? (set! 'x '(1 2 3)) */
+	add_env(tl_env,"set!",makeprimitive(OPSET,"set!",1)); 
 	add_env(tl_env,"fn",makeprimitive(OPLAMBDA,"fn",2));
     add_env(tl_env,"lambda",makeprimitive(OPLAMBDA,"lambda",2));
 	add_env(tl_env,"&",makeprimitive(OPAND,"&",0));
@@ -692,7 +696,7 @@ init_env()
 	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
 	add_env(tl_env,"call/cc",makeprimitive(OPCALLCC,"call/cc",0));
 	add_env(tl_env,"current-tick",makeprimitive(OPCURTICK,"current-tick",0));
-#endif
+
 	/* seed the random system*/
 	srandom(time(nil));
 	return tl_env;

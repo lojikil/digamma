@@ -588,7 +588,7 @@
 		 (out (open o :write)))
 	    (header-out out)
 	    (foreach-expression (fn (e) (with cde (gen-code e) (display cde out))) in)
-	    (display (format "void~%~s()~%{~%\ttl_env = init_env();~%" name) out)
+	    (display (format "void~%~s()~%{~%\ttl_env = init_env(0);~%" name) out)
 	    (footer-out out)
 	    (close in)
 	    (close out))))
