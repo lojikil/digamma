@@ -667,49 +667,48 @@ __base:
 			tmp0 = rst;
 			/*princ(src);
 			printf("\n");*/
-
-				tmp1 = car(tmp0);
-				/*printf("tmp1 == ");
-				princ(tmp1);
-				printf("\ntmp0 == ");
-				princ(tmp0);
-				printf("\n");*/
-				tmp0 = cdr(tmp0);
-				//printf("Looping?\n");
-				if(tmp1->type == PAIR)
+			tmp1 = car(tmp0);
+			/*printf("tmp1 == ");
+			princ(tmp1);
+			printf("\ntmp0 == ");
+			princ(tmp0);
+			printf("\n");*/
+			tmp0 = cdr(tmp0);
+			//printf("Looping?\n");
+			if(tmp1->type == PAIR)
+			{
+				// state == OPBEGIN
+				if(fst->type == CLOSURE && tmp0 == e->snil)
 				{
-					// state == OPBEGIN
-					if(fst->type == CLOSURE && tmp0 == e->snil)
-					{
-						/* Ok, so what we're doing here:
-						 * if it's a tail call in a closure,
-						 * and we're calling the same procedure,
-						 * set tail = 1, so that we modify parameters in place
-						 * otherwise, just use a normal window
-						 */
-						tail = 1;
-					}
-					else
-						stk = cons(vector(6,src,fst,tmp0,ret,env->data,makeinteger(state)),stk);
-					src = tmp1;
-					state = __PRE_APPLY;
-					//printf("Pushing?\n");
-					goto __base;
-				}
-				else if(tmp1->type == ATOM)
-				{
-					tmp2 = tmp1;
-					tmp1 = symlookup(tmp1->object.str,env);
-					if(tmp1 == nil)
-					{
-						printf("symbol: %s",tmp2->object.str);
-						__return(makeerror(1,0,"unknown symbol"));
-					}
-					tconc(ret,tmp1);
+					/* Ok, so what we're doing here:
+					 * if it's a tail call in a closure,
+					 * and we're calling the same procedure,
+					 * set tail = 1, so that we modify parameters in place
+					 * otherwise, just use a normal window
+					 */
+					tail = 1;
 				}
 				else
-					tconc(ret,tmp1);
-			if(fst->type == CLOSURE)
+					stk = cons(vector(6,src,fst,tmp0,ret,env->data,makeinteger(state)),stk);
+				src = tmp1;
+				state = __PRE_APPLY;
+				//printf("Pushing?\n");
+				goto __base;
+			}
+			else if(tmp1->type == ATOM)
+			{
+				tmp2 = tmp1;
+				tmp1 = symlookup(tmp1->object.str,env);
+				if(tmp1 == nil)
+				{
+					printf("symbol: %s",tmp2->object.str);
+					__return(makeerror(1,0,"unknown symbol"));
+				}
+				tconc(ret,tmp1);
+			}
+			else
+				tconc(ret,tmp1);
+		    if(fst->type == CLOSURE)
 			{
 				//close_window(env);
 				//env->data = (Window *)__r->object.vec[4];

@@ -1,0 +1,15 @@
+; naieve fib
+(define (fib n)
+	(if (<= n 0)
+		1	
+        (+ (fib (- n 1)) (fib (- n 2)))))
+(define (scheme_main) 
+    (display (fib 10))
+    (newline)
+    (display (fib 20))
+    (newline)
+    (display (fib 30))
+    (newline)
+    (display (fib 32))
+    (newline))
+(scheme_main)
