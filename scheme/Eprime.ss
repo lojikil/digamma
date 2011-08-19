@@ -408,7 +408,7 @@
                "if(lst == SNIL)\nbreak;\n"
                "mcdr(head) = cons(SNIL,SNIL);\nhead = mcdr(head);\n")))
      (cset! *ooblam* name (string-append header body footer)) ; add the definition to ooblam
-     (format "~s(~s)" name (gen-code (caddr code)))))
+     (format "~s(~s)" name (gen-code (caddr code))))))
 
 ; from TSPL:
 ; for-each is similar to map except that for-each does not create
