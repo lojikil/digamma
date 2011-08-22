@@ -1,0 +1,12 @@
+
+On OpenBSD, compiling a program using E':
+
+0 - run compile.ss:
+
+./compile.ss j7.ss j7.c init_j7
+
+1 - run cc:
+
+cc -o j7 ../c/vesta.o ../c/posix.o j7.c -lgc -I ../c/ -I /usr/local/include -L /usr/local/lib -lm
+
+Done
