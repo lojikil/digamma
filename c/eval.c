@@ -480,145 +480,56 @@ __base:
 		case OPNUMEQ:
 			__return(fnumeq(rst));
 		case OPIF:
-			itmp = pairlength(rst);
-			//printf("Made it to OPIF\n");
-			if(itmp < 2 && mcar(ret) == e->snil)
-			{
-				__return(makeerror(1,0,"if c : S-EXPRESSION if-true : S-EXRESSION [if-false : S-EXPRESSION] => S-EXPRESSION"));
-			}
-			if((ret->type == TCONC && mcar(ret) == e->snil) || ret->type != TCONC) /* should be the initial eval... */
-			{
-				tmp0 = car(rst);
-				if(tmp0->type == PAIR)
-				{
-					// jump schuck
-					stk = cons(vector(6,src,fst,cdr(rst),ret,env->data,makeinteger(state)),stk);
-					src = tmp0;
-					state = __PRE_APPLY;
-					goto __base;
-				}
-				else if(tmp0->type == ATOM)
-				{
-					tmp0 = symlookup(tmp0->object.str,env);
-					if(tmp0 == nil)
-					{
-						 __return(makeerror(1,0,"unknown symbol in if condtion"));
-					}
-				}
-				// check for truth or falsity, eval based upon this...
-				if(tmp0->type == BOOL || tmp0->type == GOAL)
-				{
-					if(!tmp0->object.c)
-					{
-						tmp1 = car(cdr(cdr(rst)));
-						if(tmp1->type == PAIR)
-						{
-							src = tmp1;
-							state = __PRE_APPLY;
-							goto __base;
-						}
-						else if(tmp1->type == ATOM)
-						{
-							tmp1 = symlookup(tmp1->object.str,env);
-							if(tmp1 == nil)
-							{
-								__return(makeerror(1,0,"unknown symbol in if then clause"));
-							}
-						}
-						if(tmp1 == e->snil && cdr(cdr(rst)) == e->snil)
-						{
-							__return(e->sfalse);
-						}
-						__return(tmp1);
-					}
-					else
-					{
-						tmp1 = car(cdr(rst));
-						if(tmp1->type == PAIR)
-						{
-							src = tmp1;
-							state = __PRE_APPLY;
-							goto __base;
-						}
-						else if(tmp1->type == ATOM)
-						{
-							tmp1 = symlookup(tmp1->object.str,env);
-							if(tmp1 == nil)
-							{
-								__return(makeerror(1,0,"unknown symbol in if then clause"));
-							}
-						}
-						if(tmp1 == e->snil && cdr(rst) == e->snil)
-						{
-							__return(e->sfalse);
-						}
-						__return(tmp1);
-					}
-				}
-			}
-			else
-			{
-				/* ok, so there must have been a pair for the if-conditional element, so 
-				 * we have to look at it's result, and jump from there.
-				 * this section of if should be much cleaner than the above (which can, I *think*
-				 * be cleaned up quite a bit).
-				 */
-				 if(ret->type != TCONC)
-				 {
-				 	__return(makeerror(1,0,"internal error"));
-				 }
-				 tmp0 = mcar(mcar(ret));
-				if(tmp0->type == BOOL || tmp0->type == GOAL)
-				 {
-					if(!tmp0->object.c)
-					{
-						tmp1 = car(cdr(rst));
-						if(tmp1->type == PAIR)
-						{
-							src = tmp1;
-							state = __PRE_APPLY;
-							goto __base;
-						}
-						else if(tmp1->type == ATOM)
-						{
-							tmp1 = symlookup(tmp1->object.str,env);
-							if(tmp1 == nil)
-							{
-								__return(makeerror(1,0,"unknown symbol in if then clause"));
-							}
-						}
-						if(tmp1 == e->snil && cdr(rst) == e->snil)
-						{
-							__return(e->sfalse);
-						}
-						__return(tmp1);
-					}
-					else
-					{
-						tmp1 = car(rst);
-						if(tmp1->type == PAIR)
-						{
-							src = tmp1;
-							state = __PRE_APPLY;
-							goto __base;
-						}
-						else if(tmp1->type == ATOM)
-						{
-							tmp1 = symlookup(tmp1->object.str,env);
-							if(tmp1 == nil)
-							{
-								__return(makeerror(1,0,"unknown symbol in if then clause"));
-							}
-						}
-						if(tmp1 == e->snil && cdr(rst) == e->snil)
-						{
-							__return(e->sfalse);
-						}
-						__return(tmp1);
-					}
-				 }
-			}
-			__return(e->sfalse);
+            itmp = pairlength(rst);
+            if(itmp < 2 || itmp > 3)
+            {
+                __return(makeerror(1,0,"if <COND> <THEN> [<ELSE>]"));
+            }
+            tmp0 = __seval(car(rst),env);
+            if(tmp0 == nil)
+                return env->snil;
+            if(tmp0->type == ERROR)
+               return tmp0;
+            if((tmp0->type == GOAL || tmp0->type == BOOL) && tmp0->object.c) /* e.g. is it false */
+            {
+                tmp1 = car(cdr(rst));
+                switch(tmp1->type)
+                {
+                    case PAIR:
+                        src = tmp1;
+                        state = __PRE_APPLY;
+                        goto __base;
+                    case ATOM:
+                        tmp1 = symlookup(tmp1->object.str,env);
+                        if(!tmp1)
+                        {
+                            __return(makeerror(1,0,"Unknown symbol in if's <ELSE> branch"));
+                        }
+                    default:
+                        __return(tmp1);
+                }
+            }
+            /* an if block with no <ELSE> and a false <COND> */
+            if(itmp == 2)
+            {
+                __return(env->sfalse);
+            }
+            tmp1 = car(cdr(cdr(rst)));
+            switch(tmp1->type)
+            {
+                case PAIR:
+                    src = tmp1;
+                    state = __PRE_APPLY;
+                    goto __base;
+                case ATOM:
+                    tmp1 = symlookup(tmp1->object.str,env);
+                    if(!tmp1)
+                    {
+                        __return(makeerror(1,0,"Unknown symbol in if's <ELSE> branch"));
+                    }
+                default:
+                    __return(tmp1);
+            }
 		case OPUNWIND:
 			__return(e->snil);
 		case OPEXACT:
