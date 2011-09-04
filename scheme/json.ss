@@ -35,14 +35,42 @@
               (eq? (nth s (+ offset 1)) "}") #t
               (eq? (nth s (+ offset 1)) ",") #t
               (eq? (nth s (+ offset 1)) " ") #t
-              else (error "JSON Parse Error: unknown literal in true)))))
+              else (error "JSON Parse Error: unknown literal in true")))))
 
 (def (json-false s offset (state 0))
      "Parse JSON false literal"
-     #f)
+     (if 
+       (>= offset (length s)) (error "JSON Parse Error: stream ends before literal")
+       (cond
+         (and (eq? state 0) (eq? (nth s offset) #\f)) (json-false s (+ offset 1) 1)
+         (and (eq? state 1) (eq? (nth s offset) #\a)) (json-false s (+ offset 1) 2)
+         (and (eq? state 2) (eq? (nth s offset) #\l)) (json-false s (+ offset 1) 3)
+         (and (eq? state 3) (eq? (nth s offset) #\s)) (json-false s (+ offset 1) 4)
+         (and (eq? state 4) (eq? (nth s offset) #\e)) (json-false s (+ offset 1) 5)
+         (eq? state 5)
+            (cond
+              (>= offset (length s)) #t
+              (eq? (nth s (+ offset 1)) "}") #t
+              (eq? (nth s (+ offset 1)) ",") #t
+              (eq? (nth s (+ offset 1)) " ") #t
+              else (error "JSON Parse Error: unknown literal in false")))))
 
 (def (json-null s offset (state 0))
      "Parse JSON null literal"
+     (if 
+       (>= offset (length s)) (error "JSON Parse Error: stream ends before literal")
+       (cond
+         (and (eq? state 0) (eq? (nth s offset) #\n)) (json-null s (+ offset 1) 1)
+         (and (eq? state 1) (eq? (nth s offset) #\u)) (json-null s (+ offset 1) 2)
+         (and (eq? state 2) (eq? (nth s offset) #\l)) (json-null s (+ offset 1) 3)
+         (and (eq? state 3) (eq? (nth s offset) #\l)) (json-null s (+ offset 1) 4)
+         (eq? state 4)
+            (cond
+              (>= offset (length s)) '()
+              (eq? (nth s (+ offset 1)) "}") '()
+              (eq? (nth s (+ offset 1)) ",") '()
+              (eq? (nth s (+ offset 1)) " ") '()
+              else (error "JSON Parse Error: unknown literal in null")))))
      #f)
 
 (def (json-number s offset (state 0))
@@ -62,10 +90,18 @@
          (eq? (nth s offset) #\:) 'PAIRSEP
          (eq? (nth s offset) #\,) 'MEMBERSEP
          (numeric? (nth s offset)) (json-number s offset)
-         (eq? (nth s offset) #\t) (json-true s offset)
-         (eq? (nth s offset) #\f) (json-false s offset)
-         (eq? (nth s offset) #\n) (json-null s offset)
+         (eq? (nth s offset) #\t) (json-true s offset 1) ;; skip to second state
+         (eq? (nth s offset) #\f) (json-false s offset 1)
+         (eq? (nth s offset) #\n) (json-null s offset 1)
          else (error "JSON Parsing Failed: invalid JSON object"))))
+
+(def (json-object s offset)
+     " returns a JSON object from the current stream "
+     #f)
+
+(def (json-array s offset)
+     " returns a JSON array from the current stream "
+     #f)
 
 ; string->json should just call various intenral functions:
 ; parse object, array, number, literal, string
@@ -74,6 +110,9 @@
 ; "nil" => '()
 ; "[1,2,3,4]" => [1 2 3 4]
 ; "{"test" : [1,2], "stuff" : [3,4]}" => { :test [1 2] :stuff [3 4]}
+;
+; "{\"test\"}" => Error
+; "{1}" => Error
 ; &c. Vesta doesn't yet support Unicode, so that's one minor draw back.
 ; have to fix unicode support at some point.
 ;
