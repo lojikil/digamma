@@ -195,12 +195,12 @@ Digamma/Vesta: %s/%s\n",VER, REL);
 			printf("extra trailing closing curly bracket\n");
 			continue;
 		}
-                if(dribble != nil)
-                {
-                    fprintf(dribble,"> ");
-                    llprinc(ret,dribble,1);
-                    fprintf(dribble,"\n");
-                }
+        if(dribble != nil)
+        {
+            fprintf(dribble,"> ");
+            llprinc(ret,dribble,1);
+            fprintf(dribble,"\n");
+        }
 		if(ret->type == ATOM)
 		{
 			if(tl_env == nil)

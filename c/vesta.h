@@ -255,6 +255,10 @@ typedef struct _SYM
 	SExp *fake_rsqr;
 	SExp *fake_rcur;
 	SExp *fake_rpar;
+    /*
+    SExp *qnan;
+    SExp *snan;
+    */
 	SExp *seof;
 } Symbol;
 /*

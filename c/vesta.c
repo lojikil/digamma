@@ -558,7 +558,16 @@ init_env(int full_env)
 	tl_env->sfalse = sfalse;
 	tl_env->ssucc = ssucc;
 	tl_env->sunsucc = sunsucc;
-    
+    // The below are commented out, because it seems to
+    // kill Boehm
+    /*
+    tl_env->fake_rpar = fake_rpar;
+    tl_env->fake_rsqr = fake_rsqr;
+    tl_env->fake_rcur = fake_rcur;
+    tl_env->qnan = qnan;
+    tl_env->snan = snan; 
+    */
+
     if(!full_env)
     {
 	    tl_env->data = nil;
