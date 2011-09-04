@@ -23,7 +23,7 @@
 (def (json-true s offset (state 0)) 
      "Parse JSON true literal"
      (if 
-       (>= offset (length s)) (error "JSON Parse Error: stream ends before literal")
+       (> offset (length s)) (error "JSON Parse Error: stream ends before literal")
        (cond
          (and (eq? state 0) (eq? (nth s offset) #\t)) (json-true s (+ offset 1) 1)
          (and (eq? state 1) (eq? (nth s offset) #\r)) (json-true s (+ offset 1) 2)
@@ -32,9 +32,9 @@
          (eq? state 4)
             (cond
               (>= offset (length s)) #t
-              (eq? (nth s (+ offset 1)) "}") #t
-              (eq? (nth s (+ offset 1)) ",") #t
-              (eq? (nth s (+ offset 1)) " ") #t
+              (eq? (nth s offset) #\}) #t
+              (eq? (nth s offset) #\,) #t
+              (eq? (nth s offset) #\space) #t
               else (error "JSON Parse Error: unknown literal in true")))))
 
 (def (json-false s offset (state 0))
@@ -50,9 +50,9 @@
          (eq? state 5)
             (cond
               (>= offset (length s)) #t
-              (eq? (nth s (+ offset 1)) "}") #t
-              (eq? (nth s (+ offset 1)) ",") #t
-              (eq? (nth s (+ offset 1)) " ") #t
+              (eq? (nth s (+ offset 1)) #\}) #t
+              (eq? (nth s (+ offset 1)) #\,) #t
+              (eq? (nth s (+ offset 1)) #\space) #t
               else (error "JSON Parse Error: unknown literal in false")))))
 
 (def (json-null s offset (state 0))
@@ -67,9 +67,9 @@
          (eq? state 4)
             (cond
               (>= offset (length s)) '()
-              (eq? (nth s (+ offset 1)) "}") '()
-              (eq? (nth s (+ offset 1)) ",") '()
-              (eq? (nth s (+ offset 1)) " ") '()
+              (eq? (nth s offset) #\}) '()
+              (eq? (nth s offset) #\,) '()
+              (eq? (nth s offset) #\space) '()
               else (error "JSON Parse Error: unknown literal in null")))))
 
 (def (json-number s offset (state 0))
@@ -100,7 +100,11 @@
 
 (def (json-array s offset)
      " returns a JSON array from the current stream "
-     #f)
+     (let ((value (next-token s offset)))
+       (cond
+         (eq? value 'OVECTOR) (json-array s (+ offset 1))
+         (eq? value 'OCCURLY) (json-objet s (+ offset 1))
+         else #f)))
 
 ; string->json should just call various intenral functions:
 ; parse object, array, number, literal, string
