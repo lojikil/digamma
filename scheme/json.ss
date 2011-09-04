@@ -71,7 +71,6 @@
               (eq? (nth s (+ offset 1)) ",") '()
               (eq? (nth s (+ offset 1)) " ") '()
               else (error "JSON Parse Error: unknown literal in null")))))
-     #f)
 
 (def (json-number s offset (state 0))
      "Parse JSON number"
@@ -110,7 +109,7 @@
 ; "nil" => '()
 ; "[1,2,3,4]" => [1 2 3 4]
 ; "{"test" : [1,2], "stuff" : [3,4]}" => { :test [1 2] :stuff [3 4]}
-;
+; "1" => 1
 ; "{\"test\"}" => Error
 ; "{1}" => Error
 ; &c. Vesta doesn't yet support Unicode, so that's one minor draw back.
