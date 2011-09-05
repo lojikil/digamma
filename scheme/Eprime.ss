@@ -582,12 +582,28 @@
 (def footer-out (fn (p)
 		 "finalize C code to output file"
 		 (display "\n}\n" p)))
+
+(def (write-prototypes out)
+     " iterate over *fnarit*, writing the corresponding *fnmung* name
+       and prototype to out"
+    (foreach-proc
+      (fn (k)
+          (with name (nth *fnmung* k)
+                (display (gen-arity name (nth *fnarity* k)) out))
+          (keys *fnarity*))))
+
 (def eprime (fn (i o name)
 	   "Main code output"
 	   (let ((in (open i :read)) 
-		 (out (open o :write)))
+		 (out (open o :write))
+         (defs '()))
 	    (header-out out)
-	    (foreach-expression (fn (e) (with cde (gen-code e) (display cde out))) in)
+	    (foreach-expression (fn (e)
+                                (with cde (gen-code e)
+                                    (set! defs (append defs (list cde)))))
+                            in)
+        (write-prototypes out)
+        (foreach-proc (fn (d) (display d out)) defs) ; write actual definitions to file
 	    (display (format "void~%~s()~%{~%\ttl_env = init_env(0);~%" name) out)
 	    (footer-out out)
 	    (close in)
