@@ -2,8 +2,8 @@
 ;; to be 100% honest, this actually would work with most types
 ;; of sequences, so long as the elements can be eq?'d effectively
 
-(defn string-split-charset (str sepset :opt (start 0) :opt (offset 0))
-	(defn sepchar? (c sepset :opt (so 0))
+(defn string-split-charset (str sepset (start 0) (offset 0))
+	(defn sepchar? (c sepset (so 0))
 		(cond 
 			(>= so (length sepset)) #f
 			(eq? (nth sepset so) c) #t
@@ -15,7 +15,7 @@
 				(cslice str start offset) 
 				(string-split-charset str sepset (+ offset 1) (+ offset 1)))
 		else (string-split-charset str sepset start (+ offset 1))))
-(defn string-join (l i :opt (acc '()))
+(defn string-join (l i (acc '()))
         (if (empty? (cdr l))
                 (apply string-append (append acc (list (car l))))
                 (string-join (cdr l) i (append acc (list (car l) i)))))
