@@ -2,15 +2,17 @@
 ;; to be 100% honest, this actually would work with most types
 ;; of sequences, so long as the elements can be eq?'d effectively
 
-(defn string-split-charset (str sepset (start 0) (offset 0))
-	(defn sepchar? (c sepset (so 0))
-		(cond 
-			(>= so (length sepset)) #f
-			(eq? (nth sepset so) c) #t
-			else (sepchar? c sepset (+ so 1))))
+(def (in-string? c str (start 0))
+      (if (>= start (length str))
+        #f
+        (if (eq? c (nth str start))
+          #t
+          (in-string c str (+ start 1)))))
+
+(def (string-split-charset str sepset (start 0) (offset 0))
 	(cond
 		(>= offset (length str)) (cons (cslice str start offset) '())
-		(sepchar? (nth str offset) sepset) 
+		(in-string? (nth str offset) sepset) 
 			(cons 
 				(cslice str start offset) 
 				(string-split-charset str sepset (+ offset 1) (+ offset 1)))
