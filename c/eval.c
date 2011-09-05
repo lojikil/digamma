@@ -26,7 +26,7 @@ extern int quit_note;
 SExp *
 __seval(SExp *s, Symbol *e)
 {
-    SExp *src = s, *fst = e->snil, *rst = e->snil, *tmp0 = e->snil, *tmp1 = e->snil;
+    SExp *src = s, *fst = e->snil, *rst = e->snil, *tmp0 = e->snil, *tmp1 = e->snil,*tmp3 = e->snil;
     SExp *tmp2 = e->snil, *stk = e->snil, *__r = e->snil, *__val = e->snil, *ret = e->snil;
 	Symbol *tenv = nil, *env = e;
 	int state = __PRE_APPLY, itmp = 0,tail = 0; /* tail is a flag for __PRE_APPLY & OPBEGIN */
@@ -233,28 +233,25 @@ __base:
 							}
 							add_env(env,tmp1->object.str,car(rst));
 						}
-                                                else if(tmp1->type == PAIR)
+                        else if(tmp1->type == PAIR)
 						{
-                                                        tmp2 = tmp1;
-							tmp1 = car(tmp2);
+                            tmp2 = tmp1;
+							tmp3 = car(tmp2);
 							tmp2 = car(cdr(tmp2));
 							if(rst != e->snil)
-                                                        {
-							    add_env(env,tmp1->object.str,car(rst));
-                                                            rst = cdr(rst);
-                                                        }
+							    add_env(env,tmp3->object.str,car(rst));
 							else
 							{
 							    tmp2 = __seval(tmp2,env);
-						            add_env(env,tmp1->object.str,tmp2);
+						        add_env(env,tmp3->object.str,tmp2);
 							}
-                                                }
+                        }
 						tmp0 = cdr(tmp0);
-                                                if(tmp0->type == ATOM)
-                                                {
-                                                    add_env(env,tmp0->object.str,rst);
-                                                    break;
-                                                }
+                        if(tmp0->type == ATOM)
+                        {
+                            add_env(env,tmp0->object.str,rst);
+                            break;
+                        }
 						rst = cdr(rst);
 					}
 					rst = fst->object.closure.data;
