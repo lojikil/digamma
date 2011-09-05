@@ -7,7 +7,7 @@
         #f
         (if (eq? c (nth str start))
           #t
-          (in-string c str (+ start 1)))))
+          (in-string? c str (+ start 1)))))
 
 (def (string-split-charset str sepset (start 0) (offset 0))
 	(cond
