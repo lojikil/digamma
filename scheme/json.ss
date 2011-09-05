@@ -4,18 +4,13 @@
 ; zlib/png licensed & (c) 2010 Stefan Edwards
 ;
 
-(def (json-string s delim offset)
+(def (json-string s delim offset start)
      "Parse a JSON string, breaking on delim. Delim should be either
       #\" or #\'."
       (cond
         (>= offset (length s)) (error "JSON Parse Error: stream ends before string")
-        (eq? (nth s offset) delim) '()
-        (eq? (nth s offset) #\\) 
-            (if (<= (+ offset 1) (length s)) ; should add cases for \n, \r, &c.
-              (cons (nth s (+ offset 1))
-                    (json-string s delim (+ offset 2)))
-              (error "JSON Parse Error: Stream ends before string"))
-        else (cons (nth s offset) (json-string s delim (+ offset 1)))))
+        (eq? (nth s offset) delim) (list (cslice s start offset) offset)
+        else (json-string s delim (+ offset 1) start)))
 
 ; probably would be better as a lookup table:
 ; table => [#\t #\r #\u #\e '$] and state would be index into this table
@@ -31,16 +26,16 @@
          (and (eq? state 3) (eq? (nth s offset) #\e)) (json-true s (+ offset 1) 4)
          (eq? state 4)
             (cond
-              (>= offset (length s)) #t
-              (eq? (nth s offset) #\}) #t
-              (eq? (nth s offset) #\,) #t
-              (eq? (nth s offset) #\space) #t
+              (>= offset (length s)) (list #t offset)
+              (eq? (nth s offset) #\}) (list #t offset)
+              (eq? (nth s offset) #\,) (list #t offset)
+              (eq? (nth s offset) #\space) (list #t offset)
               else (error "JSON Parse Error: unknown literal in true")))))
 
 (def (json-false s offset (state 0))
      "Parse JSON false literal"
      (if 
-       (>= offset (length s)) (error "JSON Parse Error: stream ends before literal")
+       (> offset (length s)) (error "JSON Parse Error: stream ends before literal")
        (cond
          (and (eq? state 0) (eq? (nth s offset) #\f)) (json-false s (+ offset 1) 1)
          (and (eq? state 1) (eq? (nth s offset) #\a)) (json-false s (+ offset 1) 2)
@@ -49,16 +44,16 @@
          (and (eq? state 4) (eq? (nth s offset) #\e)) (json-false s (+ offset 1) 5)
          (eq? state 5)
             (cond
-              (>= offset (length s)) #t
-              (eq? (nth s (+ offset 1)) #\}) #t
-              (eq? (nth s (+ offset 1)) #\,) #t
-              (eq? (nth s (+ offset 1)) #\space) #t
+              (>= offset (length s)) (list #f offset)
+              (eq? (nth s offset) #\}) (list #f offset)
+              (eq? (nth s offset) #\,) (list #f offset)
+              (eq? (nth s offset) #\space) (list #f offset)
               else (error "JSON Parse Error: unknown literal in false")))))
 
 (def (json-null s offset (state 0))
      "Parse JSON null literal"
      (if 
-       (>= offset (length s)) (error "JSON Parse Error: stream ends before literal")
+       (> offset (length s)) (error "JSON Parse Error: stream ends before literal")
        (cond
          (and (eq? state 0) (eq? (nth s offset) #\n)) (json-null s (+ offset 1) 1)
          (and (eq? state 1) (eq? (nth s offset) #\u)) (json-null s (+ offset 1) 2)
@@ -66,10 +61,10 @@
          (and (eq? state 3) (eq? (nth s offset) #\l)) (json-null s (+ offset 1) 4)
          (eq? state 4)
             (cond
-              (>= offset (length s)) '()
-              (eq? (nth s offset) #\}) '()
-              (eq? (nth s offset) #\,) '()
-              (eq? (nth s offset) #\space) '()
+              (>= offset (length s)) (list '() offset)
+              (eq? (nth s offset) #\}) (list '() offset)
+              (eq? (nth s offset) #\,) (list '() offset)
+              (eq? (nth s offset) #\space) (list '() offset)
               else (error "JSON Parse Error: unknown literal in null")))))
 
 (def (json-number s offset (state 0))
@@ -80,15 +75,15 @@
      (if (>= offset (length s))
        #e
        (cond
-         (eq? (nth s offset) #\{) 'OCURLY
+         (eq? (nth s offset) #\{) 'OCURLY 
          (eq? (nth s offset) #\}) 'CCURLY
          (eq? (nth s offset) #\[) 'OVECTOR
-         (eq? (nth s offset) #\]) 'CVECTOR
-         (eq? (nth s offset) #\') (json-string s #\' (+ offset 1))
-         (eq? (nth s offset) #\") (json-string s #\" (+ offset 1))
-         (eq? (nth s offset) #\:) 'PAIRSEP
+         (eq? (nth s offset) #\]) 'CVECTOR 
+         (eq? (nth s offset) #\') (json-string s #\' (+ offset 1) (+ offset 1))
+         (eq? (nth s offset) #\") (json-string s #\" (+ offset 1) (+ offset 1))
+         (eq? (nth s offset) #\:) 'PAIRSEP 
          (eq? (nth s offset) #\,) 'MEMBERSEP
-         (numeric? (nth s offset)) (json-number s offset)
+         ;(numeric? (nth s offset)) (json-number s offset)
          (eq? (nth s offset) #\t) (json-true s offset 1) ;; skip to second state
          (eq? (nth s offset) #\f) (json-false s offset 1)
          (eq? (nth s offset) #\n) (json-null s offset 1)
@@ -98,13 +93,17 @@
      " returns a JSON object from the current stream "
      #f)
 
-(def (json-array s offset)
+(def (json-array s offset state)
      " returns a JSON array from the current stream "
-     (let ((value (next-token s offset)))
+     (with value (json->value s offset)
        (cond
-         (eq? value 'OVECTOR) (json-array s (+ offset 1))
-         (eq? value 'OCCURLY) (json-objet s (+ offset 1))
-         else #f)))
+         (eq? state 0)
+            (cons (car value) (json-array s (cadr value) 1))
+         (eq? state 1)
+            (cond
+              (eq? value 'MEMBERSEP) (json-array s (+ offset 1) 0)
+              (eq? value 'CVECTOR) '()
+              else (error "JSON Parsing Failed: invalid JSON vector (missing MEMBERSEP)")))))
 
 ; string->json should just call various intenral functions:
 ; parse object, array, number, literal, string
@@ -120,9 +119,16 @@
 ; have to fix unicode support at some point.
 ;
 
-(def (json->value s)
+(def (json->value s (offset 0))
      " Convert a JSON string to a Digamma value"
-     {})
+     (with value (next-token s offset)
+           (cond
+             (eq? value 'OVECTOR)
+                (json-array s (+ offset 1) 0)
+             (eq? value 'OCURLY)
+                (json-object s (+ offset 1) 0)
+             (pair? value)
+                value)))
 
 (def (value->json s)
      " Serialize a Digamma object to JSON"
