@@ -583,14 +583,22 @@
 		 "finalize C code to output file"
 		 (display "\n}\n" p)))
 
+(def (gen-arity arity)
+     "Generates a list of SExp parameters to a prototype"
+     (if (<= arity 0)
+       (cons "Symbol *)" '())
+       (cons "SExp *," (gen-arity (- arity 1)))))
+
 (def (write-prototypes out)
      " iterate over *fnarit*, writing the corresponding *fnmung* name
        and prototype to out"
     (foreach-proc
       (fn (k)
           (with name (nth *fnmung* k)
-                (display (gen-arity name (nth *fnarity* k)) out))
-          (keys *fnarity*))))
+                (display (format "SExp *~s~s;~%" name 
+                                 (string-join "" (gen-arity (nth *fnarity* k)))) 
+                         out)))
+      (keys *fnarity*)))
 
 (def eprime (fn (i o name)
 	   "Main code output"
