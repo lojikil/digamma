@@ -136,6 +136,7 @@
  })
 
 (def (string-join l ij)
+  (display (format "string-join ~a ~a ~%" l ij))
   (if (null? (cdr l))
         (car l)
         (string-append (car l) ij (string-join (cdr l) ij))))
@@ -586,7 +587,7 @@
 (def (gen-arity arity)
      "Generates a list of SExp parameters to a prototype"
      (if (<= arity 0)
-       (cons "Symbol *" '())
+       '()
        (cons "SExp *" (gen-arity (- arity 1)))))
 
 (def (write-prototypes out)
@@ -595,10 +596,12 @@
     (foreach-proc
       (fn (k)
           (with name (nth *fnmung* k)
-                (display (format "SExp *~s(~s);~%" name 
-                                 (string-join ", " (gen-arity (nth *fnarity* k)))) 
-                         out)))
-      (keys *fnarity*)))
+                (if (= (nth *fnarit* k) 0)
+                  (display (format "SExp *~s();~%" name) out)
+                  (display (format "SExp *~s(~s);~%" name 
+                                 (string-join (gen-arity (nth *fnarit* k)) ", ")) 
+                         out))))
+      (keys *fnarit*)))
 
 (def eprime (fn (i o name)
 	   "Main code output"
@@ -610,7 +613,9 @@
                                 (with cde (gen-code e)
                                     (set! defs (append defs (list cde)))))
                             in)
+        (newline out)
         (write-prototypes out)
+        (newline out)
         (foreach-proc (fn (d) (display d out)) defs) ; write actual definitions to file
 	    (display (format "void~%~s()~%{~%\ttl_env = init_env(0);~%" name) out)
 	    (footer-out out)
