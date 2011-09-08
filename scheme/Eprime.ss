@@ -136,7 +136,6 @@
  })
 
 (def (string-join l ij)
-  (display (format "string-join ~a ~a ~%" l ij))
   (if (null? (cdr l))
         (car l)
         (string-append (car l) ij (string-join (cdr l) ij))))
