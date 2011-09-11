@@ -27,6 +27,7 @@ init:
 	@echo "Done."
 install:
 	@echo -n "Installing files... "
-	@[ -d ~/bin ] && cp bin/vesta ~/bin
+	@[ -d ~/.digamma/bin ] && cp bin/vesta ~/.digamma/bin
+	@[ -d ~/bin ] && ln -s ~/.digamma/bin/vesta ~/bin/vesta
 	@[ -d ~/.digamma ] && cp scheme/prelude.ss ~/.digamma/prelude.ss
 	@echo "Done."
