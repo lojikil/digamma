@@ -18,3 +18,15 @@ clobber:
 	@cd ./c && make clobber
 	@rm -f ./bin/vesta
 	@echo "Done."
+init:
+	@echo -n Initalizing Digamma environment in ~
+	@[ ! -d ~/.digamma ] && mkdir ~/.digamma
+	@[ ! -d ~/.digamma/lib ] && mkdir ~/.digamma/lib
+	@[ ! -d ~/.digamma/anaxagoras ] && mkdir -p ~/.digamma/anaxagoras/notes
+	@[ ! -d ~/.digamma/bin ] && mkdir ~/.digamma/bin
+	@echo "Done."
+install:
+	@echo -n "Installing files... "
+	@[ -d ~/bin ] && cp bin/vesta ~/bin
+	@[ -d ~/.digamma ] && cp scheme/prelude.ss ~/.digamma/prelude.ss
+	@echo "Done."
