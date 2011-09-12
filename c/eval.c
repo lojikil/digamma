@@ -1291,6 +1291,33 @@ macro_expand(SExp *s, Symbol *e)
 	return tmp2;
 }
 
+/* syntax_match: check if pattern matches a source, and if so, return all matching 
+ * pattern variables in an a-list
+ */
+SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
+{
+    SExp *piter = nil, *retpair = nil, *siter = nil;
+
+    piter = car(pattern);
+    siter = car(src);
+    while(pattern != e->snil)
+    {
+        switch(piter->type)    
+        {
+            case ATOM:
+                break;
+            case PAIR:
+                break;
+            case VECTOR:
+                break;
+            case DICT:
+                break;
+            default:
+                break;
+        }
+    }
+    return e->snil;
+}
 /* __build: iterate over a pair, replacing atoms with anything from the alist,
  * recursing over pairs, and consing anything else in place
  */
@@ -1372,10 +1399,12 @@ syntax_expand(SExp *src, Symbol *e)
 		return makeerror(1,0,"syntax-expand: mal-formed rules");
 	while(rules != e->snil)
 	{
-	
+        t1 = car(rules);
+        if((t2 = syntax_match(t1,src)) != e->snil)
+            return __build(src,t2);
 		rules = cdr(rules);	
 	}
-	return e->snil;
+	return makeerror(1,0,"syntax-rules: no matching pattern");
 }
 
 /* syntactic functions */

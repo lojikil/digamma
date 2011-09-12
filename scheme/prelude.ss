@@ -58,10 +58,16 @@
 (define-macro aif (<if-test> <if-true> :opt <if-false>) #f)
 
 (defn but-last (lst)
-	"remove everything but the last element"
+	"return everything but the last element"
 	(if (null? (cdr lst))
 		'()
 		(cons (car lst) (but-last (cdr lst)))))
+
+(define-syntax fcond (else)
+  ((_ else e1) e1)
+  ((_ e1 e2) (if e1 e2 #f))
+  ((_ e1 e2 e3 ...) (if e1 e2 (fcond e3 ...))))
+
 (define-macro cond (<if> <then> :rest <else>)
 	(if (eq? <if> 'else)
 		<then>
