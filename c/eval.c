@@ -1296,15 +1296,23 @@ macro_expand(SExp *s, Symbol *e)
  */
 SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
 {
-    SExp *piter = nil, *retpair = nil, *siter = nil;
-
+    SExp *piter = nil, *retpair = e->snil, *siter = nil;
+    SExp *tmp0 = e->snil;
     piter = car(pattern);
     siter = car(src);
     while(pattern != e->snil)
     {
+        printf("In syntax_match; piter == ");
+        princ(piter);
+        printf(" siter == ");
+        princ(siter);
+        printf("\n");
         switch(piter->type)    
         {
             case ATOM:
+                if(siter == e->snil && pattern == e->snil)
+                    return makeerror(1,0,"unable to bind syntax variable in pattern: underflow");
+                retpair = cons(list(2,piter,siter),retpair);
                 break;
             case PAIR:
                 break;
@@ -1313,8 +1321,18 @@ SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
             case DICT:
                 break;
             default:
+                tmp0 = eqp(piter,siter);
+                if(tmp0 != e->strue)
+                    return makeerror(1,0,"syntax pattern mismatched literal in pattern");
                 break;
         }
+        /* need to put in a test for (baz . bar) */
+        pattern = cdr(pattern);
+        src = cdr(src);
+        if(pattern == e->snil && src == e->snil)
+            return retpair;
+        siter = car(src);
+        piter = car(pattern);
     }
     return e->snil;
 }
@@ -1387,10 +1405,11 @@ syntax_expand(SExp *src, Symbol *e)
 		return makeerror(1,0,"syntax-expand: not syntax");
 	if(mcar(src)->type == PAIR)
 		src = car(src);
+    printf("In syntax_expand\n");
 	t0 = car(src);
 	if(t0->type == ATOM)
 	{
-		t0 = symlookup(t0->object.str,(Symbol *)e);
+		t0 = symlookup(t0->object.str,e);
 		if(t0->type != SYNTAX)
 			return makeerror(1,0,"syntax-expand: not syntax");
 	}
@@ -1399,9 +1418,17 @@ syntax_expand(SExp *src, Symbol *e)
 		return makeerror(1,0,"syntax-expand: mal-formed rules");
 	while(rules != e->snil)
 	{
+        printf("In while loop\n");
         t1 = car(rules);
-        if((t2 = syntax_match(t1,src)) != e->snil)
-            return __build(src,t2);
+        t2 = syntax_match(src,car(t1),e);
+        printf("t1: ");
+        princ(t1);
+        printf(" t2: ");
+        princ(t2);
+        printf("\n");
+        printf("type of t2 == %d\n",t2->type);
+        if(t2->type == PAIR)
+            return __build(car(cdr(t1)),t2,e);
 		rules = cdr(rules);	
 	}
 	return makeerror(1,0,"syntax-rules: no matching pattern");
