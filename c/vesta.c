@@ -2142,7 +2142,7 @@ llread(FILE *fdin)
 						ret->object.clist.rest = snil;
 						break;
 					}
-					else if(tmp1->type == ATOM && !strncmp(tmp1->object.str,".",1))
+					else if(tmp1->type == ATOM && !strcmp(tmp1->object.str,"."))
 					{
 						// dotted list
 						ret->object.clist.rest = llread(fdin);
