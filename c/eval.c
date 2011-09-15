@@ -1354,37 +1354,37 @@ __build(SExp *src, SExp *alist, Symbol *e)
 	}
 	else if(src->type == PAIR)
 	{
-		//printf("Am I looking at the correct area?\n");
+		printf("Am I looking at the correct area?\n");
 		holder = src;
 		ret = cons(nil,e->snil);
 		tmp = ret;
 		while(holder != e->snil)
 		{
 			iter = car(holder);
-			/*printf("iter: ");
+			printf("iter: ");
 			princ(iter);
-			printf("\n");*/
+            printf("\n");
 			if(iter->type == PAIR)
 				iter = __build(iter,alist,e);
 			else if(iter->type == ATOM)
 			{
 				name = assq(iter,alist);
-				/*printf("iter == ");
+				printf("iter == ");
 				princ(iter);
 				printf("\n");
 				printf("name == ");
 				princ(name);
-				printf("\n");*/
-				if(name != nil)
+				printf("\n");
+				if(name != nil && name->type == PAIR )
 					iter = car(cdr(name));
-				/*printf("iter == ");
+				printf("iter == ");
 				princ(iter);
-				printf("\n");*/
+				printf("\n");
 			}
 			mcar(tmp) = iter;
-			/*printf("tmp: \n\t");
+			printf("tmp: \n\t");
 			princ(tmp);
-			printf("\n");*/
+			printf("\n");
 			holder = cdr(holder);
 			if(holder != e->snil)
 			{	
@@ -1420,7 +1420,7 @@ syntax_expand(SExp *src, Symbol *e)
 	{
         printf("In while loop\n");
         t1 = car(rules);
-        t2 = syntax_match(src,car(t1),e);
+        t2 = syntax_match(cdr(src),cdr(car(t1)),e);
         printf("t1: ");
         princ(t1);
         printf(" t2: ");
@@ -1428,7 +1428,13 @@ syntax_expand(SExp *src, Symbol *e)
         printf("\n");
         printf("type of t2 == %d\n",t2->type);
         if(t2->type == PAIR)
-            return __build(car(cdr(t1)),t2,e);
+        {
+            zip = __build(car(cdr(t1)),t2,e);
+            printf("zip == ");
+            princ(zip);
+            printf("\n");
+            return zip;
+        }
 		rules = cdr(rules);	
 	}
 	return makeerror(1,0,"syntax-rules: no matching pattern");
