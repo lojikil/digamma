@@ -7,6 +7,21 @@
 #include <stdio.h>
 #include <gc.h>
 
+#define nil NULL
+
+#define TYPE(x) ((long)(x) & 0x20)
+#define SET_TYPE(x) 0
+#define NUMBERP(x) (TYPE(x) == T_INTEGER || TYPE(x) == T_RATIONAL\
+                    TYPE(X) == T_REAL || TYPE(x) == T_DREAL \
+                    TYPE(X) == T_COMPLEX)
+
+typedef enum {
+    T_INTEGER, T_RATIONAL, T_REAL, T_DREAL, T_COMPLEX,
+    T_VOID, T_NULL, T_STRING, T_PAIR, T_ATOM, T_KEY,
+    T_VECTOR, T_DICT, T_CLOSURE, T_PROCEDURE, T_FOREIGN,
+    T_ERROR
+} SExpType;
+
 typedef struct 
 {
     char *data;
@@ -44,6 +59,6 @@ makeinteger(int i)
     SExp *ret = nil;
     ret = (SExp *)hmalloc(sizeof(SExp));
     AINT(ret) = i;
-    TYPE(ret) = TINTEGER;
+    SET_TYPE(ret,TINTEGER);
     return ret;
 }
