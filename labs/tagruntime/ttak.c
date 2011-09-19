@@ -15,9 +15,9 @@
 
 #define nil NULL
 
-typedef long long SExp;
+typedef long SExp;
 
-#define MK_F_TAG(num) ((num) + 0xC0)
+#define MK_F_TAG(num) ((num) + 0xb)
 
 #define STRUE MK_F_TAG(0)
 #define SFALSE MK_F_TAG(1)
@@ -28,8 +28,8 @@ typedef long long SExp;
 
 #define hmalloc GC_MALLOC
 
-#define makeinteger(x) (SExp)((intptr_t)(x) << 32) + 0xC7
-#define AINT(x) ((SExp)(x) >> 32)
+#define makeinteger(x) (SExp)((x) << 4) + 0xb
+#define AINT(x) ((SExp)(x) >> 4)
 
 SExp *tak(SExp *, SExp *, SExp *);
 SExp *scheme_main();
@@ -41,6 +41,7 @@ fprimsub(SExp *a, SExp *b)
      * but for this test this should suffice
      */
     int p = AINT(a) - AINT(b);
+    printf("p == %d, a == %d, b == %d\n",p,AINT(a), AINT(b));
     return (SExp *)makeinteger(p);
 }
 
