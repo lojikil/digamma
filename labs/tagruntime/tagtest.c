@@ -38,7 +38,7 @@ typedef long long SExp;
 SExp *makeint(int);
 SExp *makebool(char c);
 SExp *makegoal(char c);
-SExp *makestring(char *,int);
+SExp *makestring(char *);
 SExp *cons(SExp *, SExp *);
 SExp *car(SExp *);
 SExp *cdr(SExp *);
@@ -57,11 +57,22 @@ makeinteger(int i)
 {
     SExp *ret = nil;
     ret = (SExp *)hmalloc(sizeof(SExp));
-    AINT(ret) = i;
+    SET_INT(ret,i);
     SET_TYPE(ret,T_INTEGER);
     return ret;
 }
 
+SExp *
+makestring(char *s)
+{
+    SExp *ret = nil;
+    String *r = hmalloc(sizeof(String));
+    r->data = s;
+    r->len = strlen(s);
+    SET_PTR(ret,r);
+    SET_TYPE(ret,T_STRING);
+    return ret;
+}
 SExp *
 cons(SExp *, SExp *)
 {
