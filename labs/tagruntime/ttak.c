@@ -31,40 +31,41 @@ typedef long SExp;
 #define makeinteger(x) (SExp)((x) << 4) + 0xb
 #define AINT(x) ((SExp)(x) >> 4)
 
-SExp *tak(SExp *, SExp *, SExp *);
-SExp *scheme_main();
+unsigned long takcount = 0l;
 
-SExp *
-fprimsub(SExp *a, SExp *b)
+SExp tak(SExp , SExp , SExp );
+SExp scheme_main();
+
+SExp 
+fprimsub(SExp a, SExp b)
 {
     /* there really should be an INTP check here
      * but for this test this should suffice
      */
     int p = AINT(a) - AINT(b);
-    printf("p == %d, a == %d, b == %d\n",p,AINT(a), AINT(b));
-    return (SExp *)makeinteger(p);
+    return makeinteger(p);
 }
 
-SExp *
-fprimgt(SExp *a, SExp *b)
+SExp 
+fprimgt(SExp a, SExp b)
 {
     if(AINT(a) > AINT(b))
         return STRUE;
     return SFALSE;
 }
 
-SExp *
-tak(SExp *x,SExp *y,SExp *z)
+SExp
+tak(SExp x,SExp y,SExp z)
 {
-	SExp *ret = nil, *x2 = nil,*y3 = nil,*z4 = nil;
-    SExp *co119 = makeinteger(1);
-    printf("In tak; x == %d, y == %d, z == %d\n",AINT(x), AINT(y), AINT(z));
+	SExp ret, x2,y3,z4;
+    SExp co119 = makeinteger(1);
 	int s1 = 1;
+    takcount++;
 	while(s1)
 	{
         ret = SNIL;
-        SExp *it5 = fprimgt(x,y);
-		if(it5 == nil || it5 == STRUE)
+        SExp it5 = fprimgt(x,y);
+		if(it5 == STRUE)
         {
             x2 = tak(fprimsub(x,co119),y,z);
             y3 = tak(fprimsub(y,co119),z,x);
@@ -82,15 +83,15 @@ tak(SExp *x,SExp *y,SExp *z)
 	}
 	return ret;
 }
-SExp *
-fprimprinc(SExp *s)
+SExp 
+fprimprinc(SExp s)
 {
     printf("%d",AINT(s));
 }
-SExp *
+SExp 
 scheme_main()
 {
-	SExp *ret = nil;
+	SExp ret;
 	ret = fprimprinc(tak(makeinteger(18),makeinteger(12),makeinteger(6)));
     printf("\n");
 	return ret;
@@ -100,8 +101,7 @@ int
 main()
 {
     GC_INIT();
-    SExp *f = makeinteger(18);
-    printf("%d\n",AINT(f));
     scheme_main();
+    printf("calls to tak (not including iterations): %ld\n",takcount);
     return 0;
 }

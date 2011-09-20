@@ -32,6 +32,8 @@
 
 static Symbol *tl_env = nil;
 
+unsigned long tak_count = 0l;
+
 SExp *tak(SExp *, SExp *, SExp *);
 SExp *scheme_main();
 
@@ -161,6 +163,7 @@ tak(SExp *x,SExp *y,SExp *z)
 	SExp *ret = nil, *x2 = nil,*y3 = nil,*z4 = nil;
     SExp *co119 = makeinteger(1);
 	int s1 = 1;
+    tak_count++;
 	while(s1)
 	{
         ret = SNIL;
@@ -205,6 +208,6 @@ main()
 {
     init_ctak();
     scheme_main();
-    clean();
+    printf("calls to tak (not including iterations): %ld\n",tak_count);
     return 0;
 }
