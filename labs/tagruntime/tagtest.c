@@ -16,9 +16,10 @@
                     TYPE(X) == T_COMPLEX)
 
 typedef enum {
-    T_NULL,T_INTEGER, T_RATIONAL, T_REAL, T_DREAL, T_COMPLEX,
+    T_NULL,T_INTEGER, T_RATIONAL, T_REAL, T_COMPLEX,
     T_VOID, T_STRING, T_PAIR, T_ATOM, T_KEY, T_VECTOR,
-    T_DICT, T_CLOSURE, T_PROCEDURE, T_FOREIGN, T_ERROR
+    T_DICT, T_CLOSURE, T_PROCEDURE, T_FOREIGN, T_ERROR,
+    T_SYNTAX, T_MACRO
 } SExpType;
 
 typedef struct 
@@ -29,20 +30,41 @@ typedef struct
 
 typedef struct 
 {
-    void *head;
-    void *rest;
+    SExp head;
+    SExp rest;
 } Pair;
+
+typedef struct
+{
+    int len;
+    SExp *data; /* hmalloc'd list of SExps of length len */
+} Vector;
+
+typedef union
+{
+    double r;
+    struct
+    {
+        int num;
+        int den;
+    } rat;
+    struct
+    {
+        double real;
+        double imag;
+    } comp;
+} Number;
 
 typedef long long SExp;
 
-SExp *makeint(int);
-SExp *makebool(char c);
-SExp *makegoal(char c);
-SExp *makestring(char *);
-SExp *cons(SExp *, SExp *);
-SExp *car(SExp *);
-SExp *cdr(SExp *);
-SExp *princ(SExp *);
+SExp makeint(int);
+SExp makebool(char c);
+SExp makegoal(char c);
+SExp makestring(char *);
+SExp cons(SExp, SExp);
+SExp car(SExp);
+SExp cdr(SExp);
+SExp princ(SExp);
 
 int
 main()
@@ -52,20 +74,19 @@ main()
     return 0;
 }
 
-SExp *
+SExp
 makeinteger(int i)
 {
-    SExp *ret = nil;
-    ret = (SExp *)hmalloc(sizeof(SExp));
+    SExp ret;
     SET_INT(ret,i);
     SET_TYPE(ret,T_INTEGER);
     return ret;
 }
 
-SExp *
+SExp
 makestring(char *s)
 {
-    SExp *ret = nil;
+    SExp ret;
     String *r = hmalloc(sizeof(String));
     r->data = s;
     r->len = strlen(s);
@@ -73,21 +94,30 @@ makestring(char *s)
     SET_TYPE(ret,T_STRING);
     return ret;
 }
-SExp *
-cons(SExp *, SExp *)
+SExp
+cons(SExp a, SExp b)
 {
-    SExp *ret = nil;
-    ret = (SExp *)hmalloc(sizeof(SExp));
+    SExp ret;
     SET_TYPE(ret,T_PAIR);
     return ret;
 }
 
-SExp *
-car(SExp *o)
+SExp
+car(SExp o)
 {
     if(TYPEP(o,T_PAIR))
     {
         return nil;
     }
     return nil;
+}
+
+SExp
+cdr(SExp o)
+{
+    if(TYPEP(o,T_PAIR))
+    {
+        return SNULL;
+    }
+    return SNULL;
 }
