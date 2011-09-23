@@ -9,11 +9,14 @@
 
 #define nil NULL
 
-#define TYPE(x) ((long)(x) & 0x20)
+#define TYPE(x) ((x) & 0x20)
 #define SET_TYPE(x) 0
 #define NUMBERP(x) (TYPE(x) == T_INTEGER || TYPE(x) == T_RATIONAL\
                     TYPE(X) == T_REAL || TYPE(x) == T_DREAL \
                     TYPE(X) == T_COMPLEX)
+
+#define SNIL 0l
+#define SVOID T_VOID
 
 typedef enum {
     T_NULL,T_INTEGER, T_RATIONAL, T_REAL, T_COMPLEX,
@@ -69,8 +72,8 @@ SExp princ(SExp);
 int
 main()
 {
-    SExp *l;
     GC_INIT();
+    SExp l = cons(makeint(10),cons(makeint(11),cons(makeint(12),SNIL)));
     return 0;
 }
 
@@ -120,4 +123,62 @@ cdr(SExp o)
         return SNULL;
     }
     return SNULL;
+}
+
+SExp 
+princ(SExp o, int mode)
+{
+    switch(TYPE(o))
+    {
+        case T_INTEGER:
+            printf("%d",AINT(o));
+            break;
+        case T_REAL:
+            Number *d = ANUMBER(o);
+            printf("%f",AREAL(o));
+            break;
+        case T_RATIONAL:
+            Number *q = ANUMBER(o);
+            printf("%d/%d",ANUM(q),ADEN(q));
+            break;
+        case T_COMPLEX:
+            Number *c = ANUMBER(o);
+            printf("%f+%fi",AREAL(c),AIMAG(c));
+            break;
+        case T_PAIR:
+            Pair *p = APAIR(o);
+            printf("(")
+            princ(car(o));
+            if(cdr(o) == SNIL)
+                printf(")");
+            else
+                princ(cdr(o));
+            break;
+        case T_NULL:
+            printf("()");
+            break;
+        case T_KEY: /* in write, T_KEY should prefix #\: */
+            if(mode)
+                printf(":");
+        case T_STRING:
+        case T_ATOM:
+            String *s = ATRING(o);
+            printf("%s",s->str);
+            break;
+        case T_VECTOR:
+            Vector *v = AVECTOR(o);
+            printf("[");
+            for(int i = 0; i < v->length; i++)
+            {
+                princ(v->data[i]);
+                if(i < (v->length - 1))
+                    printf(" ");
+            }
+            printf("]");
+            break;
+        case T_ERROR:
+        case T_VOID:
+            break;
+    }
+    return SVOID;
 }
