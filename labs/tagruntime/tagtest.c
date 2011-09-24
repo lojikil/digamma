@@ -68,6 +68,14 @@ SExp cons(SExp, SExp);
 SExp car(SExp);
 SExp cdr(SExp);
 SExp princ(SExp);
+SExp fprimadd(SExp,SExp);
+SExp fprimsub(SExp,SExp);
+SExp fprimmul(SExp,SExp);
+SExp fprimdiv(SExp,SExp);
+SExp fprimgt(SExp,SExp);
+SExp fprimgte(SExp,SExp);
+SExp fprimlt(SExp,SExp);
+SExp fprimlte(SExp, SExp);
 
 int
 main()
@@ -180,5 +188,46 @@ princ(SExp o, int mode)
         case T_VOID:
             break;
     }
+    return SVOID;
+}
+
+SExp
+fprimadd(SExp a,SExp b)
+{
+    return SVOID;
+}
+SExp
+fprimsub(SExp a,SExp b)
+{
+    return SVOID;
+}
+SExp
+fprimmul(SExp a,SExp b)
+{
+    return SVOID;
+}
+SExp
+fprimdiv(SExp a,SExp b)
+{
+    return SVOID;
+}
+SExp
+fprimgt(SExp a,SExp b)
+{
+    return SVOID;
+}
+SExp
+fprimgte(SExp a,SExp b)
+{
+    return SVOID;
+}
+SExp
+fprimlt(SExp a,SExp b)
+{
+    return SVOID;
+}
+SExp
+fprimlte(SExp a, SExp b)
+{
     return SVOID;
 }
