@@ -9,11 +9,23 @@
 
 #define nil NULL
 
-#define TYPE(x) ((x) & 0x20)
-#define SET_TYPE(x) 0
+#define TYPE(x) ((x) & 0x1F)
+#define SET_TYPE(o,x) ((o) + (0xc0 + x)) 
 #define NUMBERP(x) (TYPE(x) == T_INTEGER || TYPE(x) == T_RATIONAL\
                     TYPE(X) == T_REAL || TYPE(x) == T_DREAL \
                     TYPE(X) == T_COMPLEX)
+
+#define AINT(x) 0
+#define AREAL(x) 0
+#define ANUM(x) 0
+#define ADEN(x) 0
+#define AIMAG(x) 0
+#define ACEREAL(x) 0
+#define ANUMBER(x) 0
+#define APAIR(x) 0
+#define ASTRING(x) 0
+#define ABOOL(x) 0
+#define AGOAL(x) 0
 
 #define SNIL 0l
 #define SVOID T_VOID
@@ -151,7 +163,7 @@ princ(SExp o, int mode)
             break;
         case T_COMPLEX:
             Number *c = ANUMBER(o);
-            printf("%f+%fi",AREAL(c),AIMAG(c));
+            printf("%f+%fi",ACEREAL(c),AIMAG(c));
             break;
         case T_PAIR:
             Pair *p = APAIR(o);
