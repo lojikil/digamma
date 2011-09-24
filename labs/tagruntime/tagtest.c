@@ -155,7 +155,7 @@ princ(SExp o, int mode)
             break;
         case T_REAL:
             Number *d = ANUMBER(o);
-            printf("%f",AREAL(o));
+            printf("%f",AREAL(d));
             break;
         case T_RATIONAL:
             Number *q = ANUMBER(o);
@@ -174,7 +174,24 @@ princ(SExp o, int mode)
             else
                 princ(cdr(o));
             break;
+        case T_BOOL:
+            if(o == STRUE)
+                printf("#t");
+            else
+                printf("#f");
+            break;
+        case T_GOAL:
+            if(o == SSUCC)
+                printf("#s");
+            else
+                printf("#u");
+            break;
+        case T_EOF:
+            printf("#e");
+            break;
         case T_NULL:
+            if(mode)
+                printf("'");
             printf("()");
             break;
         case T_KEY: /* in write, T_KEY should prefix #\: */
@@ -198,6 +215,8 @@ princ(SExp o, int mode)
             break;
         case T_ERROR:
         case T_VOID:
+            if(mode)
+                printf("#v");
             break;
     }
     return SVOID;
@@ -205,8 +224,82 @@ princ(SExp o, int mode)
 
 SExp
 fprimadd(SExp a,SExp b)
+/* there isn't any reason why this couldn't take
+ * a variable number of arguments.
+ */
 {
-    return SVOID;
+    SExp ret, tmp0;
+    Number *a
+    if(!NUMBERP(a) || !NUMBERP(b))
+        return makeerror(1,0,"add only operates on numbers");
+
+    if(TYPE(b) > TYPE(a))
+    {
+        ret = b;
+        tmp0 = a;
+    }
+    else
+    {
+        ret = a;
+        tmp0 = b;
+    }
+
+    /* order types to minimize the number
+     * of switches I need to have; rather than
+     * having cases for each type combination,
+     * reduce it so that we have
+     *
+     * c c
+     * c q
+     * c r
+     * c i
+     * q q
+     * q r
+     * q i
+     * r r
+     * r i
+     * i i
+     *
+     * There are still quite a few cases, but their number
+     * is reduced; doing it in graduating order also means
+     * type promotion rules can be simplified.
+     */
+    if (TYPE(ret) == T_COMPLEX)
+    {
+        switch(TYPE(tmp0))
+        {
+            case T_INTEGER:
+            case T_REAL:
+            case T_RATIONAL:
+            case T_COMPLEX:
+                break;
+        }
+    }
+    else if(TYPE(ret) == T_RATIONAL)
+    {
+        switch(TYPE(tmp0))
+        {
+            case T_RATIONAL:
+            case T_REAL:
+            case T_INTEGER:
+                break;
+        }
+    }
+    else if(TYPE(ret) == T_REAL)
+    {
+        switch(TYPE(tmp0))
+        {
+            case T_INTEGER:
+            case T_REAL:
+                break;
+        }
+    }
+    else if(TYPE(ret) == T_INTEGER)
+    {
+        /* should be T_INTEGER only */
+
+    }
+    return ret;
 }
 SExp
 fprimsub(SExp a,SExp b)
