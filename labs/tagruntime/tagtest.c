@@ -72,7 +72,10 @@ typedef union
 
 typedef long long SExp;
 
-SExp makeint(int);
+SExp makeinteger(int);
+SExp makereal(double);
+SExp makecomplex(double, double);
+SExp makerational(int,int);
 SExp makebool(char c);
 SExp makegoal(char c);
 SExp makestring(char *);
@@ -93,7 +96,7 @@ int
 main()
 {
     GC_INIT();
-    SExp l = cons(makeint(10),cons(makeint(11),cons(makeint(12),SNIL)));
+    SExp l = cons(makeinteger(10),cons(makeinteger(11),cons(makeinteger(12),SNIL)));
     return 0;
 }
 
@@ -104,6 +107,24 @@ makeinteger(int i)
     SET_INT(ret,i);
     SET_TYPE(ret,T_INTEGER);
     return ret;
+}
+
+SExp
+makereal(double d)
+{
+
+}
+
+SExp
+makerational(int n, int d)
+{
+
+}
+
+SExp 
+makecomplex(double real, double imag)
+{
+
 }
 
 SExp
@@ -198,8 +219,14 @@ princ(SExp o, int mode)
             if(mode)
                 printf(":");
         case T_STRING:
+            if(mode)
+            {
+                String *s = ASTRING(o);
+                printf("\"%s\"",s);
+                break;
+            }
         case T_ATOM:
-            String *s = ATRING(o);
+            String *s = ASTRING(o);
             printf("%s",s->str);
             break;
         case T_VECTOR:
