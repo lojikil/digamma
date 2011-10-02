@@ -1312,7 +1312,26 @@ SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
             case ATOM:
                 if(siter == e->snil && pattern == e->snil)
                     return makeerror(1,0,"unable to bind syntax variable in pattern: underflow");
-                retpair = cons(list(2,piter,siter),retpair);
+                if(cdr(pattern) != e->snil)
+                {
+                    tmp0 = car(pattern);
+                    if(tmp0->type == ATOM && !strcmp(tmp0->object.str,"..."))
+                    {
+                        printf("ellipsis match");
+                        if(cdr(pattern) == e->snil)
+                        {
+                            retpair = cons(list(2,piter,src),retpair);
+                            pattern = e->snil;
+                            src = e->snil;
+                        }
+                        else
+                        {
+                        }
+                        pattern = cdr(pattern);
+                    }
+                }
+                else
+                    retpair = cons(list(2,piter,siter),retpair);
                 break;
             case PAIR:
                 break;
