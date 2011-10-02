@@ -1314,11 +1314,11 @@ SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
                     return makeerror(1,0,"unable to bind syntax variable in pattern: underflow");
                 if(cdr(pattern) != e->snil)
                 {
-                    tmp0 = car(pattern);
+                    tmp0 = car(cdr(pattern));
                     if(tmp0->type == ATOM && !strcmp(tmp0->object.str,"..."))
                     {
                         printf("ellipsis match");
-                        if(cdr(pattern) == e->snil)
+                        if(cdr(cdr(pattern)) == e->snil)
                         {
                             retpair = cons(list(2,piter,src),retpair);
                             pattern = e->snil;
@@ -1326,6 +1326,9 @@ SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
                         }
                         else
                         {
+                            // need to slice the source here for the remaining items in 
+                            // pattern
+                            printf("in ellipsis with extras");
                         }
                         pattern = cdr(pattern);
                     }
@@ -1334,6 +1337,10 @@ SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
                     retpair = cons(list(2,piter,siter),retpair);
                 break;
             case PAIR:
+                // should just bind the values from the pair, but need
+                // to check if the next item is an ellipsis, in case we 
+                // have to iterate over the source, collecting. The code
+                // should be pretty similar to the atom version above
                 break;
             case VECTOR:
                 break;
@@ -1388,17 +1395,32 @@ __build(SExp *src, SExp *alist, Symbol *e)
 			else if(iter->type == ATOM)
 			{
 				name = assq(iter,alist);
-				printf("iter == ");
-				princ(iter);
-				printf("\n");
-				printf("name == ");
-				princ(name);
-				printf("\n");
-				if(name != nil && name->type == PAIR )
-					iter = car(cdr(name));
-				printf("iter == ");
-				princ(iter);
-				printf("\n");
+                if(cdr(holder) != e->snil)
+                {
+                    tmp1 = car(cdr(holder));
+                    if(tmp1->type == ATOM && !strcmp(tmp1->object.str,"..."))
+                    {
+                        bappend(tmp,car(cdr(name)));
+                    }
+                    else
+                    {
+                        iter = car(cdr(name));
+                    }
+                }
+                else
+                {
+				    printf("iter == ");
+				    princ(iter);
+				    printf("\n");
+				    printf("name == ");
+				    princ(name);
+				    printf("\n");
+				    if(name != nil && name->type == PAIR )
+					    iter = car(cdr(name));
+				    printf("iter == ");
+				    princ(iter);
+				    printf("\n");
+                }
 			}
 			mcar(tmp) = iter;
 			printf("tmp: \n\t");
