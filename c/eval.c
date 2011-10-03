@@ -1401,6 +1401,12 @@ __build(SExp *src, SExp *alist, Symbol *e)
                     if(tmp1->type == ATOM && !strcmp(tmp1->object.str,"..."))
                     {
                         bappend(tmp,car(cdr(name)));
+                        /* move tmp to the end of the pairs,
+                         * so that the we can continue to use the 
+                         * cons(snil,snil) trick below
+                         */
+                        while(cdr(tmp) != e->snil)
+                            tmp = cdr(tmp);
                     }
                     else
                     {
