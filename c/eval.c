@@ -1400,7 +1400,10 @@ __build(SExp *src, SExp *alist, Symbol *e)
                     tmp1 = car(cdr(holder));
                     if(tmp1->type == ATOM && !strcmp(tmp1->object.str,"..."))
                     {
-                        bappend(tmp,car(cdr(name)));
+                        tmp1 = car(cdr(name));
+                        mcar(tmp) = car(tmp1);
+                        bappend(tmp,cdr(tmp1));
+                        //bappend(tmp,car(cdr(name)));
                         /* move tmp to the end of the pairs,
                          * so that the we can continue to use the 
                          * cons(snil,snil) trick below
@@ -1410,7 +1413,8 @@ __build(SExp *src, SExp *alist, Symbol *e)
                     }
                     else
                     {
-                        iter = car(cdr(name));
+                        if(name != nil && name->type == PAIR)
+                            iter = car(cdr(name));
                     }
                 }
                 else
