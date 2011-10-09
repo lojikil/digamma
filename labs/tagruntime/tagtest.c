@@ -95,9 +95,35 @@ SExp fprimlte(SExp, SExp);
 int
 main()
 {
+    /* need to test:
+     * == equality of atomic literals
+     * basic math operations on all tagged numerical types
+     * basic boolean operations on all tagged numerical types
+     * string access
+     * list a access
+     * printing
+     */
     GC_INIT();
-    SExp l = cons(makeinteger(10),cons(makeinteger(11),cons(makeinteger(12),SNIL)));
-    return 0;
+    SExp f = makeinteger(10);
+    SExp g = makeinteger(10);
+    if(f != g)
+        printf("integers are not equal!\n");
+    else
+        printf("PASS integer equality test\n"); 
+    f = makereal(1.0);
+    g = makerational(3,4);
+
+    f = makecomplex(1.0,0.75);
+   
+    f = fprimadd(makeinteger(1),g);
+
+    f = fprimadd(g,makeinteger(1));
+
+    f = primadd(g,makecomplex(1.0,0.75));
+
+    f = makestring("this is a test");
+
+    f = cons(f,cons(g,SNULL));
 }
 
 SExp
@@ -112,19 +138,36 @@ makeinteger(int i)
 SExp
 makereal(double d)
 {
-
+    SExp ret;
+    Number *r = hmalloc(sizeof(Number));
+    r->d = d;
+    SET_TYPE(ret,T_REAL);
+    SET_PTR(ret,r);
+    return ret;
 }
 
 SExp
 makerational(int n, int d)
 {
-
+    SExp ret;
+    Number *q = hmalloc(sizeof(Number));
+    q->num = n;
+    q->den = d;
+    SET_TYPE(ret,T_RATIONAL);
+    SET_PTR(ret,q);
+    return ret;
 }
 
 SExp 
 makecomplex(double real, double imag)
 {
-
+    SExp ret;
+    Number *c = hmalloc(sizeof(Number));
+    c->real = real;
+    c->imag = imag;
+    SET_TYPE(ret,T_COMPLEX);
+    SET_PTR(ret,q);
+    return ret;
 }
 
 SExp
@@ -143,25 +186,33 @@ cons(SExp a, SExp b)
 {
     SExp ret;
     SET_TYPE(ret,T_PAIR);
+    Pair *p = hmalloc(sizeof(Pair));
+    p->car = a;
+    p->cdr = b;
+    SET_PTR(ret,p);
     return ret;
 }
 
 SExp
 car(SExp o)
 {
+    Pair *p = nil;
     if(TYPEP(o,T_PAIR))
     {
-        return nil;
+        GET_PTR(o,p);
+        return p->car;
     }
-    return nil;
+    return SNULL;
 }
 
 SExp
 cdr(SExp o)
 {
+    Pair *p = nil;
     if(TYPEP(o,T_PAIR))
     {
-        return SNULL;
+        GET_PTR(o,p);
+        return p->cdr;
     }
     return SNULL;
 }
