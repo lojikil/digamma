@@ -92,6 +92,8 @@ SExp fprimgte(SExp,SExp);
 SExp fprimlt(SExp,SExp);
 SExp fprimlte(SExp, SExp);
 
+#ifndef RTONLY
+/* if we want a run time, don't include a main */
 int
 main()
 {
@@ -106,18 +108,84 @@ main()
     GC_INIT();
     SExp f = makeinteger(10);
     SExp g = makeinteger(10);
+    Number *n0 = nil, *n1 = nil;
+    
+    printf("BASIC Numeric creation checks\n");
     if(f != g)
         printf("integers are not equal!\n");
     else
         printf("PASS integer equality test\n"); 
     f = makereal(1.0);
+
+    if(TYPE(f) != T_REAL)
+        printf("incorrect type set for reals\n");
+    else
+        printf("pass real type check\n");
+    GET_PTR(f,n0);
+    if(n0->d != 1.0)
+        printf("real-value is not == 1.0\n");
+    else
+        printf("pass real value check\n");
+
     g = makerational(3,4);
-
+    if(TYPE(g) != T_RATIONAL)
+        printf("incorrect type set for rationals\n");
+    else
+        printf("pass rational type check\n");
+    GET_NUM(g,n0);
+    if(n0->n != 3 || n0->d != 4)
+        printf("rational-value is not == 3/4\n");
+    else
+        printf("pass rational value check\n");
+     
     f = makecomplex(1.0,0.75);
-   
-    f = fprimadd(makeinteger(1),g);
+    if(TYPE(f) != T_COMPLEX)
+        printf("incorrect type set for complex numbers\n");
+    else
+        printf("pass complex type check\n");
+    GET_NUM(f,n0);
+    if(AREAL(n0) != 1.0 || AIMAG(n0) != 0.75)
+        printf("incorrect value for complex check\n");
+    else
+        printf("pass complex value check\n");
+    
+    printf("BASIC Numerical operations checks\n");
 
+    f = fprimadd(makeinteger(1),makeinteger(1));
+    if(AINT(f) != 2)
+        printf("primitive addition fails for integer\n");
+    else
+        printf("pass primitive integer addition\n");
+
+    f = fprimadd(makeinteger(1),g);
+    GET_NUM(f,n0);
+    if(TYPE(f) != T_RATIONAL)
+        printf("primitive addition fails integer + rational type check\n");
+    else if(n0->num != 7 || n0->den != 4)
+        printf("primitive addtion fails integer + rational value check\n");
+    else
+        printf("pass primitive addition integer + rational\n");
+
+    /* these two should be the same, but check that primitive addition
+     * handles these cases correctly
+     */
     f = fprimadd(g,makeinteger(1));
+    GET_NUM(f,n0);
+    if(TYPE(f) != T_RATIONAL)
+        printf("primitive addition fails rational + integer type check\n");
+    else if(n0->num != 7 || n0->den != 4)
+        printf("primitive addtion fails rational + integer value check\n");
+    else
+        printf("pass primitive addition rational + integer\n");
+
+    f = primadd(g,makereal(1.0));
+    GET_NUM(f,n0);
+    if(TYPE(f) != T_REAL)
+        printf("primitive addition fails for rational + real type check\n");
+    else if(n0->d != 1.75)
+        printf("primitive addition fails for rational + real value check\n");
+    else
+        printf("pass primitive addition rational + real\n");
 
     f = primadd(g,makecomplex(1.0,0.75));
 
@@ -125,6 +193,7 @@ main()
 
     f = cons(f,cons(g,SNULL));
 }
+#endif 
 
 SExp
 makeinteger(int i)
