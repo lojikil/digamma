@@ -6,14 +6,14 @@
 
 #include <stdio.h>
 #include <gc.h>
+#include <string.h>
 
 #define nil NULL
 
 #define TYPE(x) ((x) & 0x1F)
 #define SET_TYPE(o,x) ((o) + (0xc0 + x)) 
-#define NUMBERP(x) (TYPE(x) == T_INTEGER || TYPE(x) == T_RATIONAL\
-                    TYPE(X) == T_REAL || TYPE(x) == T_DREAL \
-                    TYPE(X) == T_COMPLEX)
+#define NUMBERP(x) (TYPE(x) == T_INTEGER || TYPE(x) == T_RATIONAL ||\
+                    TYPE(x) == T_REAL || TYPE(x) == T_COMPLEX)
 
 #define AINT(x) 0
 #define AREAL(x) 0
@@ -27,21 +27,29 @@
 #define ABOOL(x) 0
 #define AGOAL(x) 0
 
-#define SNIL 0l
-#define SVOID T_VOID
+#define SNIL 0xc0
+#define SVOID (0xc0 + T_VOID)
+#define STRUE (0xc0 + T_BOOL) + ((SExp)1l << 32)
+#define SFALSE (0xc0 + T_BOOL)
+#define SSUCC (0xc0 + T_GOAL) + ((SExp)1l << 32)
+#define SUNSUCC (0xc0 + T_GOAL)
+
+#define hmalloc GC_MALLOC
 
 typedef enum {
     T_NULL,T_INTEGER, T_RATIONAL, T_REAL, T_COMPLEX,
     T_VOID, T_STRING, T_PAIR, T_ATOM, T_KEY, T_VECTOR,
     T_DICT, T_CLOSURE, T_PROCEDURE, T_FOREIGN, T_ERROR,
-    T_SYNTAX, T_MACRO
+    T_SYNTAX, T_MACRO, T_BOOL, T_GOAL, T_EOF
 } SExpType;
 
 typedef struct 
 {
-    char *data;
+    char *str;
     int len;
 } String;
+
+typedef long long SExp;
 
 typedef struct 
 {
@@ -70,8 +78,6 @@ typedef union
     } comp;
 } Number;
 
-typedef long long SExp;
-
 SExp makeinteger(int);
 SExp makereal(double);
 SExp makecomplex(double, double);
@@ -82,7 +88,7 @@ SExp makestring(char *);
 SExp cons(SExp, SExp);
 SExp car(SExp);
 SExp cdr(SExp);
-SExp princ(SExp);
+SExp princ(SExp,int);
 SExp fprimadd(SExp,SExp);
 SExp fprimsub(SExp,SExp);
 SExp fprimmul(SExp,SExp);
@@ -122,7 +128,7 @@ main()
     else
         printf("pass real type check\n");
     GET_PTR(f,n0);
-    if(n0->d != 1.0)
+    if(n0->r != 1.0)
         printf("real-value is not == 1.0\n");
     else
         printf("pass real value check\n");
@@ -133,7 +139,7 @@ main()
     else
         printf("pass rational type check\n");
     GET_NUM(g,n0);
-    if(n0->n != 3 || n0->d != 4)
+    if(n0->rat.num != 3 || n0->rat.den != 4)
         printf("rational-value is not == 3/4\n");
     else
         printf("pass rational value check\n");
@@ -161,7 +167,7 @@ main()
     GET_NUM(f,n0);
     if(TYPE(f) != T_RATIONAL)
         printf("primitive addition fails integer + rational type check\n");
-    else if(n0->num != 7 || n0->den != 4)
+    else if(n0->rat.num != 7 || n0->rat.den != 4)
         printf("primitive addtion fails integer + rational value check\n");
     else
         printf("pass primitive addition integer + rational\n");
@@ -173,7 +179,7 @@ main()
     GET_NUM(f,n0);
     if(TYPE(f) != T_RATIONAL)
         printf("primitive addition fails rational + integer type check\n");
-    else if(n0->num != 7 || n0->den != 4)
+    else if(n0->rat.num != 7 || n0->rat.den != 4)
         printf("primitive addtion fails rational + integer value check\n");
     else
         printf("pass primitive addition rational + integer\n");
@@ -182,16 +188,24 @@ main()
     GET_NUM(f,n0);
     if(TYPE(f) != T_REAL)
         printf("primitive addition fails for rational + real type check\n");
-    else if(n0->d != 1.75)
+    else if(n0->r != 1.75)
         printf("primitive addition fails for rational + real value check\n");
     else
         printf("pass primitive addition rational + real\n");
 
     f = primadd(g,makecomplex(1.0,0.75));
+    GET_NUM(f,n0);
+    if(TYPE(f) != T_COMPLEX)
+        printf("primitive addition fails for rational + complex\n");
+    else if(n0->comp.real != 1.75 || n0->comp.imag != 0.75)
+        printf("primitive addition fails for rational + complex check\n");
+    else
+        printf("pass primitive addition rational + complex\n");
 
     f = makestring("this is a test");
 
-    f = cons(f,cons(g,SNULL));
+    f = cons(f,cons(g,SNIL));
+    return 0;
 }
 #endif 
 
@@ -209,7 +223,7 @@ makereal(double d)
 {
     SExp ret;
     Number *r = hmalloc(sizeof(Number));
-    r->d = d;
+    r->r = d;
     SET_TYPE(ret,T_REAL);
     SET_PTR(ret,r);
     return ret;
@@ -220,8 +234,8 @@ makerational(int n, int d)
 {
     SExp ret;
     Number *q = hmalloc(sizeof(Number));
-    q->num = n;
-    q->den = d;
+    q->rat.num = n;
+    q->rat.den = d;
     SET_TYPE(ret,T_RATIONAL);
     SET_PTR(ret,q);
     return ret;
@@ -232,10 +246,10 @@ makecomplex(double real, double imag)
 {
     SExp ret;
     Number *c = hmalloc(sizeof(Number));
-    c->real = real;
-    c->imag = imag;
+    c->comp.real = real;
+    c->comp.imag = imag;
     SET_TYPE(ret,T_COMPLEX);
-    SET_PTR(ret,q);
+    SET_NUM(ret,c);
     return ret;
 }
 
@@ -244,7 +258,7 @@ makestring(char *s)
 {
     SExp ret;
     String *r = hmalloc(sizeof(String));
-    r->data = s;
+    r->str = s;
     r->len = strlen(s);
     SET_PTR(ret,r);
     SET_TYPE(ret,T_STRING);
@@ -256,8 +270,8 @@ cons(SExp a, SExp b)
     SExp ret;
     SET_TYPE(ret,T_PAIR);
     Pair *p = hmalloc(sizeof(Pair));
-    p->car = a;
-    p->cdr = b;
+    p->head = a;
+    p->rest = b;
     SET_PTR(ret,p);
     return ret;
 }
@@ -269,9 +283,9 @@ car(SExp o)
     if(TYPEP(o,T_PAIR))
     {
         GET_PTR(o,p);
-        return p->car;
+        return p->head;
     }
-    return SNULL;
+    return SNIL;
 }
 
 SExp
@@ -281,14 +295,17 @@ cdr(SExp o)
     if(TYPEP(o,T_PAIR))
     {
         GET_PTR(o,p);
-        return p->cdr;
+        return p->rest;
     }
-    return SNULL;
+    return SNIL;
 }
 
 SExp 
 princ(SExp o, int mode)
 {
+    String *s = nil;
+    Vector *v = nil;
+    int i = 0;
     switch(TYPE(o))
     {
         case T_INTEGER:
@@ -308,12 +325,12 @@ princ(SExp o, int mode)
             break;
         case T_PAIR:
             Pair *p = APAIR(o);
-            printf("(")
-            princ(car(o));
+            printf("(");
+            princ(car(o),0);
             if(cdr(o) == SNIL)
                 printf(")");
             else
-                princ(cdr(o));
+                princ(cdr(o),0);
             break;
         case T_BOOL:
             if(o == STRUE)
@@ -341,21 +358,21 @@ princ(SExp o, int mode)
         case T_STRING:
             if(mode)
             {
-                String *s = ASTRING(o);
-                printf("\"%s\"",s);
+                s = ASTRING(o);
+                printf("\"%s\"",s->str);
                 break;
             }
         case T_ATOM:
-            String *s = ASTRING(o);
+            s = ASTRING(o);
             printf("%s",s->str);
             break;
         case T_VECTOR:
-            Vector *v = AVECTOR(o);
+            v = AVECTOR(o);
             printf("[");
-            for(int i = 0; i < v->length; i++)
+            for(i = 0; i < v->len; i++)
             {
-                princ(v->data[i]);
-                if(i < (v->length - 1))
+                princ(v->data[i],mode);
+                if(i < (v->len - 1))
                     printf(" ");
             }
             printf("]");
@@ -376,7 +393,6 @@ fprimadd(SExp a,SExp b)
  */
 {
     SExp ret, tmp0;
-    Number *a
     if(!NUMBERP(a) || !NUMBERP(b))
         return makeerror(1,0,"add only operates on numbers");
 
