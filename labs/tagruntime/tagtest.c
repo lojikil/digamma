@@ -26,6 +26,7 @@
 #define ASTRING(x) 0
 #define ABOOL(x) 0
 #define AGOAL(x) 0
+#define AVECTOR(x) 0
 
 #define SNIL 0xc0
 #define SVOID (0xc0 + T_VOID)
@@ -305,6 +306,8 @@ princ(SExp o, int mode)
 {
     String *s = nil;
     Vector *v = nil;
+    Pair *p = nil;
+    Number *n = nil;
     int i = 0;
     switch(TYPE(o))
     {
@@ -312,19 +315,19 @@ princ(SExp o, int mode)
             printf("%d",AINT(o));
             break;
         case T_REAL:
-            Number *d = ANUMBER(o);
-            printf("%f",AREAL(d));
+            n = ANUMBER(o);
+            printf("%f",AREAL(n));
             break;
         case T_RATIONAL:
-            Number *q = ANUMBER(o);
-            printf("%d/%d",ANUM(q),ADEN(q));
+            n = ANUMBER(o);
+            printf("%d/%d",ANUM(n),ADEN(n));
             break;
         case T_COMPLEX:
-            Number *c = ANUMBER(o);
-            printf("%f+%fi",ACEREAL(c),AIMAG(c));
+            n = ANUMBER(o);
+            printf("%f+%fi",ACEREAL(n),AIMAG(n));
             break;
         case T_PAIR:
-            Pair *p = APAIR(o);
+            p = APAIR(o);
             printf("(");
             princ(car(o),0);
             if(cdr(o) == SNIL)
