@@ -357,7 +357,11 @@ princ(SExp o, int mode)
             break;
         case T_KEY: /* in write, T_KEY should prefix #\: */
             if(mode)
-                printf(":");
+            {
+                s = ASTRING(o);
+                printf(":%s",s->str);
+                break;
+            }
         case T_STRING:
             if(mode)
             {
