@@ -15,18 +15,19 @@
 #define NUMBERP(x) (TYPE(x) == T_INTEGER || TYPE(x) == T_RATIONAL ||\
                     TYPE(x) == T_REAL || TYPE(x) == T_COMPLEX)
 
-#define AINT(x) 0
-#define AREAL(x) 0
-#define ANUM(x) 0
-#define ADEN(x) 0
-#define AIMAG(x) 0
-#define ACEREAL(x) 0
-#define ANUMBER(x) 0
-#define APAIR(x) 0
-#define ASTRING(x) 0
-#define ABOOL(x) 0
-#define AGOAL(x) 0
-#define AVECTOR(x) 0
+#define AINT(x) (x) >> 32
+#define AREAL(x) (x)->r
+#define ANUM(x) (x)->rat.num
+#define ADEN(x) (x)->rat.den
+#define AIMAG(x) (x)->comp.imag
+#define ACEREAL(x) (x)->comp.real
+#define ANUMBER(x) (Number *)(x >> 32)
+#define APAIR(x) (Pair *)(x >> 32)
+#define ASTRING(x) (String *)(x >> 32)
+#define AVECTOR(x) (Vector *)(x >> 32)
+#define SET_NUM(x) (SExp)(x) << 32
+#define SET_PTR(x) (SExp)(x) << 32
+#define SET_INT(x) (SExp)(x) << 32
 
 #define SNIL 0xc0
 #define SVOID (0xc0 + T_VOID)
@@ -46,8 +47,8 @@ typedef enum {
 
 typedef struct 
 {
-    char *str;
     int len;
+    char *str;
 } String;
 
 typedef long long SExp;
@@ -86,6 +87,7 @@ SExp makerational(int,int);
 SExp makebool(char c);
 SExp makegoal(char c);
 SExp makestring(char *);
+SExp makeerror(int,int,char *);
 SExp cons(SExp, SExp);
 SExp car(SExp);
 SExp cdr(SExp);
@@ -128,7 +130,7 @@ main()
         printf("incorrect type set for reals\n");
     else
         printf("pass real type check\n");
-    GET_PTR(f,n0);
+    n0 = ANUMBER(f);
     if(n0->r != 1.0)
         printf("real-value is not == 1.0\n");
     else
@@ -139,7 +141,7 @@ main()
         printf("incorrect type set for rationals\n");
     else
         printf("pass rational type check\n");
-    GET_NUM(g,n0);
+    n0 = ANUMBER(g);
     if(n0->rat.num != 3 || n0->rat.den != 4)
         printf("rational-value is not == 3/4\n");
     else
@@ -150,7 +152,7 @@ main()
         printf("incorrect type set for complex numbers\n");
     else
         printf("pass complex type check\n");
-    GET_NUM(f,n0);
+    n0 = ANUMBER(f);
     if(AREAL(n0) != 1.0 || AIMAG(n0) != 0.75)
         printf("incorrect value for complex check\n");
     else
@@ -165,7 +167,7 @@ main()
         printf("pass primitive integer addition\n");
 
     f = fprimadd(makeinteger(1),g);
-    GET_NUM(f,n0);
+    n0 = ANUMBER(f);
     if(TYPE(f) != T_RATIONAL)
         printf("primitive addition fails integer + rational type check\n");
     else if(n0->rat.num != 7 || n0->rat.den != 4)
@@ -177,7 +179,7 @@ main()
      * handles these cases correctly
      */
     f = fprimadd(g,makeinteger(1));
-    GET_NUM(f,n0);
+    n0 = ANUMBER(f);
     if(TYPE(f) != T_RATIONAL)
         printf("primitive addition fails rational + integer type check\n");
     else if(n0->rat.num != 7 || n0->rat.den != 4)
@@ -185,8 +187,8 @@ main()
     else
         printf("pass primitive addition rational + integer\n");
 
-    f = primadd(g,makereal(1.0));
-    GET_NUM(f,n0);
+    f = fprimadd(g,makereal(1.0));
+    n0 = ANUMBER(f);
     if(TYPE(f) != T_REAL)
         printf("primitive addition fails for rational + real type check\n");
     else if(n0->r != 1.75)
@@ -194,8 +196,8 @@ main()
     else
         printf("pass primitive addition rational + real\n");
 
-    f = primadd(g,makecomplex(1.0,0.75));
-    GET_NUM(f,n0);
+    f = fprimadd(g,makecomplex(1.0,0.75));
+    n0 = ANUMBER(f);
     if(TYPE(f) != T_COMPLEX)
         printf("primitive addition fails for rational + complex\n");
     else if(n0->comp.real != 1.75 || n0->comp.imag != 0.75)
@@ -214,7 +216,7 @@ SExp
 makeinteger(int i)
 {
     SExp ret;
-    SET_INT(ret,i);
+    ret = SET_INT(i);
     SET_TYPE(ret,T_INTEGER);
     return ret;
 }
@@ -225,8 +227,8 @@ makereal(double d)
     SExp ret;
     Number *r = hmalloc(sizeof(Number));
     r->r = d;
+    ret = SET_PTR(r);
     SET_TYPE(ret,T_REAL);
-    SET_PTR(ret,r);
     return ret;
 }
 
@@ -237,8 +239,8 @@ makerational(int n, int d)
     Number *q = hmalloc(sizeof(Number));
     q->rat.num = n;
     q->rat.den = d;
+    ret = SET_PTR(q);
     SET_TYPE(ret,T_RATIONAL);
-    SET_PTR(ret,q);
     return ret;
 }
 
@@ -249,8 +251,8 @@ makecomplex(double real, double imag)
     Number *c = hmalloc(sizeof(Number));
     c->comp.real = real;
     c->comp.imag = imag;
+    ret = SET_NUM(c);
     SET_TYPE(ret,T_COMPLEX);
-    SET_NUM(ret,c);
     return ret;
 }
 
@@ -261,19 +263,24 @@ makestring(char *s)
     String *r = hmalloc(sizeof(String));
     r->str = s;
     r->len = strlen(s);
-    SET_PTR(ret,r);
+    ret = SET_PTR(r);
     SET_TYPE(ret,T_STRING);
     return ret;
+}
+SExp 
+makeerror(int syslevel, int layer, char *msg)
+{
+    return 0l;
 }
 SExp
 cons(SExp a, SExp b)
 {
     SExp ret;
-    SET_TYPE(ret,T_PAIR);
     Pair *p = hmalloc(sizeof(Pair));
     p->head = a;
     p->rest = b;
-    SET_PTR(ret,p);
+    ret = SET_PTR(p);
+    SET_TYPE(ret,T_PAIR);
     return ret;
 }
 
@@ -281,9 +288,9 @@ SExp
 car(SExp o)
 {
     Pair *p = nil;
-    if(TYPEP(o,T_PAIR))
+    if(TYPE(o) == T_PAIR)
     {
-        GET_PTR(o,p);
+        p = APAIR(o);
         return p->head;
     }
     return SNIL;
@@ -293,9 +300,9 @@ SExp
 cdr(SExp o)
 {
     Pair *p = nil;
-    if(TYPEP(o,T_PAIR))
+    if(TYPE(o) == T_PAIR)
     {
-        GET_PTR(o,p);
+        p = APAIR(o);
         return p->rest;
     }
     return SNIL;
