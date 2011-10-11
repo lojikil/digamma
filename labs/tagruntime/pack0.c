@@ -4,9 +4,9 @@
 
 #define TYPE(x) ((SExp)(x) & 0x1F)
 #define SET_TYPE(x,type) ((SExp)(x) += (type) & 0x1F)
-#define SET_INT(x,val) ((SExp)x) += (SExp)(val) << 32
-#define SET_FLOAT(x,val) ((SExp)x += (SExp)*(&val) << 32)
-#define SET_STRING(x,val) x += ((SExp)(val) << 32)
+#define SET_INT(x,val) ((SExp)x) = (SExp)(val) << 32
+#define SET_FLOAT(x,val) ((SExp)x = (SExp)*(&val) << 32)
+#define SET_STRING(x,val) x = ((SExp)(val) << 32)
 #define AINT(x) ((SExp)(x) >> 32)
 #define AFLOAT(x) (float)((SExp)(x) >> 32)
 #define GET_STRING(x) (String *)((SExp)(x) >> 32)
@@ -41,16 +41,16 @@ main()
     String *h = nil;
     SExp sval = 0;
     printf("TYPE(x) == %d\n",TYPE(sval));
-    SET_TYPE(sval,T_INTEGER);
     printf("Please enter a number: ");
     scanf("%d",&val);
     SET_INT(sval,val);
+    SET_TYPE(sval,T_INTEGER);
     printf("TYPE(x) == %d\n",TYPE(sval));
     printf("VALUE(x) == %d\n",AINT(sval));
     printf("Please enter a float: ");
     scanf("%f",&f);
-    SET_TYPE(sval,T_REAL);
     SET_FLOAT(sval,f);
+    SET_TYPE(sval,T_REAL);
     printf("TYPE(x) == %d\n",TYPE(sval));
     printf("VALUE(x) == %f\n",AFLOAT(sval));
     fgets(str,128,stdin);
