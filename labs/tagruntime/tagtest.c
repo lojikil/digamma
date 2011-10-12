@@ -10,8 +10,8 @@
 
 #define nil NULL
 
-#define TYPE(x) ((x) & 0x1F)
-#define SET_TYPE(o,x) ((o) + (0xc0 + x)) 
+#define TYPE(x) ((x) & 0xFF)
+#define SET_TYPE(o,x) ((o) += (0xC00 + x)) 
 #define NUMBERP(x) (TYPE(x) == T_INTEGER || TYPE(x) == T_RATIONAL ||\
                     TYPE(x) == T_REAL || TYPE(x) == T_COMPLEX)
 
@@ -158,7 +158,7 @@ main()
     else
         printf("pass complex value check\n");
     
-    printf("BASIC Numerical operations checks\n");
+    printf("\nBASIC Numerical operations checks\n");
 
     f = fprimadd(makeinteger(1),makeinteger(1));
     if(AINT(f) != 2)
@@ -407,6 +407,7 @@ fprimadd(SExp a,SExp b)
  */
 {
     SExp ret, tmp0;
+    Number *n0 = nil, *n1 = nil;
     if(!NUMBERP(a) || !NUMBERP(b))
         return makeerror(1,0,"add only operates on numbers");
 
@@ -464,6 +465,7 @@ fprimadd(SExp a,SExp b)
     }
     else if(TYPE(ret) == T_REAL)
     {
+        n0 = hmalloc(sizeof(Number));
         switch(TYPE(tmp0))
         {
             case T_INTEGER:
@@ -474,7 +476,9 @@ fprimadd(SExp a,SExp b)
     else if(TYPE(ret) == T_INTEGER)
     {
         /* should be T_INTEGER only */
+        ret = ((ret >> 32) + (tmp0 >> 32) << 32);
 
+        SET_TYPE(ret,T_INTEGER);
     }
     return ret;
 }
