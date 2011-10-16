@@ -1294,203 +1294,24 @@ macro_expand(SExp *s, Symbol *e)
 /* syntax_match: check if pattern matches a source, and if so, return all matching 
  * pattern variables in an a-list
  */
-SExp *syntax_match(SExp *src, SExp *pattern, Symbol *e)
+SExp *syntax_match(SExp *src, SExp *pattern, SExp *keylist, Symbol *e)
 {
-    SExp *piter = nil, *retpair = e->snil, *siter = nil;
-    SExp *tmp0 = e->snil;
-    piter = car(pattern);
-    siter = car(src);
-    while(pattern != e->snil)
-    {
-        printf("In syntax_match; piter == ");
-        princ(piter);
-        printf(" siter == ");
-        princ(siter);
-        printf("\n");
-        switch(piter->type)    
-        {
-            case ATOM:
-                if(siter == e->snil && pattern == e->snil)
-                    return makeerror(1,0,"unable to bind syntax variable in pattern: underflow");
-                if(cdr(pattern) != e->snil)
-                {
-                    tmp0 = car(cdr(pattern));
-                    if(tmp0->type == ATOM && !strcmp(tmp0->object.str,"..."))
-                    {
-                        printf("ellipsis match");
-                        if(cdr(cdr(pattern)) == e->snil)
-                        {
-                            retpair = cons(list(2,piter,src),retpair);
-                            pattern = e->snil;
-                            src = e->snil;
-                        }
-                        else
-                        {
-                            // need to slice the source here for the remaining items in 
-                            // pattern
-                            printf("in ellipsis with extras");
-                        }
-                        pattern = cdr(pattern);
-                    }
-                }
-                else
-                    retpair = cons(list(2,piter,siter),retpair);
-                break;
-            case PAIR:
-                // should just bind the values from the pair, but need
-                // to check if the next item is an ellipsis, in case we 
-                // have to iterate over the source, collecting. The code
-                // should be pretty similar to the atom version above
-                break;
-            case VECTOR:
-                break;
-            case DICT:
-                break;
-            default:
-                tmp0 = eqp(piter,siter);
-                if(tmp0 != e->strue)
-                    return makeerror(1,0,"syntax pattern mismatched literal in pattern");
-                break;
-        }
-        /* need to put in a test for (baz . bar) */
-        pattern = cdr(pattern);
-        src = cdr(src);
-        if(pattern == e->snil && src == e->snil)
-            return retpair;
-        siter = car(src);
-        piter = car(pattern);
-    }
-    return e->snil;
 }
+
 /* __build: iterate over a pair, replacing atoms with anything from the alist,
  * recursing over pairs, and consing anything else in place
  */
 SExp *
 __build(SExp *src, SExp *alist, Symbol *e)
 {
-	SExp *holder = nil, *iter = nil, *ret = nil, *tmp = nil, *name = nil;
-	if(src == nil)
-		return nil;
-	if(src->type == ATOM)
-	{
-		holder = assq(src,alist);
-		if(holder == nil)
-			return src;
-		return car(cdr(holder));
-	}
-	else if(src->type == PAIR)
-	{
-		printf("Am I looking at the correct area?\n");
-		holder = src;
-		ret = cons(nil,e->snil);
-		tmp = ret;
-		while(holder != e->snil)
-		{
-			iter = car(holder);
-			printf("iter: ");
-			princ(iter);
-            printf("\n");
-			if(iter->type == PAIR)
-				iter = __build(iter,alist,e);
-			else if(iter->type == ATOM)
-			{
-				name = assq(iter,alist);
-                if(cdr(holder) != e->snil)
-                {
-                    tmp1 = car(cdr(holder));
-                    if(tmp1->type == ATOM && !strcmp(tmp1->object.str,"..."))
-                    {
-                        tmp1 = car(cdr(name));
-                        mcar(tmp) = car(tmp1);
-                        bappend(tmp,cdr(tmp1));
-                        //bappend(tmp,car(cdr(name)));
-                        /* move tmp to the end of the pairs,
-                         * so that the we can continue to use the 
-                         * cons(snil,snil) trick below
-                         */
-                        while(cdr(tmp) != e->snil)
-                            tmp = cdr(tmp);
-                    }
-                    else
-                    {
-                        if(name != nil && name->type == PAIR)
-                            iter = car(cdr(name));
-                    }
-                }
-                else
-                {
-				    printf("iter == ");
-				    princ(iter);
-				    printf("\n");
-				    printf("name == ");
-				    princ(name);
-				    printf("\n");
-				    if(name != nil && name->type == PAIR )
-					    iter = car(cdr(name));
-				    printf("iter == ");
-				    princ(iter);
-				    printf("\n");
-                }
-			}
-			mcar(tmp) = iter;
-			printf("tmp: \n\t");
-			princ(tmp);
-			printf("\n");
-			holder = cdr(holder);
-			if(holder != e->snil)
-			{	
-				mcdr(tmp) = cons(e->snil,e->snil);
-				tmp = mcdr(tmp);
-			}
-		}
-		return ret;
-	}
-	return src;
+    e->snil;
 }
 
 SExp *
 syntax_expand(SExp *src, Symbol *e)
 {
-	SExp *base = nil, *rules = nil, *t0 = nil, *t1 = nil, *t2 = nil, *zip = nil;
-	if(src->type != PAIR)
-		return makeerror(1,0,"syntax-expand: not syntax");
-	if(mcar(src)->type == PAIR)
-		src = car(src);
-    printf("In syntax_expand\n");
-	t0 = car(src);
-	if(t0->type == ATOM)
-	{
-		t0 = symlookup(t0->object.str,e);
-		if(t0->type != SYNTAX)
-			return makeerror(1,0,"syntax-expand: not syntax");
-	}
-	rules = t0->object.closure.data;
-	if(rules->type != PAIR)
-		return makeerror(1,0,"syntax-expand: mal-formed rules");
-	while(rules != e->snil)
-	{
-        printf("In while loop\n");
-        t1 = car(rules);
-        t2 = syntax_match(cdr(src),cdr(car(t1)),e);
-        printf("t1: ");
-        princ(t1);
-        printf(" t2: ");
-        princ(t2);
-        printf("\n");
-        printf("type of t2 == %d\n",t2->type);
-        if(t2->type == PAIR)
-        {
-            zip = __build(car(cdr(t1)),t2,e);
-            printf("zip == ");
-            princ(zip);
-            printf("\n");
-            return zip;
-        }
-		rules = cdr(rules);	
-	}
-	return makeerror(1,0,"syntax-rules: no matching pattern");
+    return e->snil;
 }
-
 /* syntactic functions */
 SExp *
 fset(SExp *tmp0, SExp *tmp1, Symbol *env)
