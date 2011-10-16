@@ -1291,25 +1291,28 @@ macro_expand(SExp *s, Symbol *e)
 	return tmp2;
 }
 
-/* syntax_match: check if pattern matches a source, and if so, return all matching 
- * pattern variables in an a-list
- */
-SExp *syntax_match(SExp *src, SExp *pattern, SExp *keylist, Symbol *e)
-{
-}
-
 /* __build: iterate over a pair, replacing atoms with anything from the alist,
  * recursing over pairs, and consing anything else in place
  */
 SExp *
 __build(SExp *src, SExp *alist, Symbol *e)
 {
-    e->snil;
+    return e->snil;
 }
 
 SExp *
 syntax_expand(SExp *src, Symbol *e)
 {
+    SExp *piter = e->snil, *siter = e->snil, *pattern = e->snil, *keylist = e->snil;
+    SExp *sobj = e->snil, *tmp = e->snil;
+    printf("src == ");
+    princ(src);
+    printf("\n");
+    tmp = car(src);
+    sobj = lookup(tmp->object.str,e);
+    if(sobj == nil)
+        return makeerror(1,0,"syntax-expand: no such syntax object found");
+     
     return e->snil;
 }
 /* syntactic functions */
