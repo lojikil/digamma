@@ -1303,17 +1303,60 @@ __build(SExp *src, SExp *alist, Symbol *e)
 SExp *
 syntax_expand(SExp *src, Symbol *e)
 {
-    SExp *piter = e->snil, *siter = e->snil, *pattern = e->snil, *keylist = e->snil;
+    SExp *piter = e->snil, *siter = e->snil, *pattern = e->snil;
     SExp *sobj = e->snil, *tmp = e->snil;
+    Trie *keylist = nil;
+
     printf("src == ");
     princ(src);
     printf("\n");
     tmp = car(src);
-    sobj = lookup(tmp->object.str,e);
+    sobj = symlookup(tmp->object.str,e);
     if(sobj == nil)
         return makeerror(1,0,"syntax-expand: no such syntax object found");
-     
-    return e->snil;
+    printf("sobj == ");
+    princ(sobj->object.closure.data);
+    printf("\n");
+    tmp = car(sobj);
+    sobj = cdr(sobj);
+    if(tmp != e->snil)
+    {
+        /* so, if we have a pair, iterate over each memeber, checking if it
+         * is an atom, and add it to a dictionary. This dictionary serves as 
+         * a cheaper mechanism for lookups (at least, cheaper than linear list
+         * scans. keylist is *not* allocated unless there is a pair passed in
+         * here, so I still have to check below if keylist is nil or not before
+         * doing a keyword check (which isn't a huge deal)
+         */
+        if(tmp->type != PAIR)
+            return makeerror(1,0,"syntax-expand: keywords must be organized in a PAIR");
+        keylist = (Trie *)hmalloc(sizeof(Trie));
+        keylist->n_len = 1;
+        keylist->n_cur = 1;
+        keylist->nodes = (Trie **)hmalloc(sizeof(Trie *));
+        keylist->data = nil;
+        while(tmp != e->snil)
+        {
+            piter = car(tmp);
+            if(piter->type != ATOM)
+                return makeerror(1,0,"syntax-expand: keywords must be ATOMs");
+            trie_put(piter->object.str,e->strue,keylist); 
+            tmp = cdr(tmp);
+        }
+    }
+    while(sobj != snil)
+    {
+        /* attempt to match a pattern */
+        pattern = car(car(sobj));
+        tmp = car(cdr(car(sobj)));
+        while(pattern != snil)
+        {
+            piter = car(pattern);
+            pattern = cdr(pattern);
+        }
+        sobj = cdr(sobj);
+    }
+    return makeerror(1,0,"syntax-expand: no matching patterns found");
 }
 /* syntactic functions */
 SExp *

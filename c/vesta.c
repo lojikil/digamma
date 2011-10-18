@@ -676,7 +676,7 @@ init_env(int full_env)
 	add_env(tl_env,"string-append",makeprimitive(OPSTRAP, "string-append",0));
 	add_env(tl_env,"apply",makeprimitive(OPAPPLY,"apply",0));
 	add_env(tl_env,"assq",makeprimitive(OPASSQ,"assq",0));
-        add_env(tl_env,"memq",makeprimitive(OPMEMQ,"memq",0));
+    add_env(tl_env,"memq",makeprimitive(OPMEMQ,"memq",0));
 	add_env(tl_env,"defrec",makeprimitive(OPDEFREC,"defrec",1));
 	add_env(tl_env,"set-rec!",makeprimitive(OPSETREC,"set-rec!",1));
 	add_env(tl_env,"dict",makeprimitive(OPDICT,"dict",0));
