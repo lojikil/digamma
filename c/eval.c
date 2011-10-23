@@ -1301,10 +1301,10 @@ __build(SExp *src, SExp *alist, Symbol *e)
 }
 
 SExp *
-syntax_expand(SExp *src, Symbol *e)
+syntax_expand(SExp *s, Symbol *e)
 {
     SExp *piter = e->snil, *siter = e->snil, *pattern = e->snil;
-    SExp *sobj = e->snil, *tmp = e->snil;
+    SExp *sobj = e->snil, *tmp = e->snil, *src = e->snil;
     Trie *keylist = nil;
 
     printf("src == ");
@@ -1349,10 +1349,58 @@ syntax_expand(SExp *src, Symbol *e)
         /* attempt to match a pattern */
         pattern = car(car(sobj));
         tmp = car(cdr(car(sobj)));
+        src = s; 
         while(pattern != snil)
         {
-            piter = car(pattern);
+            piter = car(pattern);   
+            siter = car(src);
             pattern = cdr(pattern);
+            src = cdr(src);
+            if(piter->type == ATOM)
+            {
+                tmp1 = trie_get(piter->object.str,keylist);
+                if(tmp1 == nil) /* not a keyword */
+                {
+                    if(mcdr(pattern) != e->snil)
+                    {
+                        tmp1 = car(cdr(pattern))
+                        if(tmp1->type == ATOM && !strcmp("...",tmp1->object.str))
+                        {
+                            /* we have found a ellipsis pattern; if cdr(cdr(pattern))
+                             * == snil, associate the rest of the src with this pattern
+                             * object, otherwise calculate how many objects from src should
+                             * be associated (i.e. (_ foo ... f e) means slice from 0 to
+                             * len(src) - 2, for f & e
+                             */
+                        }
+                        else
+                        {
+                            /* just normal association */
+                        }
+                    }
+                    else
+                    {
+                    }
+                }
+                else
+                {
+                    tmp1 = eqp(siter,piter); /* keywords must match themselves */
+                    if(!tmp1->object.c)
+                        break;
+                }
+            }
+            else if(piter->type == PAIR)
+            {
+
+            }
+            else if(piter->type == VECTOR)
+            {
+
+            }
+            else
+            {
+                
+            }
         }
         sobj = cdr(sobj);
     }
