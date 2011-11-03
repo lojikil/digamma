@@ -1304,7 +1304,7 @@ SExp *
 syntax_expand(SExp *s, Symbol *e)
 {
     SExp *piter = e->snil, *siter = e->snil, *pattern = e->snil;
-    SExp *sobj = e->snil, *tmp = e->snil, *src = e->snil;
+    SExp *sobj = e->snil, *tmp = e->snil, *src = e->snil, *tmp1 = e->snil;
     Trie *keylist = nil;
 
     printf("src == ");
@@ -1344,13 +1344,13 @@ syntax_expand(SExp *s, Symbol *e)
             tmp = cdr(tmp);
         }
     }
-    while(sobj != snil)
+    while(sobj != e->snil)
     {
         /* attempt to match a pattern */
         pattern = car(car(sobj));
         tmp = car(cdr(car(sobj)));
         src = s; 
-        while(pattern != snil)
+        while(pattern != e->snil)
         {
             piter = car(pattern);   
             siter = car(src);
@@ -1363,7 +1363,7 @@ syntax_expand(SExp *s, Symbol *e)
                 {
                     if(mcdr(pattern) != e->snil)
                     {
-                        tmp1 = car(cdr(pattern))
+                        tmp1 = car(cdr(pattern));
                         if(tmp1->type == ATOM && !strcmp("...",tmp1->object.str))
                         {
                             /* we have found a ellipsis pattern; if cdr(cdr(pattern))
@@ -1391,15 +1391,15 @@ syntax_expand(SExp *s, Symbol *e)
             }
             else if(piter->type == PAIR)
             {
-
+                return e->snil;
             }
             else if(piter->type == VECTOR)
             {
-
+                return e->snil;
             }
             else
             {
-                
+                return e->snil;
             }
         }
         sobj = cdr(sobj);
