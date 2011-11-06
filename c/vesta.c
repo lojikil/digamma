@@ -5589,7 +5589,7 @@ frest(SExp *tmp0)
 	}
 }
 SExp *
-fnth(SExp *tmp0, SExp *tmp1)
+fnth(SExp *tmp0, SExp *tmp1,SExp *dvalue)
 {
 	int iter = 0, itmp = 0;
 	SExp *tmp2 = snil;
@@ -5600,20 +5600,26 @@ fnth(SExp *tmp0, SExp *tmp1)
 	}
 	else
 		if(tmp1->type != STRING && tmp1->type != KEY && tmp1->type != ATOM)
-			return makeerror(1,0,"nh: idx for dicts must be bound to (STRING | KEYOBJ | SYMBOL)");
+			return makeerror(1,0,"nth: idx for dicts must be bound to (STRING | KEYOBJ | SYMBOL)");
 	switch(tmp0->type)
 	{
 		case VECTOR:
 			if(tmp1->object.n->nobject.z >= tmp0->length)
+                if(dvalue != nil)
+                    return dvalue;            
 				return makeerror(1,0,"nth: index out of range");
 			return tmp0->object.vec[tmp1->object.n->nobject.z];
 		case STRING:
 			if(tmp1->object.n->nobject.z >= tmp0->length)
+                if(dvalue != nil)
+                    return dvalue;
 				return makeerror(1,0,"nth: index out of range");
 			return makechar(tmp0->object.str[tmp1->object.n->nobject.z]);
 		case PAIR:
 			itmp = pairlength(tmp0);
 			if(tmp1->object.n->nobject.z > itmp)
+                if(dvalue != nil)
+                    return dvalue;
 				return makeerror(1,0,"nth: index out of range");
 			for(iter = 0; tmp0 != snil; iter++)
 			{
@@ -5626,7 +5632,9 @@ fnth(SExp *tmp0, SExp *tmp1)
 			tmp2 = trie_get(tmp1->object.str,tmp0->object.dict);
 			if(tmp2 == nil)
             {
-                printf("key == %s\n",tmp1->object.str);
+                //Aprintf("key == %s\n",tmp1->object.str);
+                if(dvalue != nil)
+                    return dvalue;
 				return makeerror(1,0,"No such key");
             }
 			return tmp2;
@@ -5864,7 +5872,7 @@ fcslice(SExp *col, SExp *start, SExp *end)
 			tmp = ret;
 			for(;i < j; i++, base++)
 			{
-				mcar(tmp) = fnth(col,makeinteger(i));
+				mcar(tmp) = fnth(col,makeinteger(i),nil);
 				if(i < (j - 1))
 				{
 					mcdr(tmp) = cons(snil,snil);

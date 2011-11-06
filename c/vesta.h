@@ -476,7 +476,7 @@ SExp *ffn(SExp *, Symbol *);
 /* collection primitives */
 SExp *ffirst(SExp *);
 SExp *frest(SExp *);
-SExp *fnth(SExp *, SExp *);
+SExp *fnth(SExp *, SExp *,SExp *);
 SExp *fcset(SExp *, SExp *, SExp *); // collection set!
 SExp *fccons(SExp *, SExp *);
 SExp *flength(SExp *);

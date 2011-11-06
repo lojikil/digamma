@@ -382,11 +382,16 @@ __base:
 			}
 			__return(frest(car(rst)));
 		case OPNTH:
-			if(pairlength(rst) != 2)
+            itmp = pairlength(rst);
+			if(itmp == 2)
 			{
-				__return(makeerror(1,0,"nth (c : COLLECTION) (idx: INTEGER) => s-expression"));
-			}
-			__return(fnth(car(rst),car(cdr(rst))));
+			    __return(fnth(car(rst),car(cdr(rst)),nil));
+            }
+            else if(itmp == 3)
+            {
+			    __return(fnth(car(rst),car(cdr(rst)),car(cdr(cdr(rst)))));
+            }
+			__return(makeerror(1,0,"nth (c : COLLECTION) (idx: INTEGER) [default: S-EXPRESSION] => s-expression"));
 		case OPKEYS:
 			if(pairlength(rst) != 1)
 			{
