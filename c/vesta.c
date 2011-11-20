@@ -5601,26 +5601,33 @@ fnth(SExp *tmp0, SExp *tmp1,SExp *dvalue)
 	else
 		if(tmp1->type != STRING && tmp1->type != KEY && tmp1->type != ATOM)
 			return makeerror(1,0,"nth: idx for dicts must be bound to (STRING | KEYOBJ | SYMBOL)");
+    
 	switch(tmp0->type)
 	{
 		case VECTOR:
 			if(tmp1->object.n->nobject.z >= tmp0->length)
+            {
                 if(dvalue != nil)
                     return dvalue;            
 				return makeerror(1,0,"nth: index out of range");
+            }
 			return tmp0->object.vec[tmp1->object.n->nobject.z];
 		case STRING:
 			if(tmp1->object.n->nobject.z >= tmp0->length)
+            {
                 if(dvalue != nil)
                     return dvalue;
 				return makeerror(1,0,"nth: index out of range");
+            }
 			return makechar(tmp0->object.str[tmp1->object.n->nobject.z]);
 		case PAIR:
 			itmp = pairlength(tmp0);
 			if(tmp1->object.n->nobject.z > itmp)
+            {
                 if(dvalue != nil)
                     return dvalue;
 				return makeerror(1,0,"nth: index out of range");
+            }
 			for(iter = 0; tmp0 != snil; iter++)
 			{
 				if(iter == tmp1->object.n->nobject.z)
