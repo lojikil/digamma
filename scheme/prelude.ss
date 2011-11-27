@@ -198,3 +198,16 @@
     (if (rational? x) 
      (* x 1.0) ; works because rational? is satisfied for integer?
      x))
+
+(define (string-index str sub (offset 0) (sub-offset 0) (start 0))
+    (cond
+        (> offset (length str)) -1
+        (>= sub-offset (length sub)) start
+        (eq? (nth str offset) (nth sub sub-offset))
+             (string-index str sub 
+                           (+ offset 1)
+                           (+ sub-offset 1)
+                           (if (= sub-offset 0)
+                               offset
+                               start))
+        else (string-index str sub (+ offset 1) 0 start)))
