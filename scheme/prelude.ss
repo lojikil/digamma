@@ -200,6 +200,7 @@
      x))
 
 (define (string-index str sub (offset 0) (sub-offset 0) (start 0))
+    "SRFI-13-style string index; return the location of the sub-string"
     (cond
         (> offset (length str)) -1
         (>= sub-offset (length sub)) start
@@ -211,3 +212,12 @@
                                offset
                                start))
         else (string-index str sub (+ offset 1) 0 start)))
+
+(define (string-tokenize-char str c (offset 0) (start 0))
+     "break a string apart on a single character; dispatched from
+      string-tokenize when the partition argument is a character"
+     (cond
+         (>= offset (length str)) (cons (cslice str start offset) '())
+         (eq? (nth str offset) c) (cons (cslice str start offset)
+                                        (string-tokenize-char str c (+ offset 1) (+ offset 1)))
+         else (string-tokenize-char str c (+ offset 1) start)))

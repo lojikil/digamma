@@ -17,10 +17,12 @@
 				(cslice str start offset) 
 				(string-split-charset str sepset (+ offset 1) (+ offset 1)))
 		else (string-split-charset str sepset start (+ offset 1))))
+
 (def (string-join l i (acc '()))
         (if (empty? (cdr l))
                 (apply string-append (append acc (list (car l))))
                 (string-join (cdr l) i (append acc (list (car l) i)))))
+
 (def (string-reverse s offset nu )
 	(cond 
 		(< offset 0) 

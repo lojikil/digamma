@@ -36,6 +36,7 @@ __seval(SExp *s, Symbol *e)
 	env = shallow_clone_env(e);
 __base:
 	/*printf("Stack depth: %d; State: %d\n",pairlength(stk),state);
+    printf("Env depth: %d; Total: %d\n",env->cur_offset, env->cur_size);
 	printf("src == ");
 	princ(src);
 	printf("\n");*/
