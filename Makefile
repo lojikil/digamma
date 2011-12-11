@@ -27,7 +27,8 @@ init:
 	@echo "Done."
 install:
 	@echo -n "Installing files... "
-	@[ -d ~/.digamma/bin ] && cp bin/vesta ~/.digamma/bin
-	@[ -d ~/bin ] && ln -s ~/.digamma/bin/vesta ~/bin/vesta
+	@[ -d ~/.digamma/bin ] || mkdir -p ~/.digamma/bin
+	@[ -d ~/.digamma/bin ] && cp bin/vesta ~/.digamma/bin 
+	@[ -d ~/bin ] && ln -s ~/.digamma/bin/vesta ~/bin/vesta || echo "~/bin does not exist"
 	@[ -d ~/.digamma ] && cp scheme/prelude.ss ~/.digamma/prelude.ss
 	@echo "Done."

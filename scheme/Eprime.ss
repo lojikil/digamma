@@ -113,7 +113,7 @@
 :tconc-list #t
 :tconc->pair #t
 :tconc-splice! [2 #f "tconc_splice"]
-;:eval #t
+:eval [1 #f "__seval"]
 ;:meta! #t
 })
 (def *prim-proc* {
