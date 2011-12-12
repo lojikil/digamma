@@ -237,24 +237,39 @@
                         (tail-call? name (cons 'cond (cdddr code)))))
             else (eq? (car code) name))
         #f)))
-(def rewrite-tail-cond (fn (name params lstate state code)
+(def (rewrite-tail-cond name params lstate state code auxvs)
     "rewrite a cond form in the tail position, using inline-if (rather than nested ones!)
+     parameters:
+     - name : the function name we're looking for
+     - params: the parameters to this funciton
+     - lstate: the variable name used in if blocks
+     - state: the variable used as while-loop sentry
+     - code: the code of this variable
+     - auxvs: auxillary variables
     "
-    (if (eq? lstate '())
+    (let ((<cond> (gen-code (car code)))
+          (<then> (cadr code))
+          (<else> (cddr code)))
+        (if (eq? lstate '()) ; should be initial state
+            (if (tail-call? name <then>)
+                (format "")
+                (format ""))
+            (if (tail-call? name <then>)
+                (format "")
+                (format "")))))
         ; actually, I need to call tail-call? here for each <else> datum, since if it
         ; isn't a tail call, we want to set the state to 0
         ; rewrite-tail-call falls into a simple gen-code if no rewrite rules match;
         ; maybe this can be used? It's a bit expensive to rewrite something if it isn't
         ; a tail call. Need to see what can be done here...
-        (with tstate (gensym 'it)
-            (format "SExp *~s = nil;~%if((~s = ~s) != nil && (~s->type != NIL) && ((~s->type == GOAL || ~s->type == BOOL) && ~s->object.c))\n{~% ~s = 0; //state~% ~s; // code~%}~%"))
-        #f)))
+
 (def generate-aux-vars (fn (l)
     " generate auxillary variable names from a list of parameters.
       Parameters:
        - l: list containing name of parameters to be used as argument to gensym
     "
     (map (fn (x) (coerce (gensym x) 'string)) l)))
+
 (def rewrite-tail-call (fn (name params state code auxvs )
     "rewrite-tail-call: take code in the tail position, and rewrite it to be a simple jump, walking
      through syntax (cond,if,begin,let,with) to find the final call. 
