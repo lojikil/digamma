@@ -247,16 +247,21 @@
      - code: the code of this variable
      - auxvs: auxillary variables
     "
-    (let ((<cond> (gen-code (car code)))
+    (let ((<cond> (car code))
           (<then> (cadr code))
           (<else> (cddr code)))
         (if (eq? lstate '()) ; should be initial state
-            (if (tail-call? name <then>)
-                (format "")
-                (format ""))
-            (if (tail-call? name <then>)
-                (format "")
-                (format "")))))
+            (with nlstate (gensym 'condit)
+                (string-append 
+                    (format "SExp *~a = nil;" nlstate)
+                    (rewrite-tail-cond name params nlstate state code auxvs)))
+            (if (eq? code '())
+                (gen-code '(set! ret #f))
+                (if (eq? <cond> 'else)
+                    (gen-code (cadr code))
+                    (if (tail-call? <then>)
+                        (format "")
+                        (format "")))))))
         ; actually, I need to call tail-call? here for each <else> datum, since if it
         ; isn't a tail call, we want to set the state to 0
         ; rewrite-tail-call falls into a simple gen-code if no rewrite rules match;
