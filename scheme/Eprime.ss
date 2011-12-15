@@ -269,7 +269,7 @@
     {
         ~s
     }~%" lstate (gen-code <cond>) lstate lstate lstate lstate lstate
-       (gen-code <then>)
+       (gen-code <then>) ;; this is the tail call; call rewrite-tail-call here!
        (rewrite-tail-cond name params lstate state code auxvs))
                         (format "~s = ~s;
     if(~s == nil || ~s->TYPE == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
