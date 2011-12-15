@@ -140,34 +140,42 @@
         (car l)
         (string-append (car l) ij (string-join (cdr l) ij))))
 
-(def gen-number (fn (x)
+(def (gen-number x)
     (cond
         (integer? x) (format "makeinteger(~n)" x)
         (rational? x) (format "makerational(~n,~n)" (numerator x) (denomenator x))
         (real? x) (format "makereal(~n)" x)
         (complex? x) (format "makecomplex(~n,~n)" (real-part x) (imag-part x))
-        else (error "NaN"))))
-(def gen-string (fn (x)
-    (format "makestring(\"~s\")" x)))
-(def gen-symbol (fn (x)
-    (format "makeatom(\"~s\")" x)))
-(def gen-key (fn (x)
-    (format "makekey(\"~s\")" x)))
-(def gen-vector (fn (x)
+        else (error "NaN")))
+
+(def (gen-string x)
+    (format "makestring(\"~s\")" x))
+
+(def (gen-symbol x)
+    (format "makeatom(\"~s\")" x))
+
+(def (gen-key x)
+    (format "makekey(\"~s\")" x))
+
+(def (gen-vector x)
     (let ((n (length x)) (p (coerce x 'pair)))
-        (string-append (format "vector(~n," n) (string-join (map gen-literal p) ",") ")"))))
-(def gen-pair (fn (x)
+        (string-append (format "vector(~n," n) (string-join (map gen-literal p) ",") ")")))
+
+(def (gen-pair x)
     (let ((n (length x)))
-        (string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")"))))
-(def gen-bool (fn (x)
+        (string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")")))
+
+(def (gen-bool x)
     (if x
         "STRUE"
-        "SFALSE")))
-(def gen-goal (fn (x)
+        "SFALSE"))
+
+(def (gen-goal x)
     (if (eq? x #s)
         "SSUCC"
-        "SUNSUCC")))
-(def gen-literal (fn (x)
+        "SUNSUCC"))
+
+(def (gen-literal x)
     (cond
         (number? x) (gen-number x)
         (string? x) (gen-string x)
@@ -179,20 +187,23 @@
         (bool? x) (gen-bool x)
         (goal? x) (gen-goal x)
         (key? x) (gen-key x)
-        else (error (format "unsupported data type for code generation: ~s" (type x))))))
-(def gen-dict (fn (d)
+        else (error (format "unsupported data type for code generation: ~s" (type x)))))
+
+(def (gen-dict d)
     (if (empty? (keys d)) ; have to update empty? to check keys automagically...
         "makedict()"
-        (format "dict(~s)" (string-join))))) ; ... has to be the normal map dance
-(def cmung-name (fn (s)
-    (def imung (fn (s i thusfar)
+        (format "dict(~s)" (string-join)))) ; ... has to be the normal map dance
+
+(def (cmung-name s)
+    (def (imung s i thusfar)
         (cond
             (>= i (length s)) thusfar 
             (ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
             (mungable? (nth s i)) (imung s (+ i 1) (append thusfar (char-mung (nth s i))))
             else (imung s (+ i 1) thusfar))))
-    (apply string (imung (coerce s 'string) 0 '()))))
-(def char-mung (fn (c)
+    (apply string (imung (coerce s 'string) 0 '()))
+
+(def (char-mung c)
     (cond
         (eq? c #\:) (list #\_)
         (eq? c #\@) (list #\_ #\a #\t #\_)
@@ -202,16 +213,27 @@
         (eq? c #\<) (list #\_ #\l #\e #\s #\s #\_)
         (eq? c #\.) (list #\_)
         (eq? c #\-) (list #\_)
-        (eq? c #\?) (list #\_ #\p))))
-(def mungable? (fn (c)
-    (or (eq? c #\:) (eq? c #\%) (eq? c #\@) (eq? c #\=) (eq? c #\?) (eq? c #\-) (eq? c #\>) (eq? c #\<) (eq? c #\.))))
-(def ascii-acceptable? (fn (c)
+        (eq? c #\?) (list #\_ #\p)))
+
+(def (mungable? c)
+    (or
+        (eq? c #\:)
+        (eq? c #\%)
+        (eq? c #\@)
+        (eq? c #\=)
+        (eq? c #\?)
+        (eq? c #\-)
+        (eq? c #\>)
+        (eq? c #\<)
+        (eq? c #\.)))
+(def (ascii-acceptable? c)
     (or
         (and (char->=? c #\a) (char-<=? c #\z))
         (and (char->=? c #\A) (char-<=? c #\Z))
         (and (char->=? c #\0) (char-<=? c #\9))
-        (eq? c #\_))))
-(def tail-call? (fn (name code)
+        (eq? c #\_)))
+
+(def (tail-call? name code)
     "walk through the code of proc, and check if it calls itself; return #t if:
     - a bottom if has a call in either it's <then> or <else> suite
     - a bottom begin has a self-call in the tail\n"
@@ -236,7 +258,8 @@
                         #f
                         (tail-call? name (cons 'cond (cdddr code)))))
             else (eq? (car code) name))
-        #f)))
+        #f))
+
 (def (rewrite-tail-cond name params lstate state code auxvs)
     "rewrite a cond form in the tail position, using inline-if (rather than nested ones!)
      parameters:
@@ -256,9 +279,13 @@
                     (format "SExp *~a = nil;" nlstate)
                     (rewrite-tail-cond name params nlstate state code auxvs)))
             (if (eq? code '())
-                (gen-code '(set! ret #f))
+                (string-append
+                    (format "~s = 0;" state)
+                    (gen-code '(set! ret #f)))
                 (if (eq? <cond> 'else)
-                    (gen-code (cadr code))
+                    (string-append
+                        (format "~s = 0;" state)
+                        (gen-code (cadr code)))
                     (if (tail-call? <then>)
                         (format "~s = ~s;
     if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
@@ -269,7 +296,7 @@
     {
         ~s
     }~%" lstate (gen-code <cond>) lstate lstate lstate lstate lstate
-       (gen-code <then>) ;; this is the tail call; call rewrite-tail-call here!
+       (rewrite-tail-call name params state <then> auxvs)  ;; this is the tail call; call rewrite-tail-call here!
        (rewrite-tail-cond name params lstate state code auxvs))
                         (format "~s = ~s;
     if(~s == nil || ~s->TYPE == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
@@ -289,14 +316,14 @@
         ; maybe this can be used? It's a bit expensive to rewrite something if it isn't
         ; a tail call. Need to see what can be done here...
 
-(def generate-aux-vars (fn (l)
+(def (generate-aux-vars l)
     " generate auxillary variable names from a list of parameters.
       Parameters:
        - l: list containing name of parameters to be used as argument to gensym
     "
-    (map (fn (x) (coerce (gensym x) 'string)) l)))
+    (map (fn (x) (coerce (gensym x) 'string)) l))
 
-(def rewrite-tail-call (fn (name params state code auxvs )
+(def (rewrite-tail-call name params state code auxvs )
     "rewrite-tail-call: take code in the tail position, and rewrite it to be a simple jump, walking
      through syntax (cond,if,begin,let,with) to find the final call. 
      Parameters:
@@ -356,9 +383,9 @@
                            (zip params auxvs)) 
                          ";\n") 
                        ";\n")
-                else (gen-code code))))
+                else (gen-code code)))
 
-(def lift-lambda (fn (name code)
+(def (lift-lambda name code)
     " creates a function in C with C-safe name and generates code for the lambda's body.
       Parameters:
        - name: the function's name, which will be fed to cmung-name
@@ -378,7 +405,7 @@
                  (fn (x) (format "SExp *~a" x)) 
                  (car code)) 
                ",") 
-             body)))))
+             body))))
 
 (def (lift-tail-lambda name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
@@ -461,20 +488,21 @@
 ; fixed
 (def (gen-foreach code)
 #f)
-(def defined-lambda? (fn (name)
-	(dict-has? *fnmung* name)))
-(def call-lambda (fn (name args)
+(def (defined-lambda? name)
+	(dict-has? *fnmung* name))
+
+(def (call-lambda name args)
  (if (= (length args) (nth *fnarit* name))
     (if (= (length args) 0)
         (format "~s()" (nth *fnmung* name))
         (format "~s(~s)" (nth *fnmung* name) (string-join (map (fn (x) (gen-code x)) args) ",")))
-    (error (format "incorrect arity for ~S~%" (coerce name 'string))))))
+    (error (format "incorrect arity for ~S~%" (coerce name 'string)))))
 
 ; need to change this:
 ;  - check if <then> or <else> is a (begin ...)
 ;  - if not, say ret = (gen-code ...)
 ;  - if so, do nothing (and make gen-begin set ret = final code...)
-(def gen-if (fn (args)
+(def (gen-if args)
 	     (let ((<cond> (gen-code (car args)))
 		   (<then> (wrap-gen-code (cadr args))) 
 		   (<else> (wrap-gen-code (caddr args))) 
@@ -487,8 +515,9 @@
 		else
 		{
 			~s
-		}~%" <it> <cond> <it> <it> <it> <it> <it> <then> <else>))))
-(def gen-cond (fn (args base)
+		}~%" <it> <cond> <it> <it> <it> <it> <it> <then> <else>)))
+
+(def (gen-cond args base)
     (let ((<cond> (car args))
           (<then> (cadr args))
           (<else> (cddr args)))
@@ -513,18 +542,22 @@
          else
          {
           ~s
-          }~%" base (gen-code <cond>) base base base base base (wrap-gen-code <then>) (gen-cond <else> base)))))))
-(def ep-syntax-expand (fn (synobj) #f)) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
-(def primitive-syntax? (fn (o)
-	(dict-has? *prim-syntax* o)))
-(def wrap-gen-code (fn (body)
+          }~%" base (gen-code <cond>) base base base base base (wrap-gen-code <then>) (gen-cond <else> base))))))
+
+(def (ep-syntax-expand synobj) #f) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
+
+(def (primitive-syntax? o)
+	(dict-has? *prim-syntax* o))
+
+(def (wrap-gen-code body)
     "a simple wrapper around gen-code, that also helps to alleviate the mess of inline-if's all over\n"
     (if (pair? body)
      (if (eq? (car body) 'begin)
       (gen-code body)
       (format "ret = ~s;~%" (gen-code body)))
-     (format "ret = ~s;~%" (gen-code body)))))
-(def gen-code (fn (x)
+     (format "ret = ~s;~%" (gen-code body))))
+
+(def (gen-code x)
 	(if (pair? x) 
 		(cond
 			(eq? (car x) 'def) 
@@ -571,14 +604,16 @@
 			else (call-lambda (car x) (cdr x)))
 		(if (symbol? x)
 		 (coerce x 'string)
-		 (gen-literal x)))))
-(def foreach-expression (fn (proc in)
+		 (gen-literal x))))
+
+(def (foreach-expression proc in)
 	(with r (read in)
 	 (if (eq? r #e)
 		#v
 	 	(begin
 			(proc r)
-		    (foreach-expression proc in))))))
+		    (foreach-expression proc in)))))
+
 ; Awesome things to do:
 ; - call graphs
 ; - function instrumentation (for debugging)
@@ -586,7 +621,7 @@
 ; - useful lambda lifting 
 ; - inclusion of types & typed-syntax expansion
 ; - c-lambdas, c-macros, c-syntax
-(def header-out (fn (p) 
+(def (header-out p) 
 		 "output C headers & any top-level structure to output file"
 		 (def BASE (gensym 'BASE))
 		 ; would be nice to store which of these headers is needed by which
@@ -619,10 +654,11 @@
 "#define SSUCC tl_env->ssucc"
 "#define SUNSUCC tl_env->sunsucc"
 "#define SNIL tl_env->snil"
-"static Symbol *tl_env = nil;"))))
-(def footer-out (fn (p)
+"static Symbol *tl_env = nil;")))
+
+(def (footer-out p)
 		 "finalize C code to output file"
-		 (display "\n}\n" p)))
+		 (display "\n}\n" p))
 
 (def (gen-arity arity)
      "Generates a list of SExp parameters to a prototype"
@@ -643,7 +679,7 @@
                          out))))
       (keys *fnarit*)))
 
-(def eprime (fn (i o name)
+(def (eprime i o name)
 	   "Main code output"
 	   (let ((in (open i :read)) 
 		 (out (open o :write))
@@ -660,7 +696,7 @@
 	    (display (format "void~%~s()~%{~%\ttl_env = init_env(0);~%" name) out)
 	    (footer-out out)
 	    (close in)
-	    (close out))))
+	    (close out)))
 
 ; The basic system is this:
 ; - read form from file
@@ -677,9 +713,10 @@
 ;    + internal-c-function is the low-level C function that backs this primitive in Vesta's runtime
 ; zlib/png licensed Copyright 2010 Stefan Edwards 
 
-(def primitive-form? (fn (x)
-	(dict-has? *primitives* x)))
-(def syntax-form? (fn (f)
+(def (primitive-form? x)
+	(dict-has? *primitives* x))
+
+(def (syntax-form? f)
 	(if (pair? f)
 	 (cond
 	  (eq? (car f) 'if) #t
@@ -687,14 +724,16 @@
 	  (eq? (car f) 'def) #t
 	  (eq? (car f) 'set!) #t
 	  else #f)
-	 #f)))
-(def gen-begin (fn (l)
+	 #f))
+
+(def (gen-begin l)
 		(if (eq? (cdr l) '())
 		 (if (syntax-form? (car l))
 		  (string-append (gen-code (car l)) ";\n") 
 		  (string-append "ret = " (gen-code (car l)) ";\n"))
-		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l))))))
-(def gen-primitive (fn (x)
+		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l)))))
+
+(def (gen-primitive x)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
 	 (if (= (nth f 0) 0) ; arity
         (if (= (length args) 0)
@@ -702,11 +741,13 @@
 	      (format "~s(list(~n,~s))" (nth f 2) (length args) (string-join (map gen-code args) ",")))
 	  (if (= (length args) (nth f 0))
 	   (format "~s(~s)" (nth f 2) (string-join (map gen-code args) ","))
-	   (error (format "enyalios: incorrect number of arguments to ~s" (nth f 2))))))))
-(def primitive-proc? (fn (x)
-	(dict-has? *prim-proc* x)))
-(def call-prim-proc (fn (x)
+	   (error (format "enyalios: incorrect number of arguments to ~s" (nth f 2)))))))
+
+(def (primitive-proc? x)
+	(dict-has? *prim-proc* x))
+
+(def (call-prim-proc x)
     (let ((f (nth *prim-proc* (car x))) (args (cdr x)))
         (if (= (length args) 0)
             (format "~s(SNIL,tl_env)" (nth f 1)) 
-            (format "~s(list(~n,~s),tl_env)" (nth f 1) (length args) (string-join (map gen-code args) ","))))))
+            (format "~s(list(~n,~s),tl_env)" (nth f 1) (length args) (string-join (map gen-code args) ",")))))
