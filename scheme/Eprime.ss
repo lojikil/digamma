@@ -260,8 +260,29 @@
                 (if (eq? <cond> 'else)
                     (gen-code (cadr code))
                     (if (tail-call? <then>)
-                        (format "")
-                        (format "")))))))
+                        (format "~s = ~s;
+    if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
+    {
+        ~s
+    }
+    else
+    {
+        ~s
+    }~%" lstate (gen-code <cond>) lstate lstate lstate lstate lstate
+       (gen-code <then>)
+       (rewrite-tail-cond name params lstate state code auxvs))
+                        (format "~s = ~s;
+    if(~s == nil || ~s->TYPE == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
+    {
+        ~s = 0;
+        ~s
+    }
+    else
+    {
+        ~s
+    }~%" lstate <cond> lstate lstate lstate lstate lstate state 
+         (gen-code <then>)
+         (rewrite-tail-cond name params lstate state code auxvs))))))))
         ; actually, I need to call tail-call? here for each <else> datum, since if it
         ; isn't a tail call, we want to set the state to 0
         ; rewrite-tail-call falls into a simple gen-code if no rewrite rules match;
