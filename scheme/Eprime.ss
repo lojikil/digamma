@@ -133,6 +133,11 @@
  :or #t
  :and #t
  :not #t
+ :set! #t
+ :if #t
+ :cond #t
+ :begin #t
+ :let #t
  })
 
 (def (string-join l ij)
@@ -166,6 +171,9 @@
         (string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")")))
 
 (def (gen-bool x)
+    (display "x: ")
+    (display x)
+    (newline)
     (if x
         "STRUE"
         "SFALSE"))
@@ -287,7 +295,7 @@
                         (rewrite-tail-call name params state <then> auxvs)
                         (string-append 
                             (format "~s = 0;" state)
-                            (gen-code (cadr code))))
+                            (wrap-gen-code (cadr code))))
                     (if (tail-call? name <then>)
                         (format "~s = ~a;
     if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
@@ -310,7 +318,7 @@
     {
         ~s
     }~%" lstate (gen-code <cond>) lstate lstate lstate lstate lstate state 
-         (gen-code <then>)
+         (wrap-gen-code <then>)
          (rewrite-tail-cond name params lstate state <else> auxvs))))))))
         ; actually, I need to call tail-call? here for each <else> datum, since if it
         ; isn't a tail call, we want to set the state to 0
@@ -557,7 +565,7 @@
 (def (wrap-gen-code body)
     "a simple wrapper around gen-code, that also helps to alleviate the mess of inline-if's all over\n"
     (if (pair? body)
-     (if (eq? (car body) 'begin)
+     (if (primitive-syntax? (car body))
       (gen-code body)
       (format "ret = ~s;~%" (gen-code body)))
      (format "ret = ~s;~%" (gen-code body))))
