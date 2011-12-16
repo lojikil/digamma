@@ -270,25 +270,26 @@
      - code: the code of this variable
      - auxvs: auxillary variables
     "
-    (display "in rewrite-tail-cond\n")
     (let ((<cond> (car code))
           (<then> (cadr code))
           (<else> (cddr code)))
         (if (eq? lstate '()) ; should be initial state
             (with nlstate (gensym 'condit)
                 (string-append 
-                    (format "SExp *~a = nil;" nlstate)
+                    (format "SExp *~a = nil;~%" nlstate)
                     (rewrite-tail-cond name params nlstate state code auxvs)))
             (if (eq? code '())
                 (string-append
                     (format "~s = 0;" state)
                     (gen-code '(set! ret #f)))
                 (if (eq? <cond> 'else)
-                    (string-append
-                        (format "~s = 0;" state)
-                        (gen-code (cadr code)))
                     (if (tail-call? name <then>)
-                        (format "~s = ~s;
+                        (rewrite-tail-call name params state <then> auxvs)
+                        (string-append 
+                            (format "~s = 0;" state)
+                            (gen-code (cadr code))))
+                    (if (tail-call? name <then>)
+                        (format "~s = ~a;
     if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
     {
         ~s
@@ -299,7 +300,7 @@
     }~%" lstate (gen-code <cond>) lstate lstate lstate lstate lstate
        (rewrite-tail-call name params state <then> auxvs)  ;; this is the tail call; call rewrite-tail-call here!
        (rewrite-tail-cond name params lstate state <else> auxvs))
-                        (format "~s = ~s;
+                        (format "~s = ~a;
     if(~s == nil || ~s->TYPE == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
     {
         ~s = 0;
@@ -308,7 +309,7 @@
     else
     {
         ~s
-    }~%" lstate <cond> lstate lstate lstate lstate lstate state 
+    }~%" lstate (gen-code <cond>) lstate lstate lstate lstate lstate state 
          (gen-code <then>)
          (rewrite-tail-cond name params lstate state <else> auxvs))))))))
         ; actually, I need to call tail-call? here for each <else> datum, since if it
@@ -493,7 +494,6 @@
 	(dict-has? *fnmung* name))
 
 (def (call-lambda name args)
- (display (format "name: ~a~%args: ~a~%" name args))
  (if (= (length args) (nth *fnarit* name))
     (if (= (length args) 0)
         (format "~s()" (nth *fnmung* name))
