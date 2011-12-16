@@ -577,10 +577,10 @@
                 (cond
                     (symbol? (car (cdr x)))
 					    (if (not (pair? (car (cdr (cdr x)))))
-						    (format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
-						    (if (not (eq? (car (car (cdr (cdr x)))) 'fn))
-							    (format "SExp *~s = ~s;" (gen-literal (car (cdr x))) (gen-code (car (cdr (cdr x)))))
-                                  (if (tail-call? (cadr x) (nth x (- (length (cdaddr x)) 1)))
+						    (format "SExp *~s = ~s;" (cmung-name (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
+						    (if (not (eq? (caaddr x) 'fn))
+							      (format "SExp *~s = ~s;" (cmung-name (car (cdr x))) (gen-code (car (cdr (cdr x)))))
+                                  (if (tail-call? (cadr x) (cdaddr x))
 							        (lift-tail-lambda (cadr x) (cdaddr x))
 							        (lift-lambda (cadr x) (cdaddr x)))))
                      (pair? (car (cdr x))) ; (def (foo x) ...)
@@ -615,7 +615,7 @@
 			(primitive-form? (car x)) (gen-primitive x) 
 			(primitive-proc? (car x)) (call-prim-proc x) ;display & friends
 			(primitive-syntax? (car x)) (gen-code (ep-syntax-expand x))
-			else (call-lambda (car x) (cdr x)))
+            else                (call-lambda (car x) (cdr x)))
 		(if (symbol? x)
 		 (coerce x 'string)
 		 (gen-literal x))))

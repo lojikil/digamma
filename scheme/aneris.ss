@@ -25,6 +25,7 @@
                :- [0 :p-]
                :* [0 :p*]
                :/ [0 :p/])))
+
 (def aneris@compare (fn (c s r) ; really need to add cond to rewrite-tail-call
     (cond
      (eq? r '()) #t

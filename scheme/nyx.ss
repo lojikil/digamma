@@ -30,6 +30,7 @@
                :- [0 :p-]
                :* [0 :p*]
                :/ [0 :p/])))
+
 (def nyx@compare (fn (c s r) ; really need to add cond to rewrite-tail-call
     (cond
      (eq? r '()) #t
