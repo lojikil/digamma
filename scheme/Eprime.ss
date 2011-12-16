@@ -336,7 +336,7 @@
      "
     (cond
         (not (pair? code)) (gen-code code)
-        (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code auxvs)
+        (eq? (car code) 'cond) (rewrite-tail-cond name params '() state (cdr code) auxvs)
         (eq? (car code) 'if)
             (with <cond> (gen-code (cadr code))
                 (if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?
@@ -493,6 +493,7 @@
 	(dict-has? *fnmung* name))
 
 (def (call-lambda name args)
+ (display (format "name: ~a~%args: ~a~%" name args))
  (if (= (length args) (nth *fnarit* name))
     (if (= (length args) 0)
         (format "~s()" (nth *fnmung* name))
@@ -545,6 +546,9 @@
           ~s
           }~%" base (gen-code <cond>) base base base base base (wrap-gen-code <then>) (gen-cond <else> base))))))
 
+(def (gen-set! sym code)
+    (format "~a = ~s" sym (gen-code code)))
+
 (def (ep-syntax-expand synobj) #f) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
 
 (def (primitive-syntax? o)
@@ -576,6 +580,7 @@
                             (lift-tail-lambda (caadr x) (cons (cdadr x) (cddr x)))
                             (lift-lambda (caadr x) (cons (cdadr x) (cddr x))))
                      else (error "def's first argument *must* be SYMBOL | PAIR"))
+            (eq? (car x) 'set!) (gen-set! (cadr x) (caddr x))
 			(eq? (car x) 'load) #t
 			(eq? (car x) 'import) #t
 			(eq? (car x) 'use) #t
