@@ -200,8 +200,8 @@
             (>= i (length s)) thusfar 
             (ascii-acceptable? (nth s i))  (imung s (+ i 1) (append thusfar (list (nth s i))))
             (mungable? (nth s i)) (imung s (+ i 1) (append thusfar (char-mung (nth s i))))
-            else (imung s (+ i 1) thusfar))))
-    (apply string (imung (coerce s 'string) 0 '()))
+            else (imung s (+ i 1) thusfar)))
+    (apply string (imung (coerce s 'string) 0 '())))
 
 (def (char-mung c)
     (cond
@@ -270,6 +270,7 @@
      - code: the code of this variable
      - auxvs: auxillary variables
     "
+    (display "in rewrite-tail-cond\n")
     (let ((<cond> (car code))
           (<then> (cadr code))
           (<else> (cddr code)))
@@ -286,7 +287,7 @@
                     (string-append
                         (format "~s = 0;" state)
                         (gen-code (cadr code)))
-                    (if (tail-call? <then>)
+                    (if (tail-call? name <then>)
                         (format "~s = ~s;
     if(~s == nil || ~s->type == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
     {
@@ -297,7 +298,7 @@
         ~s
     }~%" lstate (gen-code <cond>) lstate lstate lstate lstate lstate
        (rewrite-tail-call name params state <then> auxvs)  ;; this is the tail call; call rewrite-tail-call here!
-       (rewrite-tail-cond name params lstate state code auxvs))
+       (rewrite-tail-cond name params lstate state <else> auxvs))
                         (format "~s = ~s;
     if(~s == nil || ~s->TYPE == NIL || ((~s->type == BOOL || ~s->type == GOAL) && ~s->object.c))
     {
@@ -309,7 +310,7 @@
         ~s
     }~%" lstate <cond> lstate lstate lstate lstate lstate state 
          (gen-code <then>)
-         (rewrite-tail-cond name params lstate state code auxvs))))))))
+         (rewrite-tail-cond name params lstate state <else> auxvs))))))))
         ; actually, I need to call tail-call? here for each <else> datum, since if it
         ; isn't a tail call, we want to set the state to 0
         ; rewrite-tail-call falls into a simple gen-code if no rewrite rules match;
@@ -335,7 +336,7 @@
      "
     (cond
         (not (pair? code)) (gen-code code)
-        (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code)
+        (eq? (car code) 'cond) (rewrite-tail-cond name params '() state code auxvs)
         (eq? (car code) 'if)
             (with <cond> (gen-code (cadr code))
                 (if (tail-call? name (caddr code)) ; does the tail call happen in the <then> portion or the <else> portion?

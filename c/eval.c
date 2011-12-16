@@ -230,6 +230,10 @@ __base:
 						{
 							if(rst == e->snil)
 							{
+                                printf("source: ");
+                                princ(src);
+                                printf("\n");
+                                printf("argument: %s\n",tmp1->object.str);
 								__return(makeerror(1,0,"Unsatisfied non-optional procedure argument"));
 							}
 							add_env(env,tmp1->object.str,car(rst));
