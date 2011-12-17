@@ -580,7 +580,7 @@
 						    (format "SExp *~s = ~s;" (cmung-name (car (cdr x))) (gen-literal (car (cdr (cdr x)))))
 						    (if (not (eq? (caaddr x) 'fn))
 							      (format "SExp *~s = ~s;" (cmung-name (car (cdr x))) (gen-code (car (cdr (cdr x)))))
-                                  (if (tail-call? (cadr x) (cdaddr x))
+                                  (if (tail-call? (cadr x) (caddr x))
 							        (lift-tail-lambda (cadr x) (cdaddr x))
 							        (lift-lambda (cadr x) (cdaddr x)))))
                      (pair? (car (cdr x))) ; (def (foo x) ...)
