@@ -171,9 +171,6 @@
         (string-append (format "list(~n," n) (string-join (map gen-literal x) ",") ")")))
 
 (def (gen-bool x)
-    (display "x: ")
-    (display x)
-    (newline)
     (if x
         "STRUE"
         "SFALSE"))
@@ -699,6 +696,20 @@
 		 (out (open o :write))
          (defs '()))
 	    (header-out out)
+        ;; add another level of indirection:
+        ;; foreach expression, collect all 
+        ;; functions *before* attempting to 
+        ;; generate C code, so that we don't have
+        ;; the issues with missing functions:
+        ;; (define (a x) (b (- x 1)))
+        ;; (define (b z) (if (> z 15) (a z) z))
+        ;; this *should* work, but it currently does not,
+        ;; because a has no notion that b exists afterward.
+        ;; collecting all definitions first, *then* processing
+        ;; them would ease this (as did the generation of C
+        ;; function prototypes helped not having to explicitly
+        ;; order code so that the generated code matched). 
+         
 	    (foreach-expression (fn (e)
                                 (with cde (gen-code e)
                                     (set! defs (append defs (list cde)))))
