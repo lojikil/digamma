@@ -231,6 +231,7 @@
         (eq? c #\>)
         (eq? c #\<)
         (eq? c #\.)))
+
 (def (ascii-acceptable? c)
     (or
         (and (char->=? c #\a) (char-<=? c #\z))
@@ -554,6 +555,14 @@
 (def (gen-set! sym code)
     (format "~a = ~s" sym (gen-code code)))
 
+(def (gen-let params code)
+    "Generate C-code equivalent to a let; I wonder if we need to support lift let blocks into
+     top-level functions, so as to support (set! c (let ...)). Also, (let loop ...) should
+     be converted into a tail while loop, but I don't know if it should do so as a simple
+     loop rewrite or as a call to tail-lambda or the like.
+     "
+    #f)
+
 (def (ep-syntax-expand synobj) #f) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
 
 (def (primitive-syntax? o)
@@ -590,7 +599,8 @@
 			(eq? (car x) 'import) #t
 			(eq? (car x) 'use) #t
 			(eq? (car x) 'from) #t
-			(eq? (car x) 'let) #t ; let should be a top-level form, rather than expand to lambda(s)
+			(eq? (car x) 'let) (gen-let (cadr x) (cddr x))  ; let should be a top-level form, rather than expand to lambda(s)
+            (eq? (car x) 'let*) (gen-let (cadr x) (cddr x)) ; same here
 			(eq? (car x) 'with) 
                 (format "SExp *~s = ~s;\n~s" (coerce (car (cdr x)) 'string) (gen-code (caddr x)) (gen-begin (cdddr x)))
             (eq? (car x) 'map)
