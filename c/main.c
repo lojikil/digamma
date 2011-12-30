@@ -87,7 +87,39 @@ main(int ac, char **al, char **el)
 	 * take the pythonic approach & make "os.unix"?
 	 * maybe just (use "nix") ^_^
 	 */
-	register_procedure(f_sys,"sys",0,tl_env);
+	//register_procedure(f_sys,"sys",0,tl_env);
+    register_procedure(f_gettimeofday,"sys/gettimeofday",0,tl_env);
+    register_procedure(f_getuid,"sys/getuid",0,tl_env);
+    register_procedure(f_geteuid,"sys/geteuid",0,tl_env);
+    register_procedure(f_getgid,"sys/getgid",0,tl_env);
+    register_procedure(f_getegid,"sys/getegid",0,tl_env);
+    register_procedure(f_setsid,"sys/set*id",0,tl_env);
+    register_procedure(f_sysopen,"sys/open",0,tl_env);
+    register_procedure(f_sysclose,"sys/close",0,tl_env);
+    register_procedure(f_sysread,"sys/read",0,tl_env);
+    register_procedure(f_syswrite,"sys/write",0,tl_env);
+    register_procedure(f_syspipe,"sys/pipe",0,tl_env);
+    register_procedure(f_fork,"sys/fork",0,tl_env);
+    register_procedure(f_waitpid,"sys/wait",0,tl_env);
+    register_procedure(f_execve,"sys/exec",0,tl_env);
+    register_procedure(f_popen,"sys/popen",0,tl_env);
+    register_procedure(f_pclose,"sys/pclose",0,tl_env);
+    register_procedure(f_vfork,"sys/vfork",0,tl_env);
+    register_procedure(f_kill,"sys/kill",0,tl_env);
+    register_procedure(f_stat,"sys/stat",0,tl_env);
+    register_procedure(f_ssockopt,"sys/*sockopt",0,tl_env);
+    register_procedure(f_time,"sys/time",0,tl_env);
+    register_procedure(f_chown,"sys/chown",0,tl_env);
+    register_procedure(f_chmod,"sys/chmod",0,tl_env);
+    register_procedure(f_chroot,"sys/chroot",0,tl_env);
+    register_procedure(f_getenv,"sys/getenv",0,tl_env);
+    register_procedure(f_setenv,"sys/setenv",0,tl_env);
+    register_procedure(f_sysfcntl,"sys/fcntl",0,tl_env);
+    register_procedure(f_sysfcntlconst,"sys/fcntl-const",0,tl_env);
+    register_procedure(f_syssleep,"sys/sleep",0,tl_env);
+    register_procedure(f_sysusleep,"sys/usleep",0,tl_env);
+    register_procedure(f_sysnanosleep,"sys/nanosleep",0,tl_env);
+    register_procedure(f_sysselect,"sys/select",0,tl_env);
 	/* load prelude out of paths */
 	while(paths[iter] != 0)
 	{

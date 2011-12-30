@@ -183,13 +183,13 @@ f_sysopen(SExp *src, Symbol *env)
 	SExp *ret = env->snil, *tmp = env->snil, *holder = env->snil;
 	ret = car(src);
 	if(ret->type != STRING)
-		return makeerror(2,0,"sysopen path : STRING keys : KEYOBJ => integer");
+		return makeerror(2,0,"sys/open path : STRING keys : KEYOBJ => integer");
 	holder = cdr(src);
 	while(holder != env->snil)
 	{
 		tmp = car(holder);
 		if(tmp->type != KEY)
-			return makeerror(2,0,"sysopen's args must be KEYOBJs");
+			return makeerror(2,0,"sys/open's args must be KEYOBJs");
 		if(!strncasecmp(tmp->object.str,"append",6))
 			opts |= O_APPEND;
 		else if(!strncasecmp(tmp->object.str,"create",6))
@@ -208,7 +208,7 @@ f_sysopen(SExp *src, Symbol *env)
 		{
 			tmp = car(cdr(holder));
 			if(tmp->type != NUMBER || (tmp->type == NUMBER && NTYPE(tmp) != INTEGER))
-				return makeerror(2,0,"sysopen's :mode parameter *must* have an integer argument");
+				return makeerror(2,0,"sys/open's :mode parameter *must* have an integer argument");
 			mode = tmp->object.n->nobject.z;
 			holder = cdr(holder);
 		}
@@ -235,14 +235,14 @@ f_sysread(SExp *src, Symbol *env)
 	int rc = 0;
 	SExp *tmp0 = env->snil, *tmp1 = env->snil;
 	if(pairlength(src) != 2)
-		return makeerror(2,0,"sysread fd : INTEGER data : STRING => STRING");
+		return makeerror(2,0,"sys/read fd : INTEGER data : STRING => STRING");
 	//printf("Made it to sysread...\n");
 	tmp0 = car(src);
 	if(tmp0->type != NUMBER || (tmp0->type == NUMBER && NTYPE(tmp0) != INTEGER))
-		return makeerror(2,0,"sysread fd : INTEGER data : STRING => STRING");
+		return makeerror(2,0,"sys/read fd : INTEGER data : STRING => STRING");
 	tmp1 = car(cdr(src));
 	if(tmp1->type != STRING)
-		return makeerror(2,0,"sysread fd : INTEGER data : STRING => STRING");
+		return makeerror(2,0,"sys/read fd : INTEGER data : STRING => STRING");
 	rc = read(tmp0->object.n->nobject.z,tmp1->object.str,tmp1->length);
 	//printf("Past read...\n");
 	if(rc >= 0)
@@ -261,13 +261,13 @@ f_syswrite(SExp *src, Symbol *env)
 	SExp *tmp0 = env->snil, *tmp1 = env->snil;
 	//printf("%d\n",pairlength(src));
 	if(pairlength(src) != 2)
-		return makeerror(2,0,"syswrite fd : INTEGER data : STRING => boolean 0");
+		return makeerror(2,0,"sys/write fd : INTEGER data : STRING => boolean 0");
 	tmp0 = car(src);
 	if(tmp0->type != NUMBER || (tmp0->type == NUMBER && NTYPE(tmp0) != INTEGER))
-		return makeerror(2,0,"syswrite fd : INTEGER data : STRING => boolean 1");
+		return makeerror(2,0,"sys/write fd : INTEGER data : STRING => boolean 1");
 	tmp1 = car(cdr(src));
 	if(tmp1->type != STRING)
-		return makeerror(2,0,"syswrite fd : INTEGER data : STRING => boolean 2");
+		return makeerror(2,0,"sys/write fd : INTEGER data : STRING => boolean 2");
 	//printf("syswrite: attempting to write %d bytes\n",tmp1->length);
 	rc = write(tmp0->object.n->nobject.z,tmp1->object.str,tmp1->length);
 	//printf("Past write...\n");
@@ -279,10 +279,10 @@ f_sysclose(SExp *src, Symbol *e)
 	int rc = 0;
 	SExp *tmp = e->snil;
 	if(pairlength(src) != 1)
-		return makeerror(2,0,"sysclose fd : INTEGER => boolean");
+		return makeerror(2,0,"sys/close fd : INTEGER => boolean");
 	tmp = car(src);
 	if(tmp->type != NUMBER || (tmp->type == NUMBER && NTYPE(tmp) != INTEGER))
-		return makeerror(2,0,"sysclose fd : INTEGER => boolean");
+		return makeerror(2,0,"sys/close fd : INTEGER => boolean");
 	rc = close(tmp->object.n->nobject.z);
 	return !rc ? e->strue : e->sfalse;
 }
@@ -293,7 +293,7 @@ f_syspipe(SExp *src, Symbol *e)
 	SExp *tmp = e->snil, *h = e->snil;
 	rc = pipe(p);
 	if(rc == -1)
-		return makeerror(2,0,"syspipe returned -1!");
+		return makeerror(2,0,"sys/pipe returned -1!");
 	tmp = makenumber(INTEGER);
 	h = makenumber(INTEGER);
 	tmp->object.n->nobject.z = p[0];
@@ -465,7 +465,7 @@ f_kill(SExp *src, Symbol *e)
 	int rc = 0;
 	SExp *pid = e->snil, *sig = e->snil;
 	if(pairlength(src) != 2)
-		return makeerror(2,0,"syskill pid : INTEGER sig : INTEGER => boolean");
+		return makeerror(2,0,"sys/kill pid : INTEGER sig : INTEGER => boolean");
 	pid = car(src);
 	if(pid->type != NUMBER || (pid->type == NUMBER && NTYPE(pid) != INTEGER))
 		return makeerror(2,0,"pid *must* be an integer");
@@ -631,7 +631,7 @@ f_stat(SExp *s, Symbol *e)
 	int iter = 0,rc = 0, rettype = 0;
     rc = pairlength(s);
 	if(rc < 1 || rc > 2)
-		return makeerror(2,0,"sysstat fp : STRING [option : BOOLEAN] => VECTOR|DICT");
+		return makeerror(2,0,"sys/stat fp : STRING [option : BOOLEAN] => VECTOR|DICT");
     tmp = car(s);
     if(rc == 2)
     {
@@ -643,7 +643,7 @@ f_stat(SExp *s, Symbol *e)
           }
     }
 	if(tmp->type != STRING)
-		return makeerror(2,0,"sysstat's sole argument must be a string");
+		return makeerror(2,0,"sys/stat's sole argument must be a string");
 	rc = stat(tmp->object.str,&st);
 	if(rc == -1)
 		return e->sfalse;
@@ -1343,7 +1343,7 @@ f_ssockopt(SExp *s, Symbol *e)
 	SExp *op = e->snil, *port = e->snil, *key = e->snil, *opt_val = e->snil, *ret = e->snil, *lvl = e->snil;
 	int access = 0, fd = 0, internal_value = 0, rc = 0, size = 0, slevel = 0;
 	if(pairlength(s) != 5)
-		return makeerror(2,0,"sysgetsockopt op : KEYOBJ p : PORT level : KEYOBJ accessor : KEYOBJ value : SEXPRESSION => SEXPRESSION");
+		return makeerror(2,0,"sys/getsockopt op : KEYOBJ p : PORT level : KEYOBJ accessor : KEYOBJ value : SEXPRESSION => SEXPRESSION");
 	op = car(s);
 	if(op->type != KEY)
 		return makeerror(2,0,"op *must* be bound to a keyobject");
@@ -1731,10 +1731,10 @@ f_getenv(SExp *s, Symbol *e)
 	 * need to specify *arity* to register_procedure...
 	 */
 	if(s == nil || s == e->snil)
-		return makeerror(1,0,"sys-getenv: error with arguments");
+		return makeerror(1,0,"sys/getenv: error with arguments");
 	path = car(s);
 	if(path->type != STRING)
-		return makeerror(1,0,"sys-getenv: typeclash: ENV is indexed on strings");
+		return makeerror(1,0,"sys/getenv: typeclash: ENV is indexed on strings");
 	data = getenv(path->object.str);
 	if(data == nil)
 		return e->sfalse;
@@ -1751,13 +1751,13 @@ f_sysfcntl(SExp *s, Symbol *e)
 	int rc = 0, fl = 0, set = 0;
 	SExp *fd = nil, *cmd = nil, *arg = nil;
 	if(s == nil || s == e->snil)
-		return makeerror(1,0,"sys-fcntl: argument error");
+		return makeerror(1,0,"sys/fcntl: argument error");
 	fd = car(s);
 	if(fd->type != PORT || (fd->type == PORT && PTYPE(fd) == PSTRING))
-		return makeerror(1,0,"sys-fcntl: fd argument *must* be a Network or String port");
+		return makeerror(1,0,"sys/fcntl: fd argument *must* be a Network or String port");
 	cmd = car(cdr(s));
 	if(cmd->type != ATOM && cmd->type != KEY && cmd->type != STRING)
-		return makeerror(1,0,"sys-fcntl: cmd *must* be a keyobj, an atom or a string");
+		return makeerror(1,0,"sys/fcntl: cmd *must* be a keyobj, an atom or a string");
 	/*LINE_DEBUG;
 	printf("fd == %d\n",fd->type);
 	LINE_DEBUG;
@@ -1781,14 +1781,14 @@ f_sysfcntl(SExp *s, Symbol *e)
 		fl = F_SETFL;
 	}
 	else
-		return makeerror(1,0,"sysfcntl: unknown command");
+		return makeerror(1,0,"sys/fcntl: unknown command");
 	if(set)
 	{
 		arg = car(cdr(cdr(s)));
 		if(arg == e->snil)
-			return makeerror(1,0,"sysfcntl: SET command without SET argument");
+			return makeerror(1,0,"sys/fcntl: SET command without SET argument");
 		if(arg->type != NUMBER || (arg->type == NUMBER && NTYPE(arg) != INTEGER))
-			return makeerror(1,0,"sysfcntl: SET command with non-INTEGER argument");
+			return makeerror(1,0,"sys/fcntl: SET command with non-INTEGER argument");
 		rc = fcntl(fileno(FILEPORT(fd)),fl,AINT(arg));
 	}
 	else
@@ -1808,7 +1808,7 @@ f_sysfcntlconst(SExp *s, Symbol *e)
 		return e->sfalse;
 	cmd = car(s);
 	if(cmd->type != ATOM && cmd->type != STRING && cmd->type != KEY)
-		return makeerror(1,0,"sysfcntl-const: type clash");
+		return makeerror(1,0,"sys/fcntl-const: type clash");
 	if(!strncasecmp("nonblock",cmd->object.str,8))
 		return makeinteger(O_NONBLOCK);
 	else if(!strncasecmp("append",cmd->object.str,6))
@@ -1820,7 +1820,7 @@ f_sysfcntlconst(SExp *s, Symbol *e)
 	else if(!strncasecmp("sync",cmd->object.str,4))
 		return makeinteger(O_SYNC);
 	else
-		return makeerror(1,0,"sysfcntl-const: unknown constant name");
+		return makeerror(1,0,"sys/fcntl-const: unknown constant name");
 }
 SExp *
 f_syssleep(SExp *s, Symbol *e)
@@ -1828,10 +1828,10 @@ f_syssleep(SExp *s, Symbol *e)
 	int rc = 0;
 	SExp *tmp = nil;
 	if(pairlength(s) != 1)
-		return makeerror(1,0,"syssleep time : INTEGER => INTEGER");
+		return makeerror(1,0,"sys/sleep time : INTEGER => INTEGER");
 	tmp = car(s);
 	if(tmp->type != NUMBER || (tmp->type == NUMBER && NTYPE(tmp) != INTEGER))
-		return makeerror(1,0,"syssleep: type clash; syssleep's time parameter *must* be an integer");
+		return makeerror(1,0,"sys/sleep: type clash; syssleep's time parameter *must* be an integer");
 	rc = sleep(AINT(tmp));
 	return makeinteger(rc);
 }
@@ -1849,83 +1849,4 @@ SExp *
 f_sysselect(SExp *s, Symbol *e)
 {
 	return e->snil;
-}
-SExp *
-f_sys(SExp *s, Symbol *e)
-/* a dispatch function that operates in a manner similar to modules in
- * Digamma proper. Contains all the previous POSIX functions that Vesta
- * supports, but doesn't pollute the namespace. 
- */
-{
-	SExp *key = nil, *args = nil;
-	if(pairlength(s) < 1)
-		return makeerror(1,0,"unmatched parameter entry");
-	key = car(s);
-	if(key->type != KEY && key->type != ATOM)
-		return makeerror(1,0,"entry *must* be of type KEYOBJ");
-	if(!strncasecmp(key->object.str,"gettimeofday",12))
-		return f_gettimeofday(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"getuid",6))
-		return f_getuid(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"geteuid",7))
-		return f_geteuid(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"getgid",6))
-		return f_getgid(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"getegid",7))
-		return f_getegid(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"set*id",6))
-		return f_setsid(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"open",4))
-		return f_sysopen(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"close",5))
-		return f_sysclose(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"read",4))
-		return f_sysread(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"write",5))
-		return f_syswrite(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"pipe",4))
-		return f_syspipe(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"fork",4))
-		return f_fork(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"wait",4))
-		return f_waitpid(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"exec",4))
-		return f_execve(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"popen",5))
-		return f_popen(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"pclose",6))
-		return f_pclose(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"vfork",5))
-		return f_vfork(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"kill",4))
-		return f_kill(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"stat",4))
-		return f_stat(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"*sockopt",8))
-		return f_ssockopt(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"time",4))
-		return f_time(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"chown",5))
-		return f_chown(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"chmod",5))
-		return f_chmod(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"chroot",6))
-		return f_chroot(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"getenv",6))
-		return f_getenv(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"setenv",6))
-		return f_setenv(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"fcntl",5))
-		return f_sysfcntl(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"fcntl-const",11))
-		return f_sysfcntlconst(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"sleep",5))
-		return f_syssleep(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"usleep",6))
-		return f_sysusleep(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"nanosleep",9))
-		return f_sysnanosleep(cdr(s),e);
-	else if(!strncasecmp(key->object.str,"select",9))
-		return f_sysselect(cdr(s),e);
-	return makeerror(1,0,"unknown entry point");
 }

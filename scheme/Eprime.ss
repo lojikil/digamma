@@ -614,7 +614,7 @@
 			(eq? (car x) 'vector) (format "vector(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
 			(eq? (car x) 'string) (format "list(~n,~s)" (length (cdr x)) (string-join (map gen-code (cdr x)) ","))
             (eq? (car x) 'apply) ;; basically, calling apply means don't build a list, just run the fn on the operand
-                (if (primitive-form (cadr x))
+                (if (primitive-form? (cadr x))
                   (format "~s(~s,tl_env)" (cadr x)  (gen-code (caddr x)))
                   (format "~s(~s)" (cadr x)  (gen-code (caddr x))))
 			(pair? (car x)) #t
