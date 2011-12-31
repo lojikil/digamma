@@ -221,3 +221,8 @@
          (eq? (nth str offset) c) (cons (cslice str start offset)
                                         (string-tokenize-char str c (+ offset 1) (+ offset 1)))
          else (string-tokenize-char str c (+ offset 1) start)))
+
+(def (string-join l ij)
+   (if (null? (cdr l))
+       (car l)
+       (string-append (car l) ij (string-join (cdr l) ij))))

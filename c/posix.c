@@ -1097,6 +1097,9 @@ f_announce(SExp *s, Symbol *e)
 	int sock = 0;
 	SExp *ret = nil, *stype = nil, *host = nil, *port = nil;
 	struct protoent *p = nil;
+    char *buf = nil;
+    socklen_t sze = sizeof(struct sockaddr_in);
+
 	if(s == nil || pairlength(s) != 3)
 		return makeerror(2,0,"announce type : KEYOBJ host : STRING port : INTEGER => PORT");
 	/* type: tcp, tcp6, udp, udp6, sctp, sctp6 */	
@@ -1133,8 +1136,11 @@ f_announce(SExp *s, Symbol *e)
 		}
 		ret = (SExp *)hmalloc(sizeof(SExp));
 		ret->type = PORT;
+        buf = (char *)hmalloc(sizeof(INET_ADDRSTRLEN));
+        inet_ntop(AF_INET,&sa.sin_addr, buf, INET_ADDRSTRLEN);
 		PORT(ret) = (Port *)hmalloc(sizeof(Port));
 		//FILEPORT(ret) = fdopen(sock,"w+");
+        FILEADDRESS(ret) = buf;
 		PORT(ret)->pobject.fd = sock;
 		PROTONUMBER(ret) = p->p_proto;
 		NETBIND(ret) = AINT(port);
@@ -1150,7 +1156,10 @@ SExp *
 f_accept(SExp *s, Symbol *e)
 {
 	SExp *tmp = e->snil, *ret = nil;
+    struct sockaddr_in peer;
+    socklen_t peer_size = sizeof(struct sockaddr_in);
 	int fd = 0, rc = 0;
+    char *buf;
 	if(pairlength(s) != 1)
 		return makeerror(2,0,"accept s : PORT => PORT");
 	tmp = car(s);
@@ -1158,12 +1167,16 @@ f_accept(SExp *s, Symbol *e)
 		return makeerror(2,0,"accept's sole argument *must* be a network port");	
 	//fd = fileno(FILEPORT(tmp));
 	fd = PORT(tmp)->pobject.fd;
-	rc = accept(fd,nil,nil);
+	rc = accept(fd,(struct sockaddr *)&peer,&peer_size);
 	if(rc < 0)
 		return makeerror(2,0,"accept returned -1; exiting");
+    buf = (char *)hmalloc(INET_ADDRSTRLEN);
+    inet_ntop(AF_INET,&peer.sin_addr,buf,INET_ADDRSTRLEN);
 	ret = (SExp *)hmalloc(sizeof(SExp));
 	ret->type = PORT;
 	PORT(ret) = (Port *)hmalloc(sizeof(Port));
+    if(buf)
+        FILEADDRESS(ret) = buf;
 	//FILEPORT(ret) = fdopen(rc,"w+");
 	PORT(ret)->pobject.fd = rc;
 	PROTONUMBER(ret) = -1;
