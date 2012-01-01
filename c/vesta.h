@@ -122,7 +122,7 @@ typedef enum
 	OPMULT, OPSUB, OPDIV, OPLIST, OPVECTOR, OPDICT, OPMKSTRING, OPMKVEC, OPMKDICT, OPEVAL, 
 	OPAPPLY, OPSTRING, OPCCONS, OPFIRST, OPREST, OPCSET,OPCUPDATE, OPCSLICE, OPNTH, OPKEYS, OPPARTIAL,
 	OPSET, OPGENSYM, OPAPPEND, OPEQ, OPTYPE, OPCALLCC, OPLT, OPGT, OPLTE, OPGTE, OPIF, OPUNWIND, 
-	OPEXACT, OPINEXACT, OPCOMPLEX, OPREAL, OPINTEGER, OPRATIONAL, OPBEGIN, OPNUM, OPDEN,
+	OPEXACT, OPINEXACT, OPCOMPLEX, OPREAL, OPINTEGER, OPRATIONAL, OPBEGIN, OPNUM, OPDEN, OPWITHEXCEPT,
 	OPAND, OPOR, OPXOR, OPNEG, OPGCD, OPLCM, OPNUMEQ, OPMOD, OPQUOTIENT, OPREMAINDER, OPERROR, 
 	OPMKPOL, OPMKRECT, OPIMAG, OPREALP, OPARG, OPMAG, OPSQRT, OPABS, OPEXP, OPLN, OPCONJBANG, OPPOLREC, OPRECPOL,
 	OPSIN,OPCOS,OPTAN,OPACOS, OPASIN,OPATAN, OPATAN2, OPCOSH, OPSINH, OPTANH, OPEXP2, OPEXPM1, OPSHR, OPSHL,
@@ -255,63 +255,13 @@ typedef struct _SYM
 	SExp *fake_rsqr;
 	SExp *fake_rcur;
 	SExp *fake_rpar;
+    SExp *guards; /* stack of error handlers from with-exception-handler */
     /*
     SExp *qnan;
     SExp *snan;
     */
 	SExp *seof;
 } Symbol;
-/*
-const char *toknames[] = {
-	"TOK_LPAREN",
-	"TOK_RPAREN",
-	"TOK_LSQUAR",
-	"TOK_RSQUAR",
-	"TOK_LCURLY",
-	"TOK_RCURLY",
-	"TOK_INT",
-	"TOK_LITSTR",
-	"TOK_NQUOTE",
-	"TOK_MQUOTE",
-	"TOK_UNQUOT",
-	"TOK_SPLICE",
-	"TOK_SYMBOL",
-	"TOK_CHAR",
-	"TOK_TRUE",
-	"TOK_FALSE",
-	"TOK_SUCC",
-	"TOK_UNSUCC",
-	"TOK_NAME",
-	"TOK_REAL",
-	"TOK_RATIO",
-	"TOK_COMPL",
-	"TOK_KEY",
-	"TOK_HERROR",
-	"TOK_EOF",
-	0
-};
-
-const char *typenames[] = {
-	"Symbol", "Number","Character","Boolean","Goal", "Vector",
-	"Pair","String","Procedure","Closure","Foreign", "Nil",
-	"Error","Port","Macro","User","TConc","Primitive",
-	"Dictionary","Key","Syntax","End of File","Void",
-	"Environment","Unsafe Foreign","Continuation",0
-};
-
-extern char **environ;
-extern int h_errno;
-extern int errno;
-const char *VER = "2009.3", *REL = "6.6";
-const char *numtypes[] = {"Integer", "Real", "Rational", "Complex",0};
-static SExp *snil = nil, *sfalse = nil, *strue = nil, *ssucc = nil, *sunsucc = nil, *mem_err = nil, *pinf = nil, *ninf = nil, *qnan = nil, *snan = nil;
-static SExp *fake_rpar = nil, *fake_rsqr = nil, *fake_rcur = nil; // returns for llread, but should never really mean anything
-static SExp *seof = nil, *svoid = nil; // #e, for use with read*, & eof-object?, #v for void
-static UseStack *used_list = nil, *list_end = nil; // always point list_end at the last node in used_list
-static unsigned char markbit = 1, *free_list = nil;
-static void *heap = nil;
-static int cons_cnt = 0, gensymglobal = 0, quit_note = 0;
-static Symbol *tl_env = nil;*/
 
 SExp *eqp(SExp *,SExp *); /* eq? */
 SExp *assq(SExp *, SExp *); /* standard assq */

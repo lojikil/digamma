@@ -558,6 +558,8 @@ init_env(int full_env)
 	tl_env->sfalse = sfalse;
 	tl_env->ssucc = ssucc;
 	tl_env->sunsucc = sunsucc;
+    tl_env->guards = snil;
+
     // The below are commented out, because it seems to
     // kill Boehm
     /*
@@ -689,6 +691,7 @@ init_env(int full_env)
 	add_env(tl_env,"null-environment",makeprimitive(OPNULLENV,"null-environment",0));
 	add_env(tl_env,"from-environment",makeprimitive(OPFROMENV,"from-environment",0));
     add_env(tl_env,"current-environment",makeprimitive(OPSTDENV,"current-environment",0));
+    add_env(tl_env,"with-exception-handler",makeprimitive(OPWITHEXCEPT,"with-exception-handler",0));
 	add_env(tl_env,"coerce",makeprimitive(OPCOERCE,"coerce",0));
 	add_env(tl_env,"error",makeprimitive(OPERROR,"error",0));
 	add_env(tl_env,"cupdate",makeprimitive(OPCUPDATE,"cupdate",0));

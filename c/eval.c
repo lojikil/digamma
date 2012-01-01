@@ -1077,6 +1077,29 @@ __base:
 				__return(makeerror(1,0,"no so symbol in requested environment"));
 			}
 			__return(tmp0);	
+        case OPWITHEXCEPT: /* with-exception-handler form */
+            /* should be easy:
+               - push a new lambda into the environments exception handler list
+               - evaluate thunk
+               */
+            if(pairlength(rst) != 2)
+            {
+                __return(makeerror(1,0,"with-exception-handler expects two arguments, both are lambdas"));
+            }
+            tmp0 = car(rst);
+            if(tmp0->type != CLOSURE && tmp0->type != PROCEDURE && tmp0->type != PRIM)
+            {
+                __return(makeerror(1,0,"with-exception-handlers first argument must be an applicable (lambda, procedure, primitive)"));
+            }
+            tmp1 = car(cdr(rst));
+            if(tmp1->type != CLOSURE && tmp1->type != PROCEDURE && tmp1->type != PRIM)
+            {
+                __return(makeerror(1,0,"with-exception-handlers first argument must be an applicable (lambda, procedure, primitive)"));
+            }     
+            env->guards = cons(tmp0,env->guards);
+            src = cons(tmp1,env->snil);
+            state = __PRE_APPLY;
+            goto __base;
 		case __INTERNAL_RETURN:
 			/* basically, this is the old __retstate;
 			 * Flattening everything should help with total speed...
@@ -1085,21 +1108,34 @@ __base:
 			stk = cdr(stk);
 			if(__val->type == ERROR)
 			{
+                if(env->guards == env->snil)
+                {
 #ifndef NO_STACK_TRACE
-				printf("\nbegin stack trace\n-----\n");
-				tmp0 = cons(__r,stk);
-				while(tmp0 != e->snil)
-				{
-					tmp1 = car(tmp0);
-					if(tmp1 == e->snil)
-						break;
-					tmp0 = cdr(tmp0);
-					printf("source: ");
-					princ(tmp1->object.vec[0]);
-					printf("\n");
-				}
+				    printf("\nbegin stack trace\n-----\n");
+				    tmp0 = cons(__r,stk);
+				    while(tmp0 != e->snil)
+				    {
+					    tmp1 = car(tmp0);
+					    if(tmp1 == e->snil)
+						    break;
+					    tmp0 = cdr(tmp0);
+					    printf("source: ");
+					    princ(tmp1->object.vec[0]);
+					    printf("\n");
+				    }
 #endif
-				return __val;
+				    return __val;
+                }
+                else
+                {
+                    tmp0 = car(env->guards);
+                    env->guards = cdr(env->guards);
+                    tmp1 = makestring(__val->object.error.message);
+                    src = cons(tmp0,cons(tmp1,env->snil));
+                    state = __PRE_APPLY;
+                    __val = env->snil;
+                    goto __base;
+                }
 			}
 			/* internal Rationals should *always* be in lowest terms */
 			if(__val->type == NUMBER && NTYPE(__val) == RATIONAL)
