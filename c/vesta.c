@@ -558,17 +558,15 @@ init_env(int full_env)
 	tl_env->sfalse = sfalse;
 	tl_env->ssucc = ssucc;
 	tl_env->sunsucc = sunsucc;
-    tl_env->guards = snil;
+    tl_env->guards = tl_env->snil;
 
     // The below are commented out, because it seems to
     // kill Boehm
-    /*
     tl_env->fake_rpar = fake_rpar;
     tl_env->fake_rsqr = fake_rsqr;
     tl_env->fake_rcur = fake_rcur;
     tl_env->qnan = qnan;
     tl_env->snan = snan; 
-    */
 
     if(!full_env)
     {
@@ -1040,6 +1038,9 @@ shallow_clone_env(Symbol *src)
 	ret->sunsucc = src->sunsucc;
 	ret->seof = src->seof;
 	ret->tick = src->tick;
+    ret->qnan = src->qnan;
+    ret->snan = src->snan;
+    ret->guards = src->guards;
 	return ret;	
 }
 Symbol *

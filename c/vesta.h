@@ -256,10 +256,8 @@ typedef struct _SYM
 	SExp *fake_rcur;
 	SExp *fake_rpar;
     SExp *guards; /* stack of error handlers from with-exception-handler */
-    /*
     SExp *qnan;
     SExp *snan;
-    */
 	SExp *seof;
 } Symbol;
 

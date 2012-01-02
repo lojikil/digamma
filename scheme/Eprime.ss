@@ -116,6 +116,7 @@
 :eval [1 #f "__seval"]
 ;:meta! #t
 })
+
 (def *prim-proc* {
  :display [0 "f_princ"]
  :newline [0 "newline"]
@@ -129,6 +130,7 @@
  :read-string #t
  :write-string #t
  })
+
 (def *prim-syntax* {
  :or #t
  :and #t
