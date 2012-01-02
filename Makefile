@@ -5,6 +5,10 @@ all:
 	@echo -n Moving ./c/vesta ./bin/vesta...
 	@mv ./c/vesta ./bin/vesta
 	@echo " Completed."
+build:
+	@echo "Building via bin/build script"
+	@sh ./bin/build
+	@echo " Completed"
 rt: 
 	@echo Buliding Runtime...
 	@cd ./c && make rt
