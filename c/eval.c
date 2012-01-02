@@ -1108,12 +1108,6 @@ __base:
 			stk = cdr(stk);
 			if(__val->type == ERROR)
 			{
-                printf("type(env->guards): %d\n", env->guards == nil);        
-                DEBUG_PRI;
-                printf("env->guards == \n");
-                DEBUG_PRI;
-                princ(env->guards);
-                printf("\n");        
                 if(env->guards == env->snil)
                 {
 #ifndef NO_STACK_TRACE
@@ -1134,19 +1128,12 @@ __base:
                 }
                 else
                 {
-                    DEBUG_PRI;
                     tmp0 = car(env->guards);
-                    DEBUG_PRI;
                     env->guards = cdr(env->guards);
-                    DEBUG_PRI;
                     tmp1 = makestring(__val->object.error.message);
-                    DEBUG_PRI;
                     src = cons(tmp0,cons(tmp1,env->snil));
-                    DEBUG_PRI;
                     state = __PRE_APPLY;
-                    DEBUG_PRI;
                     __val = env->snil;
-                    DEBUG_PRI;
                     goto __base;
                 }
 			}
