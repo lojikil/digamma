@@ -601,7 +601,9 @@
 			(eq? (car x) 'import) #t
 			(eq? (car x) 'use) #t
 			(eq? (car x) 'from) #t
-			(eq? (car x) 'let) (gen-let (cadr x) (cddr x))  ; let should be a top-level form, rather than expand to lambda(s)
+			(eq? (car x) 'let) (if (symbol? (cadr x))
+                                    (lift-named-let (cdr x))
+                                    (gen-let (cadr x) (cddr x)))  ; let should be a top-level form, rather than expand to lambda(s)
             (eq? (car x) 'let*) (gen-let (cadr x) (cddr x)) ; same here
 			(eq? (car x) 'with) 
                 (format "SExp *~s = ~s;\n~s" (coerce (car (cdr x)) 'string) (gen-code (caddr x)) (gen-begin (cdddr x)))

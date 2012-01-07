@@ -15,3 +15,12 @@
      (cond
        (literal? code) (list 'literal code)
        (vector? code) #f))
+
+;; how to determine if something has been compiled before?
+;; probably don't care; Just compile whatever is written at 
+;; the top level.
+(define (ceres@eval code) 
+   (let* ((vm-code (ceres@compile code))
+          (inst (instruction vm-code)))
+        (cond 
+            (eq? inst 0) 
