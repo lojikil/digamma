@@ -67,8 +67,14 @@
 
 (define *tlenv* {})
 
-(define (hydra@eval line env)
-    #f)
+(define (hydra@eval line env (thusfar '()))
+    (if (null? line)
+        thusfar
+        (cond
+            (vector? line) #t
+            (dict? line) #t
+            (pair? line) #t
+            else (cons (cons 'load (cons line '())) thusfar))))
 
 (define (hydra@repl)
     (display "h; ")
