@@ -65,7 +65,35 @@
                                  (cons '() stack))))))
 
 
-(define *tlenv* {})
+(define *tlenv* '({
+    :car 0
+    :cdr 1
+    :cons 2
+    :- 5
+    :+ 6
+    :* 7
+    :/ 8
+    :< 9
+    :> 10
+    :<= 11
+    :>= 12
+    :if primitive-syntax
+    :fn primitive-syntax
+    :lambda primitive-syntax
+    :eval 13
+    :load 14
+    :apply 15
+    :display 16
+    :write 17
+    :read 18
+    :read-string 19
+    :read-char 20
+    :write-string 21
+    :write-char 22
+    :write-buffer 23
+    :numerator 24
+    :denomenator 25
+}))
 
 (define (hydra@eval line env (thusfar '()))
     (if (null? line)
