@@ -4,6 +4,23 @@
 ;; copyright 2011 Stefan Edwards; please see the LICENSE
 ;; file for details
 
+;; TODO:
+;; - good compilation mechanism for hydra@eval
+;; - method for vm@eval to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
+;;   which it cannot currently do because we need to rotate the stack (wait, do we?)
+;;   (cons (car (cons 1 '())) (cdr 4 '())):
+;;   (4)   ;; nil
+;;   (3 4) ;; load 4
+;;   (2)   ;; cons
+;;   (1)   ;; cdr
+;;   (4)   ;; nil
+;;   (3 1) ;; load 1
+;;   (2)   ;; cons
+;;   (0)   ;; car
+;;   (2)   ;; cons
+;;   works, so this isn't blocked. \o/
+
+
 (define (vm@instruction c)
     (car c))
 
@@ -54,7 +71,7 @@
                                  env
                                  (cons (cons (car stack)
                                                 (cadr stack))
-                                       (cdr stack)))
+                                       (cddr stack)))
                   (eq? instr 3) ;; load
                         (vm@eval (cdr code)
                                  env
@@ -62,8 +79,43 @@
                   (eq? instr 4) ;; nil
                         (vm@eval (cdr code)
                                  env
-                                 (cons '() stack))))))
-
+                                 (cons '() stack))
+                  (eq? instr 5) ;; -
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (- (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 6) ;; +
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (+ (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 7) ;; * 
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (* (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 8) ;; / 
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (/ (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 9) ;;  < 
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (< (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 10) ;; >
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (> (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 11) ;; <= 
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (<= (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 12) ;; >= 
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (>= (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 26) ;; = 
+                        (vm@eval (cdr code)
+                                 env
+                                 (cons (= (car stack) (cadr stack)) (cddr stack)))))))
 
 (define *tlenv* '({
     :car 0
@@ -77,9 +129,13 @@
     :> 10
     :<= 11
     :>= 12
-    :if primitive-syntax
-    :fn primitive-syntax
-    :lambda primitive-syntax
+    :if primitive-syntax-if 
+    :fn primitive-syntax-fn
+    :lambda primitive-syntax-fn
+    :quote primitive-syntax-quote
+    :quasi-quote primitive-syntax-qquote
+    :unquote primitve-syntax-unquote
+    :unquote-splice primitive-syntax-unqsplice
     :eval 13
     :load 14
     :apply 15
@@ -95,13 +151,34 @@
     :denomenator 25
 }))
 
+(define (hydra@lookup item env)
+    " look up item in the current environment, returning #f for not found"
+    (cond
+        (null? env) #f
+        (dict-has? (car env) item) (nth (car env) item)
+        else (hydra@lookup item (cdr env))))
+
 (define (hydra@eval line env (thusfar '()))
     (if (null? line)
         thusfar
         (cond
-            (vector? line) #t
-            (dict? line) #t
-            (pair? line) #t
+            (vector? line) (hydra@eval '() env (cons (list 'load line) thusfar))
+            (dict? line) (hydra@eval '() env (cons (list 'load line) thusfar))
+            (pair? line) 
+                (let* ((fst (car line) ;; decompose line into first & rest
+                       (v (hydra@lookup fst env)) ;; find fst in env
+                       (rst (cdr line)))) 
+                   (if (eq? fst #f) ;; failed to find fst
+                       (error (format "Symbol not found: ~a~%" fst)) 
+                       (cond 
+                            (symbol? v) ;; primitive syntax
+                                #t
+                            (integer? v) ;; primitive procedure
+                                #t
+                            (hydra@lambda? v) ;; hydra closure
+                                #t
+                            else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
+
             else (cons (cons 'load (cons line '())) thusfar))))
 
 (define (hydra@repl)
