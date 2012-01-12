@@ -161,6 +161,12 @@
 (define (hydra@lambda? x)
     #f)
 
+(def (reverse-append x)
+    "append but in reverse; not currently working, but close"
+     (if (null? (cdr x))
+              (car x)
+                      (append (cadr x) (car x) (r-a (cddr x)))))
+
 (define (hydra@eval line env (thusfar '()))
     (if (null? line)
         thusfar
@@ -186,7 +192,12 @@
                                 ;; (cons)
                                 ;; (+ 1 2)
                                 ;; (cons)
-                                #t
+                                ;; this isn't the *most* efficient, but it is pretty easy
+                                (cons
+                                    (reverse-append
+                                        (map (fn (x) (hydra@eval x env))
+                                             rst))
+                                    (list v))
                             (hydra@lambda? v) ;; hydra closure
                                 #t
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
