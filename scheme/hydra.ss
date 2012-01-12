@@ -158,6 +158,9 @@
         (dict-has? (car env) item) (nth (car env) item)
         else (hydra@lookup item (cdr env))))
 
+(define (hydra@lambda? x)
+    #f)
+
 (define (hydra@eval line env (thusfar '()))
     (if (null? line)
         thusfar
@@ -174,6 +177,15 @@
                             (symbol? v) ;; primitive syntax
                                 #t
                             (integer? v) ;; primitive procedure
+                                ;; need to generate the list of HLAP code, reverse it
+                                ;; and flatten it. basically, if we have:
+                                ;; (cons (+ 1 2) (cons (+ 3 4) '()))
+                                ;; we need to:
+                                ;; (quote ())
+                                ;; (+ 3 4)
+                                ;; (cons)
+                                ;; (+ 1 2)
+                                ;; (cons)
                                 #t
                             (hydra@lambda? v) ;; hydra closure
                                 #t
