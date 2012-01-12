@@ -163,9 +163,9 @@
 
 (def (reverse-append x)
     "append but in reverse; not currently working, but close"
-     (if (null? (cdr x))
-              (car x)
-                      (append (cadr x) (car x) (r-a (cddr x)))))
+    (if (null? (cdr x))
+        (car x)
+        (append (reverse-append (cddr x)) (cadr x) (car x))))
 
 (define (hydra@eval line env (thusfar '()))
     (if (null? line)
