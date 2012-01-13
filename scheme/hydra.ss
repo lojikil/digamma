@@ -174,9 +174,9 @@
             (vector? line) (hydra@eval '() env (cons (list 'load line) thusfar))
             (dict? line) (hydra@eval '() env (cons (list 'load line) thusfar))
             (pair? line) 
-                (let* ((fst (car line) ;; decompose line into first & rest
+                (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (hydra@lookup fst env)) ;; find fst in env
-                       (rst (cdr line)))) 
+                       (rst (cdr line))) 
                    (if (eq? fst #f) ;; failed to find fst
                        (error (format "Symbol not found: ~a~%" fst)) 
                        (cond 
