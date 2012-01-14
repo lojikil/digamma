@@ -175,8 +175,8 @@
     (if (null? line)
         thusfar
         (cond
-            (vector? line) (list 'load line)
-            (dict? line) (list 'load line) 
+            (vector? line) (list 3 line)
+            (dict? line) (list 3 line) 
             (pair? line) 
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (hydra@lookup fst env)) ;; find fst in env
@@ -189,8 +189,8 @@
                                 (cond
                                     (eq? v 'primitive-syntax-quote)
                                         (if (null? (cadr rst))
-                                            (list '(4))
-                                            (list (list 'load (cadr rst))))
+                                            '((4))
+                                            (list (list 3 (cadr rst))))
                                     else #t)
                             (integer? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
@@ -212,7 +212,7 @@
                                 #t
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
 
-            else (cons (cons 'load (cons line '())) thusfar))))
+            else (cons (cons 3 (cons line '())) thusfar))))
 
 (define (hydra@repl)
     (display "h; ")

@@ -1,2 +1,6 @@
 (load 'hydra.ss)
-(display (hydra@eval '(car (cdr (cons 1 (cons 2 '())))) *tlenv*))
+(define code '(car (cdr (cons 1 (cons 2 '())))))
+(write code)
+(newline)        
+(display (hydra@eval code *tlenv*))
+(display (vm@eval code *tlenv*))
