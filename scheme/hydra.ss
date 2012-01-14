@@ -168,13 +168,15 @@
         (null? (cdr x)) (car x)
         else (append (reverse-append (cddr x)) (cadr x) (car x))))
 
+(define (show x) (display "show: ") (display x) (newline) x)
+
 (define (hydra@eval line env (thusfar '()))
     (display (format "~a; ~a~%" line thusfar))
     (if (null? line)
         thusfar
         (cond
-            (vector? line) (hydra@eval '() env (cons (list 'load line) thusfar))
-            (dict? line) (hydra@eval '() env (cons (list 'load line) thusfar))
+            (vector? line) (list 'load line)
+            (dict? line) (list 'load line) 
             (pair? line) 
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (hydra@lookup fst env)) ;; find fst in env
@@ -186,7 +188,9 @@
                             (symbol? v) ;; primitive syntax
                                 (cond
                                     (eq? v 'primitive-syntax-quote)
-                                        (cadr v)
+                                        (if (null? (cadr rst))
+                                            '(4)
+                                            (list 'load (cadr rst)))
                                     else #t)
                             (integer? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
@@ -199,11 +203,11 @@
                                 ;; (+ 1 2)
                                 ;; (cons)
                                 ;; this isn't the *most* efficient, but it is pretty easy
-                                (cons
+                                (show (cons
                                     (reverse-append
-                                        (map (fn (x) (hydra@eval x env))
+                                        (map (fn (x) (show (hydra@eval x env)))
                                              rst))
-                                    (list v))
+                                    (list v)))
                             (hydra@lambda? v) ;; hydra closure
                                 #t
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
