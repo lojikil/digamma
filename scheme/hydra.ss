@@ -55,8 +55,7 @@
      (if (null? code)
          (car stack)
          (let* ((c (car code))
-                (instr (vm@instruction c))
-                (oper  (vm@operand c))) ;; this is simple to transition to register vm
+                (instr (vm@instruction c)))
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (vm@eval (cdr code)
@@ -75,7 +74,7 @@
                   (eq? instr 3) ;; load
                         (vm@eval (cdr code)
                                  env
-                                 (cons oper stack))
+                                 (cons (vm@operand c) stack))
                   (eq? instr 4) ;; nil
                         (vm@eval (cdr code)
                                  env
