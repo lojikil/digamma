@@ -189,8 +189,8 @@
                                 (cond
                                     (eq? v 'primitive-syntax-quote)
                                         (if (null? (cadr rst))
-                                            '(4)
-                                            (list 'load (cadr rst)))
+                                            (list '(4))
+                                            (list (list 'load (cadr rst))))
                                     else #t)
                             (integer? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
@@ -203,11 +203,11 @@
                                 ;; (+ 1 2)
                                 ;; (cons)
                                 ;; this isn't the *most* efficient, but it is pretty easy
-                                (show (cons
+                                (show (append
                                     (reverse-append
                                         (map (fn (x) (show (hydra@eval x env)))
                                              rst))
-                                    (list v)))
+                                    (list (list v))))
                             (hydra@lambda? v) ;; hydra closure
                                 #t
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
