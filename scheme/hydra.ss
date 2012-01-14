@@ -161,13 +161,15 @@
 (define (hydra@lambda? x)
     #f)
 
-(def (reverse-append x)
+(define (reverse-append x)
     "append but in reverse; not currently working, but close"
-    (if (null? (cdr x))
-        (car x)
-        (append (reverse-append (cddr x)) (cadr x) (car x))))
+    (cond
+        (null? x) x
+        (null? (cdr x)) (car x)
+        else (append (reverse-append (cddr x)) (cadr x) (car x))))
 
 (define (hydra@eval line env (thusfar '()))
+    (display (format "~a; ~a~%" line thusfar))
     (if (null? line)
         thusfar
         (cond
@@ -177,11 +179,15 @@
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (hydra@lookup fst env)) ;; find fst in env
                        (rst (cdr line))) 
+                   (display "in hydra@eval let*\n")
                    (if (eq? fst #f) ;; failed to find fst
                        (error (format "Symbol not found: ~a~%" fst)) 
                        (cond 
                             (symbol? v) ;; primitive syntax
-                                #t
+                                (cond
+                                    (eq? v 'primitive-syntax-quote)
+                                        (cadr v)
+                                    else #t)
                             (integer? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
                                 ;; and flatten it. basically, if we have:
