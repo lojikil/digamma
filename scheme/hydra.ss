@@ -170,7 +170,6 @@
 (define (show x) (display "show: ") (display x) (newline) x)
 
 (define (hydra@eval line env (thusfar '()))
-    (display (format "~a; ~a~%" line thusfar))
     (if (null? line)
         thusfar
         (cond
@@ -180,7 +179,6 @@
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (hydra@lookup fst env)) ;; find fst in env
                        (rst (cdr line))) 
-                   (display "in hydra@eval let*\n")
                    (if (eq? fst #f) ;; failed to find fst
                        (error (format "Symbol not found: ~a~%" fst)) 
                        (cond 
@@ -202,11 +200,11 @@
                                 ;; (+ 1 2)
                                 ;; (cons)
                                 ;; this isn't the *most* efficient, but it is pretty easy
-                                (show (append
+                                (append
                                     (reverse-append
-                                        (map (fn (x) (show (hydra@eval x env)))
+                                        (map (fn (x) (hydra@eval x env))
                                              rst))
-                                    (list (list v))))
+                                    (list (list v)))
                             (hydra@lambda? v) ;; hydra closure
                                 #t
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
