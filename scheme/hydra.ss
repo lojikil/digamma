@@ -221,7 +221,7 @@
          (eq? (cadr inp) 'dribble) #t
          (eq? (cadr inp) 'save) #t
          else #f)
-        (with r (hydra@eval inp *tlenv*)
+        (with r (vm@eval (hydra@eval inp *tlenv*) *tlenv*)
             (if (not (eq? r #v))
                 (begin
                     (write r)
