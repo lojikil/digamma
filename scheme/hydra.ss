@@ -52,6 +52,14 @@
        // ...
        
        It would be more useful, and the names could be used throughout (and checked!)."
+     ;; if this is moved to an IP-based (instruction pointer)
+     ;; system, it might be easier to do this using a named-let rather than iterating 
+     ;; at the top level. E' should be able to lift named-lets pretty easily into whiles
+     ;; and that would fit pretty well here. 
+     ;; also, I would really like to have these all defined using a Scheme48-style
+     ;; define-operator, since that would be much cleaner than what is seen below.
+     ;; Syntax could expand the full list of operators in place here, and it would make
+     ;; expanding the set of operators *much* easier than it currently is
      (if (null? code)
          (car stack)
          (let* ((c (car code))
@@ -148,6 +156,8 @@
     :write-buffer 23
     :numerator 24
     :denomenator 25
+    := 26
+    :eq? 27
 }))
 
 (define (hydra@lookup item env)
@@ -188,6 +198,14 @@
                                         (if (null? (cadr rst))
                                             '((4))
                                             (list (list 3 (cadr rst))))
+                                    (eq? v 'primitive-syntax-if)
+                                        ;; need to generate code for <cond>
+                                        ;; add CMP instruction '(30)
+                                        ;; generate code for <then>
+                                        ;; generate code for <else>
+                                        ;; add count to CMP instruction to jump to <else>
+                                        ;; add count to <then> to skip <else>
+                                        #t
                                     else #t)
                             (integer? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
