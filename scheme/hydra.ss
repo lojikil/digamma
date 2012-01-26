@@ -27,7 +27,7 @@
 (define (vm@operand c)
     (cadr c))
 
-(define (vm@eval code env (stack '()))
+(define (vm@eval code env (ip 0) (stack '()))
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
@@ -55,74 +55,96 @@
      ;; if this is moved to an IP-based (instruction pointer)
      ;; system, it might be easier to do this using a named-let rather than iterating 
      ;; at the top level. E' should be able to lift named-lets pretty easily into whiles
-     ;; and that would fit pretty well here. 
+     ;; and that would fit pretty well here. Also, moving to an inner-loop with named-let
+     ;; means I can alliviate some of the duplication here; code & env are rarely modified
+     ;; so it would also make sense to not have to pass them on every call. A lot of
+     ;; duplication...
      ;; also, I would really like to have these all defined using a Scheme48-style
      ;; define-operator, since that would be much cleaner than what is seen below.
      ;; Syntax could expand the full list of operators in place here, and it would make
-     ;; expanding the set of operators *much* easier than it currently is
-     (if (null? code)
+     ;; expanding the set of operators *much* easier than it currently is.
+     (if (>= ip (length code))
          (car stack)
-         (let* ((c (car code))
+         (let* ((c (nth code ip))
                 (instr (vm@instruction c)))
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (car (car stack)) (cdr stack)))
                   (eq? instr 1) ;; cdr
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (cdr (car stack)) (cdr stack)))
                   (eq? instr 2) ;; cons
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (cons (car stack)
                                                 (cadr stack))
                                        (cddr stack)))
                   (eq? instr 3) ;; load
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (vm@operand c) stack))
                   (eq? instr 4) ;; nil
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons '() stack))
                   (eq? instr 5) ;; -
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (- (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 6) ;; +
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (+ (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 7) ;; * 
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (* (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 8) ;; / 
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (/ (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 9) ;;  < 
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (< (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 10) ;; >
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (> (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 11) ;; <= 
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (<= (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 12) ;; >= 
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
+                                 (+ ip 1)
                                  (cons (>= (car stack) (cadr stack)) (cddr stack)))
                   (eq? instr 26) ;; = 
-                        (vm@eval (cdr code)
+                        (vm@eval code
                                  env
-                                 (cons (= (car stack) (cadr stack)) (cddr stack)))))))
+                                 (+ ip 1)
+                                 (cons (= (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 27) ;; eq?
+                        (vm@eval code
+                                 env
+                                 (+ ip 1)
+                                 (cons (eq? (car stack) (cadr stack)) (cddr stack)))))))
 
 (define *tlenv* '({
     :car 0
@@ -158,6 +180,7 @@
     :denomenator 25
     := 26
     :eq? 27
+    ;; 28 is jump
 }))
 
 (define (hydra@lookup item env)
@@ -205,7 +228,16 @@
                                         ;; generate code for <else>
                                         ;; add count to CMP instruction to jump to <else>
                                         ;; add count to <then> to skip <else>
-                                        #t
+                                        (let* ((<cond> (hydra@eval (car rst) env))
+                                               (<then> (hydra@eval (cadr rst) env))
+                                               (<else> (hydra@eval (caddr rst) env))
+                                               (then-len (length <then>))
+                                               (else-len (length <else>)))
+                                            (append <cond>
+                                                (list (list 27 then-len)) ;; jump
+                                                <then>
+                                                (list (list 27 else-len)) ;; jump else
+                                                <else>)) 
                                     else #t)
                             (integer? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
@@ -239,7 +271,7 @@
          (eq? (cadr inp) 'dribble) #t
          (eq? (cadr inp) 'save) #t
          else #f)
-        (with r (vm@eval (hydra@eval inp *tlenv*) *tlenv*)
+        (with r (vm@eval (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
             (if (not (eq? r #v))
                 (begin
                     (write r)
