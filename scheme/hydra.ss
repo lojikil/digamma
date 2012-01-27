@@ -19,7 +19,10 @@
 ;;   (0)   ;; car
 ;;   (2)   ;; cons
 ;;   works, so this isn't blocked. \o/
-
+;; - lambda lifting: it would be nice if lambdas were lifted to avoid allocation as
+;;   much as possible
+;; - define-instruction syntax that can be used to populate vm@eval as well as 
+;;   clean up redundancies in code (like manual calls to vm@eval in each instruction)
 
 (define (vm@instruction c)
     (car c))
@@ -144,7 +147,22 @@
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (eq? (car stack) (cadr stack)) (cddr stack)))))))
+                                 (cons (eq? (car stack) (cadr stack)) (cddr stack)))
+                  (eq? instr 28) ;; jump
+                        (vm@eval code
+                                 env
+                                 (+ ip (vm@operand c))
+                                 stack)
+                  (eq? instr 29) ;; cmp
+                        (if (car stack) ;; if the top of the stack is true
+                            (vm@eval code env (+ ip 1) stack) ;; jump to the <then> portion
+                            (vm@eval code env (+ ip (vm@operand c)) stack))))))
+
+; syntax to make the above nicer:
+; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
+; (define-instruction '() "jump" '() '() '() (if (car stack) ...))
+; this should also fill in the top-level environment for those that have non-null name
+; (define-instruction name short-description code-manip stack-manip IP-manip resulting code) 
 
 (define *tlenv* '({
     :car 0
@@ -181,6 +199,7 @@
     := 26
     :eq? 27
     ;; 28 is jump
+    ;; 29 is compare
 }))
 
 (define (hydra@lookup item env)
