@@ -250,10 +250,10 @@
                                         (let* ((<cond> (hydra@eval (car rst) env))
                                                (<then> (hydra@eval (cadr rst) env))
                                                (<else> (hydra@eval (caddr rst) env))
-                                               (then-len (length <then>))
+                                               (then-len (+ (length <then>) 1)) ;; +1 in order to avoid the jump over else
                                                (else-len (length <else>)))
                                             (append <cond>
-                                                (list (list 27 then-len)) ;; jump
+                                                (list (list 29 then-len)) ;; compare & jump
                                                 <then>
                                                 (list (list 27 else-len)) ;; jump else
                                                 <else>)) 
