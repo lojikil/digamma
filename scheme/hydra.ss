@@ -66,6 +66,15 @@
      ;; define-operator, since that would be much cleaner than what is seen below.
      ;; Syntax could expand the full list of operators in place here, and it would make
      ;; expanding the set of operators *much* easier than it currently is.
+     ;(display "stack: ")
+     ;(display stack)
+     ;(newline)
+     ;(display "code: ") 
+     ;(display code)
+     ;(newline)
+     ;(display "ip: ")
+     ;(display ip)
+     ;(newline)
      (if (>= ip (length code))
          (car stack)
          (let* ((c (nth code ip))
@@ -155,8 +164,8 @@
                                  stack)
                   (eq? instr 29) ;; cmp
                         (if (car stack) ;; if the top of the stack is true
-                            (vm@eval code env (+ ip 1) stack) ;; jump to the <then> portion
-                            (vm@eval code env (+ ip (vm@operand c)) stack))))))
+                            (vm@eval code env (+ ip 1) (cdr stack)) ;; jump to the <then> portion
+                            (vm@eval code env (+ ip (vm@operand c)) (cdr stack)))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -250,12 +259,12 @@
                                         (let* ((<cond> (hydra@eval (car rst) env))
                                                (<then> (hydra@eval (cadr rst) env))
                                                (<else> (hydra@eval (caddr rst) env))
-                                               (then-len (+ (length <then>) 1)) ;; +1 in order to avoid the jump over else
-                                               (else-len (length <else>)))
+                                               (then-len (+ (length <then>) 2)) ;; +2 in order to avoid the jump over else
+                                               (else-len (+ (length <else>) 1)))
                                             (append <cond>
                                                 (list (list 29 then-len)) ;; compare & jump
                                                 <then>
-                                                (list (list 27 else-len)) ;; jump else
+                                                (list (list 28 else-len)) ;; jump else
                                                 <else>)) 
                                     else #t)
                             (integer? v) ;; primitive procedure
