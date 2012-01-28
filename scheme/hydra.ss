@@ -246,9 +246,9 @@
                             (symbol? v) ;; primitive syntax
                                 (cond
                                     (eq? v 'primitive-syntax-quote)
-                                        (if (null? (cadr rst))
+                                        (if (null? (car rst))
                                             '((4))
-                                            (list (list 3 (cadr rst))))
+                                            (list (list 3 (car rst))))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
