@@ -111,7 +111,7 @@
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (- (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (- (cadr stack) (car stack)) (cddr stack)))
                   (eq? instr 6) ;; +
                         (vm@eval code
                                  env
@@ -264,6 +264,18 @@
                                             (append-map
                                                 (fn (x) (list (list 3 x) (list (hydra@lookup '%+ env))))
                                                 rst))
+                                    (eq? v 'primitive-syntax-minus)
+                                        (append 
+                                            '((3 0))
+                                            (append-map
+                                                (fn (x) (display "in append-map\n") (list (list 3 x) (list (hydra@lookup '%- env))))
+                                                rst))
+                                    (eq? v 'primitive-syntax-mult)
+                                        (append 
+                                            '((3 1))
+                                            (append-map
+                                                (fn (x) (list (list 3 x) (list (hydra@lookup '%* env))))
+                                                rst))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
@@ -304,6 +316,14 @@
 
             else (cons (cons 3 (cons line '())) thusfar))))
 
+(define (top-level-print x)
+    " print #<foo> at the top level"
+    (cond
+        (pair? x) (display (car x))
+        (integer? x) (display (format "#<primitive procedure ~a>" x))
+        (symbol? x) (display (format "#<~a>" x))
+        else (display x)))
+
 (define (hydra@repl)
     (display "h; ")
     (with inp (read)
@@ -315,11 +335,11 @@
          (eq? (cadr inp) 'save) #t
          else #f)
         (with r (vm@eval (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
-            (if (not (eq? r #v))
-                (begin
-                    (write r)
-                    (newline))
-                #v)
+            (cond
+                (symbol? r) (top-level-print (hydra@lookup r *tlenv*))
+                (eq? r #v) #t
+                else (write r))
+            (newline)
             (hydra@repl)))))
 
 (define (hydra@main)
