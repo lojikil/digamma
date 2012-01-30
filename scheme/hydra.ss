@@ -177,14 +177,14 @@
     :car 0
     :cdr 1
     :cons 2
-    :- 5
-    :+ 6
-    :* 7
-    :/ 8
-    :< 9
-    :> 10
-    :<= 11
-    :>= 12
+    :%- 5 ;; primitive math operations with arity 2
+    :%+ 6
+    :%* 7
+    :%/ 8
+    :%< 9
+    :%> 10
+    :%<= 11
+    :%>= 12
     :if primitive-syntax-if 
     :fn primitive-syntax-fn
     :lambda primitive-syntax-fn
@@ -205,10 +205,19 @@
     :write-buffer 23
     :numerator 24
     :denomenator 25
-    := 26
+    :%= 26 ;; probably has to place the value on stack rather than #t, #f for failure
     :eq? 27
     ;; 28 is jump
     ;; 29 is compare
+    :+ primitive-syntax-plus ;; variable arity syntax
+    :- primitive-syntax-minus
+    :* primitive-syntax-mult
+    :/ primitive-syntax-div
+    :< primitive-syntax-lt
+    :> primitive-syntax-gt
+    :<= primitive-syntax-lte
+    :>= primitive-syntax-gte
+    := primitive-syntax-numeq
 }))
 
 (define (hydra@lookup item env)
@@ -249,6 +258,12 @@
                                         (if (null? (car rst))
                                             '((4))
                                             (list (list 3 (car rst))))
+                                    (eq? v 'primitive-syntax-plus)
+                                        (append 
+                                            '((3 0))
+                                            (append-map
+                                                (fn (x) (list (list 3 x) (list (hydra@lookup '%+ env))))
+                                                rst))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
