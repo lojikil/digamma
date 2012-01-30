@@ -133,7 +133,7 @@
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (/ (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (/ (cadr stack) (car stack)) (cddr stack)))
                   (eq? instr 9) ;;  < 
                         (vm@eval code
                                  env
@@ -225,6 +225,10 @@
     :<= primitive-syntax-lte
     :>= primitive-syntax-gte
     := primitive-syntax-numeq
+    :define primitive-syntax-define
+    :set! primitive-syntax-set
+    :define-syntax primitive-syntax-defsyn
+    :define-macro primitive-syntax-defmac
 }))
 
 (define (hydra@lookup item env)
@@ -290,6 +294,19 @@
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%* env)))))
                                                 rst))
+                                    (eq? v 'primitive-syntax-div)
+                                        (cond
+                                            (= (length rst) 1)
+                                                (append '((3 1))
+                                                    (hydra@eval (car rst) env)
+                                                    (list (list (hydra@lookup '%/ env))))
+                                            (> (length rst) 1)
+                                                (append 
+                                                    (hydra@eval (car rst) env)
+                                                    (append-map
+                                                        (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%/ env)))))
+                                                        (cdr rst)))
+                                            else (error "division fail"))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
