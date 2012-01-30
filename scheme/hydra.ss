@@ -314,7 +314,7 @@
                                 #t
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
 
-            else (cons (cons 3 (cons line '())) thusfar))))
+            else (list (list 3 line)))))
 
 (define (top-level-print x)
     " print #<foo> at the top level"
@@ -322,6 +322,7 @@
         (pair? x) (display (car x))
         (integer? x) (display (format "#<primitive procedure ~a>" x))
         (symbol? x) (display (format "#<~a>" x))
+        (bool? x) (display "Error: unknown symbol")
         else (display x)))
 
 (define (hydra@repl)
