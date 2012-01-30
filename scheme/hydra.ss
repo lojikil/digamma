@@ -231,7 +231,7 @@
     #f)
 
 (define (reverse-append x)
-    "append but in reverse; not currently working, but close"
+    "append but in reverse"
     (cond
         (null? x) x
         (null? (cdr x)) (car x)
@@ -262,7 +262,7 @@
                                         (append 
                                             '((3 0))
                                             (append-map
-                                                (fn (x) (list (list 3 x) (list (hydra@lookup '%+ env))))
+                                                (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%+ env)))))
                                                 rst))
                                     (eq? v 'primitive-syntax-minus)
                                         (append 
