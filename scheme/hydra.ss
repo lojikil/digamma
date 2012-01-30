@@ -265,16 +265,23 @@
                                                 (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%+ env)))))
                                                 rst))
                                     (eq? v 'primitive-syntax-minus)
-                                        (append 
-                                            '((3 0))
-                                            (append-map
-                                                (fn (x) (display "in append-map\n") (list (list 3 x) (list (hydra@lookup '%- env))))
-                                                rst))
+                                        (cond
+                                            (= (length rst) 1)
+                                                (append '((3 0))
+                                                    (hydra@eval (car rst) env)
+                                                    (list (list (hydra@lookup '%- env))))
+                                            (> (length rst) 1)
+                                                (append 
+                                                    (hydra@eval (car rst) env)
+                                                    (append-map
+                                                        (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%- env)))))
+                                                        (cdr rst)))
+                                            else (error "minus fail"))
                                     (eq? v 'primitive-syntax-mult)
                                         (append 
                                             '((3 1))
                                             (append-map
-                                                (fn (x) (list (list 3 x) (list (hydra@lookup '%* env))))
+                                                (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%* env)))))
                                                 rst))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
