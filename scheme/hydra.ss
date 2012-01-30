@@ -23,6 +23,13 @@
 ;;   much as possible
 ;; - define-instruction syntax that can be used to populate vm@eval as well as 
 ;;   clean up redundancies in code (like manual calls to vm@eval in each instruction)
+;; - define a clean method of boxed representations of types, one that can be used from
+;;   Vesta or E'. Not sure if this is a decent use of time here, in a VM, since that 
+;;   should be a function of the run time, not the interpreter (we wouldn't want Ceres
+;;   & Hydra to have different representations, for instance). Still, it would be nice
+;;   if errors & other types can be simply encoded '(error "error"); SRFI-9, esp. if it
+;;   has E' support, might be a good option (need to unbox types in E' though, for the
+;;   most efficient representation, as well as unions).
 
 (define (vm@instruction c)
     (car c))
