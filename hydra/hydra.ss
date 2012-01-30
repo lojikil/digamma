@@ -307,6 +307,16 @@
                                                         (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%/ env)))))
                                                         (cdr rst)))
                                             else (error "division fail"))
+                                    (eq? v 'primitive-syntax-define)
+                                        #t
+                                    (eq? v 'primitive-syntax-set)
+                                        #t
+                                    (eq? v 'primitive-syntax-defsyn)
+                                        #t
+                                    (eq? v 'primitive-syntax-defmac)
+                                        #t
+                                    (eq? v 'primitive-syntax-fn)
+                                        #t
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
