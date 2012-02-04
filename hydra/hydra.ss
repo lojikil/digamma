@@ -37,7 +37,7 @@
 (define (vm@operand c)
     (cadr c))
 
-(define (vm@eval code env (ip 0) (stack '()))
+(define (vm@eval code env (ip 0) (stack '() (dump '()))
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
@@ -83,7 +83,9 @@
      ;(display ip)
      ;(newline)
      (if (>= ip (length code))
-         (car stack)
+        (if (null? dump)
+            (car stack)
+            (vm@eval (caar dump) (cadar dump) (caddar dump) (cadddar dump) (cdr dump)))
          (let* ((c (nth code ip))
                 (instr (vm@instruction c)))
               (cond ;; case would make a lot of sense here...
