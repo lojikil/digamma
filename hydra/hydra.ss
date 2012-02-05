@@ -30,6 +30,10 @@
 ;;   if errors & other types can be simply encoded '(error "error"); SRFI-9, esp. if it
 ;;   has E' support, might be a good option (need to unbox types in E' though, for the
 ;;   most efficient representation, as well as unions).
+;; - Make all instructions support (type . value) pairs, so as to avoid a situation where
+;;   the user enters the code (0 (list 1 2 3)) and recieves the value 1 back, because:
+;;   (load 0)
+;;   (call) ;; call integer 0, since integers -> primitives, this can add some weird behavior.
 
 (define (vm@instruction c)
     (car c))
@@ -93,88 +97,94 @@
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (car (car stack)) (cdr stack)))
+                                 (cons (car (car stack)) (cdr stack)) dump)
                   (eq? instr 1) ;; cdr
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (cdr (car stack)) (cdr stack)))
+                                 (cons (cdr (car stack)) (cdr stack)) dump)
                   (eq? instr 2) ;; cons
                         (vm@eval code
                                  env
                                  (+ ip 1)
                                  (cons (cons (car stack)
                                                 (cadr stack))
-                                       (cddr stack)))
+                                       (cddr stack)) dump)
                   (eq? instr 3) ;; load
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (vm@operand c) stack))
+                                 (cons (vm@operand c) stack) dump)
                   (eq? instr 4) ;; nil
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons '() stack))
+                                 (cons '() stack) dump)
                   (eq? instr 5) ;; -
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (- (cadr stack) (car stack)) (cddr stack)))
+                                 (cons (- (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 6) ;; +
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (+ (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (+ (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 7) ;; * 
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (* (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (* (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 8) ;; / 
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (/ (cadr stack) (car stack)) (cddr stack)))
+                                 (cons (/ (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 9) ;;  < 
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (< (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (< (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 10) ;; >
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (> (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (> (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 11) ;; <= 
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (<= (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (<= (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 12) ;; >= 
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (>= (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (>= (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 26) ;; = 
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (= (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (= (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 27) ;; eq?
                         (vm@eval code
                                  env
                                  (+ ip 1)
-                                 (cons (eq? (car stack) (cadr stack)) (cddr stack)))
+                                 (cons (eq? (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 28) ;; jump
                         (vm@eval code
                                  env
                                  (+ ip (vm@operand c))
-                                 stack)
+                                 stack dump)
                   (eq? instr 29) ;; cmp
                         (if (car stack) ;; if the top of the stack is true
-                            (vm@eval code env (+ ip 1) (cdr stack)) ;; jump to the <then> portion
-                            (vm@eval code env (+ ip (vm@operand c)) (cdr stack)))))))
+                            (vm@eval code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
+                            (vm@eval code env (+ ip (vm@operand c)) (cdr stack) dump))
+                  (eq? instr 30) ;; call
+                        (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
+                            ;; create a list from the current registers, cons this to dump, and 
+                            ;; recurse over vm@eval. 
+                            #t
+                            #f))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -218,6 +228,7 @@
     :eq? 27
     ;; 28 is jump
     ;; 29 is compare
+    ;; 30 is call
     :+ primitive-syntax-plus ;; variable arity syntax
     :- primitive-syntax-minus
     :* primitive-syntax-mult
