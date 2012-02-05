@@ -41,7 +41,7 @@
 (define (vm@operand c)
     (cadr c))
 
-(define (vm@eval code env (ip 0) (stack '() (dump '()))
+(define (vm@eval code env (ip 0) (stack '()) (dump '()))
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
