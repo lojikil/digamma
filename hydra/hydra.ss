@@ -183,8 +183,23 @@
                         (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
                             ;; create a list from the current registers, cons this to dump, and 
                             ;; recurse over vm@eval. 
-                            #t
-                            #f))))))
+                            (vm@eval
+                                (nth (cdar stack) 0)
+                                (nth (cdar stack) 1)
+                                0 '() 
+                                (cons (list code env ip stack) dump))
+                            #f)
+                  (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
+                        (with r (hydra@lookup (vm@operand c) env)
+                            (if (eq? r #f)
+                                #f
+                                (vm@eval
+                                    code 
+                                    env
+                                    (+ ip 1) 
+                                    (cons r stack)
+                                    dump))))))))
+
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -229,6 +244,7 @@
     ;; 28 is jump
     ;; 29 is compare
     ;; 30 is call
+    ;; 31 is environment-load
     :+ primitive-syntax-plus ;; variable arity syntax
     :- primitive-syntax-minus
     :* primitive-syntax-mult
@@ -269,6 +285,7 @@
         (cond
             (vector? line) (list 3 line)
             (dict? line) (list 3 line) 
+            (symbol? line) (list 31 line) ;; environment-load
             (pair? line) 
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (hydra@lookup fst env)) ;; find fst in env
