@@ -9,3 +9,18 @@
 (newline)
 (display (vm@eval hlap *tlenv*))
 (newline)
+
+;; To Do:
+;; tests for:
+;;  - basic structures
+;;  - basic values
+;;  - syntax: if, define, set!
+;;  - primitives: car/cdr/cons/&c.
+;;  - lambdas
+;;  - HOFs
+;;  - SRFIs
+;;  - Datalog support
+;;  - Define-syntax
+;;  - Same should be done for Eprime...
+
+;; Hand code the HLAP here, and run tests.
