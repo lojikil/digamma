@@ -34,6 +34,9 @@
 ;;   the user enters the code (0 (list 1 2 3)) and recieves the value 1 back, because:
 ;;   (load 0)
 ;;   (call) ;; call integer 0, since integers -> primitives, this can add some weird behavior.
+;; - Just noticed that the way the CALL operand is implemented, the stack will no longer
+;;   hold the parameters. Need to walk over the params to a lambda & bind variables from the
+;;   stack before moving to running the code...
 
 (define (vm@instruction c)
     (car c))
@@ -198,7 +201,7 @@
                                     env
                                     (+ ip 1) 
                                     (cons r stack)
-                                    dump))))))))
+                                    dump)))))))
 
 
 ; syntax to make the above nicer:
