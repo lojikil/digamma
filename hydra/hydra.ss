@@ -37,6 +37,25 @@
 ;; - Just noticed that the way the CALL operand is implemented, the stack will no longer
 ;;   hold the parameters. Need to walk over the params to a lambda & bind variables from the
 ;;   stack before moving to running the code...
+                                        ;; I wonder if this should re-write to %define, so that I don't have
+                                        ;; to do anything fancy with eval... There are three cases:
+                                        ;; (define f literal)
+                                        ;; (define f (fn (x) (+ x x)))
+                                        ;; (define f (car '(1 2 3 4 5)))
+                                        ;; the first two *can* be handled OOB by hydra@eval, but the third
+                                        ;; cannot really be handled properly. It should be re-written to 
+                                        ;; (load (1 2 3 4 5))
+                                        ;; (car)
+                                        ;; (load f)
+                                        ;; (%define)
+
+(define (list-copy l)
+    " really, should be included from SRFI-1, but this simply makes a copy
+      of the spine of a pair
+      "
+    (if (null? l)
+        l
+        (cons (car l) (list-copy (cdr l)))))
 
 (define (vm@instruction c)
     (car c))
@@ -201,7 +220,15 @@
                                     env
                                     (+ ip 1) 
                                     (cons r stack)
-                                    dump)))))))
+                                    dump)))
+                  (eq? instr 32) ;; tail-call 
+                        (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
+                            (vm@eval
+                                (nth (cdar stack) 0)
+                                (nth (cdar stack) 1)
+                                0 '() 
+                                dump)
+                            #f)))))
 
 
 ; syntax to make the above nicer:
@@ -248,6 +275,7 @@
     ;; 29 is compare
     ;; 30 is call
     ;; 31 is environment-load
+    ;; 32 is tail-call
     :+ primitive-syntax-plus ;; variable arity syntax
     :- primitive-syntax-minus
     :* primitive-syntax-mult
@@ -266,12 +294,30 @@
 (define (hydra@lookup item env)
     " look up item in the current environment, returning #f for not found"
     (cond
+        (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
         (null? env) #f
         (dict-has? (car env) item) (nth (car env) item)
         else (hydra@lookup item (cdr env))))
 
+(define (compile-lambda rst env)
+    (list 'compiled-lambda
+        (vector
+            (list-copy env)
+            (append-map
+                (fn (x) (hydra@eval x env))
+                (cdr rst))
+            (car rst)))) 
+
 (define (hydra@lambda? x)
-    #f)
+    (and (pair? x) (eq? (car x) 'compiled-lambda)))
+
+(define (add-env! name value environment)
+    " adds name to the environment, but also returns
+      (load #v), so that the compiler adds the correct
+      value (this is in the semantics of Vesta, so I thought
+      it should be left in Hydra as well)"
+    (cset! (car environment) name value)
+    (list 3 #v)) ; (load <void>) instruction
 
 (define (reverse-append x)
     "append but in reverse"
@@ -341,7 +387,17 @@
                                                         (cdr rst)))
                                             else (error "division fail"))
                                     (eq? v 'primitive-syntax-define)
-                                        #t
+                                        (let* ((name (car rst))
+                                               (value (cadr rst)))
+                                            (cond
+                                                (pair? name) 
+                                                    #v
+                                                (symbol? name)
+                                                    (if (and (pair? value)
+                                                            (or (eq? (car value) 'fn)
+                                                                (eq? (car value) 'lambda)))
+                                                        (add-env! name (hydra@eval value env) env)
+                                                        (add-env! name value env))))
                                     (eq? v 'primitive-syntax-set)
                                         #t
                                     (eq? v 'primitive-syntax-defsyn)
@@ -349,7 +405,8 @@
                                     (eq? v 'primitive-syntax-defmac)
                                         #t
                                     (eq? v 'primitive-syntax-fn)
-                                        #t
+                                        (list 3 ;; load
+                                            (compile-lambda rst env))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)

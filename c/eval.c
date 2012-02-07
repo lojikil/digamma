@@ -1111,6 +1111,8 @@ __base:
                 if(env->guards == env->snil)
                 {
 #ifndef NO_STACK_TRACE
+                    printf("Original error expression:\n-----\n");
+                    princ(src);
 				    printf("\nbegin stack trace\n-----\n");
 				    tmp0 = cons(__r,stk);
 				    while(tmp0 != e->snil)
