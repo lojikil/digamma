@@ -37,17 +37,17 @@
 ;; - Just noticed that the way the CALL operand is implemented, the stack will no longer
 ;;   hold the parameters. Need to walk over the params to a lambda & bind variables from the
 ;;   stack before moving to running the code...
-                                        ;; I wonder if this should re-write to %define, so that I don't have
-                                        ;; to do anything fancy with eval... There are three cases:
-                                        ;; (define f literal)
-                                        ;; (define f (fn (x) (+ x x)))
-                                        ;; (define f (car '(1 2 3 4 5)))
-                                        ;; the first two *can* be handled OOB by hydra@eval, but the third
-                                        ;; cannot really be handled properly. It should be re-written to 
-                                        ;; (load (1 2 3 4 5))
-                                        ;; (car)
-                                        ;; (load f)
-                                        ;; (%define)
+;; I wonder if this should re-write to %define, so that I don't have
+;; to do anything fancy with eval... There are three cases:
+;; (define f literal)
+;; (define f (fn (x) (+ x x)))
+;; (define f (car '(1 2 3 4 5)))
+;; the first two *can* be handled OOB by hydra@eval, but the third
+;; cannot really be handled properly. It should be re-written to 
+;; (load (1 2 3 4 5))
+;; (car)
+;; (load f)
+;; (%define)
 
 (define (list-copy l)
     " really, should be included from SRFI-1, but this simply makes a copy
@@ -205,6 +205,8 @@
                         (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
                             ;; create a list from the current registers, cons this to dump, and 
                             ;; recurse over vm@eval. 
+                            ;; need to support CALLing primitives too, since they could be passed
+                            ;; in to HOFs...
                             (vm@eval
                                 (nth (cdar stack) 0)
                                 (nth (cdar stack) 1)
