@@ -182,6 +182,13 @@
                                  env
                                  (+ ip 1)
                                  (cons (>= (car stack) (cadr stack)) (cddr stack)) dump)
+                  (eq? instr 16) ;; display
+                    (begin
+                        (display (car stack))
+                        (vm@eval code
+                                 env
+                                 (+ ip 1)
+                                 (cons #v (cdr stack)) dump))
                   (eq? instr 26) ;; = 
                         (vm@eval code
                                  env
@@ -481,13 +488,18 @@
          (eq? (cadr inp) 'dribble) #t
          (eq? (cadr inp) 'save) #t
          else #f)
-        (with r (vm@eval (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
-            (cond
-                (symbol? r) (top-level-print (hydra@lookup r *tlenv*))
-                (eq? r #v) #t
-                else (write r))
+        (if (not (pair? inp))
+            (begin
+                (top-level-print (hydra@lookup inp *tlenv*))
+                 (newline)
+                 (hydra@repl))
+            (with r (vm@eval (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
+                (cond
+                 (symbol? r) (top-level-print (hydra@lookup r *tlenv*))
+                 (eq? r #v) #t
+                 else (write r))
             (newline)
-            (hydra@repl)))))
+            (hydra@repl))))))
 
 (define (hydra@main)
     (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2009.3/r0\n")
