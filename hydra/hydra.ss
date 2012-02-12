@@ -102,9 +102,9 @@
      ;(display "stack: ")
      ;(display stack)
      ;(newline)
-     ;(display "code: ") 
-     ;(display code)
-     ;(newline)
+     (display "code: ") 
+     (display code)
+     (newline)
      ;(display "ip: ")
      ;(display ip)
      ;(newline)
@@ -114,6 +114,10 @@
             (vm@eval (caar dump) (cadar dump) (caddar dump) (cadddar dump) (cdr dump)))
          (let* ((c (nth code ip))
                 (instr (vm@instruction c)))
+
+                (display "current instruction: ")
+                (display (nth code ip))
+                (newline)   
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (vm@eval code
@@ -414,8 +418,8 @@
                                     (eq? v 'primitive-syntax-defmac)
                                         #t
                                     (eq? v 'primitive-syntax-fn)
-                                        (list 3 ;; load
-                                            (compile-lambda rst env))
+                                        (list (list 3 ;; load
+                                            (compile-lambda rst env)))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
