@@ -444,7 +444,20 @@
                                              rst))
                                     (list (list v)))
                             (hydra@lambda? v) ;; hydra closure
-                                #t
+                                (append (reverse-append
+                                            (map (fn (x) (hydra@eval x env)) rst))
+                                            (list (list 3 v))
+                                            (list (list 30)))
+                            (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
+                                (append (reverse-append
+                                            (map (fn (x) (hydra@eval x env)) rst))
+                                            (list (list 31 v))
+                                            (list (list 30)))
+                            (pair? fst) ;; fst is a pair, so we just blindly attempt to compile it. May cause an error that has to be caught in CALL. some lifting might fix this...
+                                (append (reverse-append
+                                            (map (fn (x) (hydra@eval x env)) rst))
+                                        (hydra@eval fst env)
+                                        (list (list 30)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
 
             else (list (list 3 line)))))
