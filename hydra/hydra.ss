@@ -57,6 +57,8 @@
         l
         (cons (car l) (list-copy (cdr l)))))
 
+(define (cadddar x) (car (cdddar x)))
+
 (define (vm@instruction c)
     (car c))
 
@@ -102,9 +104,9 @@
      ;(display "stack: ")
      ;(display stack)
      ;(newline)
-     (display "code: ") 
-     (display code)
-     (newline)
+     ;(display "code: ") 
+     ;(display code)
+     ;(newline)
      ;(display "ip: ")
      ;(display ip)
      ;(newline)
@@ -115,9 +117,9 @@
          (let* ((c (nth code ip))
                 (instr (vm@instruction c)))
 
-                (display "current instruction: ")
-                (display (nth code ip))
-                (newline)   
+                ;(display "current instruction: ")
+                ;(display (nth code ip))
+                ;(newline)   
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (vm@eval code
@@ -219,10 +221,10 @@
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
                             (vm@eval
-                                (nth (cdar stack) 0)
-                                (nth (cdar stack) 1)
+                                (nth (cadar stack) 1)
+                                (nth (cadar stack) 0)
                                 0 '() 
-                                (cons (list code env ip stack) dump))
+                                (cons (list code env ip (cdr stack)) dump))
                             #f)
                   (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (vm@operand c) env)
