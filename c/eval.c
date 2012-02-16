@@ -596,7 +596,7 @@ __base:
 			if(tmp1->type == PAIR)
 			{
 				// state == OPBEGIN
-				if(fst->type == CLOSURE && tmp0 == e->snil)
+				if(tmp0 == e->snil)
 				{
 					/* Ok, so what we're doing here:
 					 * if it's a tail call in a closure,
@@ -604,7 +604,8 @@ __base:
 					 * set tail = 1, so that we modify parameters in place
 					 * otherwise, just use a normal window
 					 */
-					tail = 1;
+                    if(fst->type == CLOSURE)
+					    tail = 1;
 				}
 				else
 					stk = cons(vector(6,src,fst,tmp0,ret,env->data,makeinteger(state)),stk);
