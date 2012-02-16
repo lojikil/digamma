@@ -65,6 +65,12 @@
 (define (vm@operand c)
     (cadr c))
 
+(define (build-environment environment stack params)
+    "Adds a new window to the environment, removes |params| items from the stack
+     and binds those values in the new window. It returns a list of environment and
+     the new stack."
+    (list '({}) '()))
+
 (define (vm@eval code env (ip 0) (stack '()) (dump '()))
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
@@ -220,11 +226,12 @@
                             ;; recurse over vm@eval. 
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
-                            (vm@eval
-                                (nth (cadar stack) 1)
-                                (nth (cadar stack) 0)
-                                0 '() 
-                                (cons (list code env ip (cdr stack)) dump))
+                            (let ((env-and-stack (build-environment (nth (cadar stack) 1) stack (nth (cadar stack) 2))))
+                                (vm@eval
+                                    (car env-and-stack)
+                                    (nth (cadar stack) 0)
+                                    0 '() 
+                                    (cons (list code env ip (cadr env-and-stack)) dump)))
                             #f)
                   (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (vm@operand c) env)
