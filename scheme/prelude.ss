@@ -226,3 +226,7 @@
    (if (null? (cdr l))
        (car l)
        (string-append (car l) ij (string-join (cdr l) ij))))
+
+(define (append-map f x) (if (null? x) x (append (f (car x)) (append-map f (cdr x)))))
+(define (list->vector l) (coerce l 'vector))
+(define (vector->list v) (coerce v 'pair))
