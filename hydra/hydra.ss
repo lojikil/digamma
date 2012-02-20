@@ -76,12 +76,14 @@
     (let ((ls (length stack)) (lp (length params)) (nu-env {}))
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
-            (begin 
-                (foreach-proc
-                    (lambda (x)
-                     (cset! nu-env (car x) (cadr x)))
+            (if (= lp 0)
+                (list (cons nu-env environment) (cdr stack))
+                (begin 
+                    (foreach-proc
+                      (lambda (x)
+                      (cset! nu-env (car x) (cadr x)))
                     (zip params (cslice stack 0 lp)))
-                (list (cons nu-env environment) (cslice stack lp ls))))))
+                    (list (cons nu-env environment) (cslice stack lp ls)))))))
 
 (define (vm@eval code env (ip 0) (stack '()) (dump '()))
      " process the actual instructions of a code object; the basic idea is that
@@ -119,25 +121,31 @@
      ;; define-operator, since that would be much cleaner than what is seen below.
      ;; Syntax could expand the full list of operators in place here, and it would make
      ;; expanding the set of operators *much* easier than it currently is.
-     ;(display "stack: ")
-     ;(display stack)
-     ;(newline)
-     ;(display "code: ") 
-     ;(display code)
-     ;(newline)
-     ;(display "ip: ")
-     ;(display ip)
-     ;(newline)
+     (display "stack: ")
+     (display stack)
+     (newline)
+     (display "code: ") 
+     (display code)
+     (newline)
+     (display "ip: ")
+     (display ip)
+     (newline)
      (if (>= ip (length code))
         (if (null? dump)
-            (car stack)
-            (vm@eval (caar dump) (cadar dump) (caddar dump) (cadddar dump) (cdr dump)))
+            (begin
+                (display "in <then> section\n")
+                (car stack))
+            (begin
+                (display "in <else> section\ndump: ")
+                (display dump)
+                (newline)
+                (vm@eval (caar dump) (cadar dump) (caddar dump) (cadddar dump) (cdr dump))))
          (let* ((c (nth code ip))
                 (instr (vm@instruction c)))
 
-                ;(display "current instruction: ")
-                ;(display (nth code ip))
-                ;(newline)   
+                (display "current instruction: ")
+                (display (nth code ip))
+                (newline)   
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (vm@eval code
@@ -238,13 +246,15 @@
                             ;; recurse over vm@eval. 
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
-                            (let ((env-and-stack (build-environment (nth (cadar stack) 1) stack (nth (cadar stack) 2))))
+                            (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
                                 (vm@eval
+                                    (nth (cadar stack) 1)
                                     (car env-and-stack)
-                                    (nth (cadar stack) 0)
                                     0 '() 
                                     (cons (list code env ip (cadr env-and-stack)) dump)))
-                            #f)
+                            (begin
+                                (display "in <else> of CALL\n")
+                                #f))
                   (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (vm@operand c) env)
                             (if (eq? r #f)
@@ -366,9 +376,9 @@
     (if (null? line)
         thusfar
         (cond
-            (vector? line) (list 3 line)
-            (dict? line) (list 3 line) 
-            (symbol? line) (list 31 line) ;; environment-load
+            (vector? line) (list (list 3 line))
+            (dict? line) (list (list 3 line) )
+            (symbol? line) (list (list 31 line)) ;; environment-load
             (pair? line) 
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (hydra@lookup fst env)) ;; find fst in env
