@@ -37,6 +37,8 @@
 ;; - Just noticed that the way the CALL operand is implemented, the stack will no longer
 ;;   hold the parameters. Need to walk over the params to a lambda & bind variables from the
 ;;   stack before moving to running the code...
+;; - add a debug variable, so that you could ,debug-engine at the REPL, and I wouldn't have to comment/uncomment
+;;   debug lines every time I wanted to check out what's going on underneath the hood
 ;; I wonder if this should re-write to %define, so that I don't have
 ;; to do anything fancy with eval... There are three cases:
 ;; (define f literal)
@@ -121,31 +123,25 @@
      ;; define-operator, since that would be much cleaner than what is seen below.
      ;; Syntax could expand the full list of operators in place here, and it would make
      ;; expanding the set of operators *much* easier than it currently is.
-     (display "stack: ")
-     (display stack)
-     (newline)
-     (display "code: ") 
-     (display code)
-     (newline)
-     (display "ip: ")
-     (display ip)
-     (newline)
+     ;(display "stack: ")
+     ;(display stack)
+     ;(newline)
+     ;(display "code: ") 
+     ;(display code)
+     ;(newline)
+     ;(display "ip: ")
+     ;(display ip)
+     ;(newline)
      (if (>= ip (length code))
         (if (null? dump)
-            (begin
-                (display "in <then> section\n")
-                (car stack))
-            (begin
-                (display "in <else> section\ndump: ")
-                (display dump)
-                (newline)
-                (vm@eval (caar dump) (cadar dump) (caddar dump) (cadddar dump) (cdr dump))))
+            (car stack)
+            (vm@eval (caar dump) (cadar dump) (+ (caddar dump) 1) (cons (car stack) (cadddar dump)) (cdr dump)))
          (let* ((c (nth code ip))
                 (instr (vm@instruction c)))
 
-                (display "current instruction: ")
-                (display (nth code ip))
-                (newline)   
+                ;(display "current instruction: ")
+                ;(display (nth code ip))
+                ;(newline)   
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (vm@eval code
