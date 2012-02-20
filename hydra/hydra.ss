@@ -39,6 +39,15 @@
 ;;   stack before moving to running the code...
 ;; - add a debug variable, so that you could ,debug-engine at the REPL, and I wouldn't have to comment/uncomment
 ;;   debug lines every time I wanted to check out what's going on underneath the hood
+;; - fix this:
+;;      h; 0
+;;      #<primitive-procedure 0>
+;;   it should be:
+;;      h; 0
+;;      0
+;;      h; car
+;;      #<primitive-procedure 0>
+;;
 ;; I wonder if this should re-write to %define, so that I don't have
 ;; to do anything fancy with eval... There are three cases:
 ;; (define f literal)
