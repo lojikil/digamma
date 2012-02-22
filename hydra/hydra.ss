@@ -278,9 +278,16 @@
                                 0 '() 
                                 dump)
                             #f)
-                  (eq? instr 34) ;; %define
+                  (eq? instr 33) ;; %define
                         (begin
                             (hydra@add-env (caar stack) (cadar stack) env)
+                            (vm@eval
+                                code env (+ ip 1)
+                                (cons (list 3 #v) stack)
+                                dump))
+                  (eq? instr 34) ;; %set!
+                        (begin
+                            (hydra@set-env! (caar stack) (cadar stack) env)
                             (vm@eval
                                 code env (+ ip 1)
                                 (cons (list 3 #v) stack)
