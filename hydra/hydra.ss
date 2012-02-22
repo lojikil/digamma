@@ -338,6 +338,8 @@
     :set! primitive-syntax-set
     :define-syntax primitive-syntax-defsyn
     :define-macro primitive-syntax-defmac
+    :%define 33
+    :%set! 34
 }))
 
 (define (hydra@lookup item env)
