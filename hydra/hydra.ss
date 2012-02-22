@@ -287,7 +287,7 @@
 ; (define-instruction name short-description code-manip stack-manip IP-manip resulting code) 
 
 (define *tlenv* '({
-    :car 0
+    :car 0 ;; (primitive . 0) 
     :cdr 1
     :cons 2
     :%- 5 ;; primitive math operations with arity 2
@@ -360,11 +360,23 @@
 (define (hydra@lambda? x)
     (and (pair? x) (eq? (car x) 'compiled-lambda)))
 
-(define (add-env! name value environment)
+(define (hydra@add-env! name value environment)
     " adds name to the environment, but also returns
       (load #v), so that the compiler adds the correct
       value (this is in the semantics of Vesta, so I thought
       it should be left in Hydra as well)"
+    (cset! (car environment) name value)
+    (list 3 #v)) ; (load <void>) instruction
+
+(define (hydra@set-env! name value environment)
+    " adds name to the environment, but also returns
+      (load #v), so that the compiler adds the correct
+      value (this is in the semantics of Vesta, so I thought
+      it should be left in Hydra as well)"
+    (with v (hydra@lookup name environment)
+        (if (eq? v #f)
+            (error (format "SET! error: name \"~a\" is not found in current environment" name))
+            #f))
     (cset! (car environment) name value)
     (list 3 #v)) ; (load <void>) instruction
 
@@ -442,11 +454,11 @@
                                                 (pair? name) 
                                                     #v
                                                 (symbol? name)
-                                                    (if (and (pair? value)
-                                                            (or (eq? (car value) 'fn)
-                                                                (eq? (car value) 'lambda)))
-                                                        (add-env! name (hydra@eval value env) env)
-                                                        (add-env! name value env))))
+                                                    (append
+                                                        (hydra@eval value env)
+                                                        (list (list 3 name))
+                                                        (list (list (hydra@lookup '%define env))))
+                                                else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
                                     (eq? v 'primitive-syntax-set)
                                         #t
                                     (eq? v 'primitive-syntax-defsyn)
