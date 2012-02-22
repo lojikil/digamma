@@ -367,20 +367,17 @@
       (load #v), so that the compiler adds the correct
       value (this is in the semantics of Vesta, so I thought
       it should be left in Hydra as well)"
-    (cset! (car environment) name value)
-    (list 3 #v)) ; (load <void>) instruction
+    (cset! (car environment) name value))
 
 (define (hydra@set-env! name value environment)
-    " adds name to the environment, but also returns
-      (load #v), so that the compiler adds the correct
-      value (this is in the semantics of Vesta, so I thought
-      it should be left in Hydra as well)"
-    (with v (hydra@lookup name environment)
-        (if (eq? v #f)
-            (error (format "SET! error: name \"~a\" is not found in current environment" name))
-            #f))
-    (cset! (car environment) name value)
-    (list 3 #v)) ; (load <void>) instruction
+    " sets a value in the current environment, and returns
+      an error if that binding has not been previously defined"
+    (cond
+        (null? environment) (error (format "SET! error: undefined name \"~a\"" name))
+        (dict-has? (car environment) name)
+            (cset! (car environment) name value)
+        else hydra@set-env! name value (cdr environment)))
+
 
 (define (reverse-append x)
     "append but in reverse"
