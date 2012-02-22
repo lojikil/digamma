@@ -277,7 +277,14 @@
                                 (nth (cdar stack) 1)
                                 0 '() 
                                 dump)
-                            #f)))))
+                            #f)
+                  (eq? instr 34) ;; %define
+                        (begin
+                            (hydra@add-env (caar stack) (cadar stack) env)
+                            (vm@eval
+                                code env (+ ip 1)
+                                (cons (list 3 #v) stack)
+                                dump))))))
 
 
 ; syntax to make the above nicer:
