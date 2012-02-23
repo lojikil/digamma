@@ -280,14 +280,14 @@
                             #f)
                   (eq? instr 33) ;; %define
                         (begin
-                            (hydra@add-env! (caar stack) (cadar stack) env)
+                            (hydra@add-env! (car stack) (cadr stack) env)
                             (vm@eval
                                 code env (+ ip 1)
                                 (cons (list 3 #v) stack)
                                 dump))
                   (eq? instr 34) ;; %set!
                         (begin
-                            (hydra@set-env! (caar stack) (cadar stack) env)
+                            (hydra@set-env! (car stack) (cadr stack) env)
                             (vm@eval
                                 code env (+ ip 1)
                                 (cons (list 3 #v) stack)
@@ -461,7 +461,7 @@
                                                         (cdr rst)))
                                             else (error "division fail"))
                                     (eq? v 'primitive-syntax-define)
-                                        (let* ((name (car rst))
+                                        (let ((name (car rst))
                                                (value (cadr rst)))
                                             (cond
                                                 (pair? name) 
@@ -473,7 +473,14 @@
                                                         (list (list (hydra@lookup '%define env))))
                                                 else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
                                     (eq? v 'primitive-syntax-set)
-                                        #t
+                                        (let ((name (car rst))
+                                              (value (cadr rst)))
+                                           (if (symbol? name) 
+                                                (append
+                                                    (hydra@eval value env)
+                                                    (list (list 3 name))
+                                                    (list (list (hydra@lookup '%set! env))))
+                                                (error "SET!: set! SYMBOL S-EXPR*")))
                                     (eq? v 'primitive-syntax-defsyn)
                                         #t
                                     (eq? v 'primitive-syntax-defmac)
