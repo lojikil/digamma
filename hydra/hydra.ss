@@ -5,8 +5,8 @@
 ;; file for details
 
 ;; TODO:
-;; - good compilation mechanism for hydra@eval
-;; - method for vm@eval to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
+;; - DONE: good compilation mechanism for hydra@eval
+;; - DONE: method for vm@eval to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
 ;;   which it cannot currently do because we need to rotate the stack (wait, do we?)
 ;;   (cons (car (cons 1 '())) (cdr 4 '())):
 ;;   (4)   ;; nil
@@ -34,9 +34,9 @@
 ;;   the user enters the code (0 (list 1 2 3)) and recieves the value 1 back, because:
 ;;   (load 0)
 ;;   (call) ;; call integer 0, since integers -> primitives, this can add some weird behavior.
-;; - Just noticed that the way the CALL operand is implemented, the stack will no longer
+;; - DONE: Just noticed that the way the CALL operand is implemented, the stack will no longer
 ;;   hold the parameters. Need to walk over the params to a lambda & bind variables from the
-;;   stack before moving to running the code...
+;;   stack before moving to running the code... 
 ;; - add a debug variable, so that you could ,debug-engine at the REPL, and I wouldn't have to comment/uncomment
 ;;   debug lines every time I wanted to check out what's going on underneath the hood
 ;; - fix this:
@@ -48,7 +48,7 @@
 ;;      h; car
 ;;      #<primitive-procedure 0>
 ;;
-;; I wonder if this should re-write to %define, so that I don't have
+;; - DONE: I wonder if this should re-write to %define, so that I don't have
 ;; to do anything fancy with eval... There are three cases:
 ;; (define f literal)
 ;; (define f (fn (x) (+ x x)))
@@ -59,6 +59,7 @@
 ;; (car)
 ;; (load f)
 ;; (%define)
+;; - SRFIs to be added: 9, 22, 34, 35, 36, 57, 60, 89, 88 (already done, via Vesta's run time)
 
 (define (list-copy l)
     " really, should be included from SRFI-1, but this simply makes a copy
