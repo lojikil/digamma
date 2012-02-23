@@ -283,14 +283,14 @@
                             (hydra@add-env! (car stack) (cadr stack) env)
                             (vm@eval
                                 code env (+ ip 1)
-                                (cons (list 3 #v) stack)
+                                (cons #v stack)
                                 dump))
                   (eq? instr 34) ;; %set!
                         (begin
                             (hydra@set-env! (car stack) (cadr stack) env)
                             (vm@eval
                                 code env (+ ip 1)
-                                (cons (list 3 #v) stack)
+                                (cons #v stack)
                                 dump))))))
 
 
@@ -465,7 +465,10 @@
                                                (value (cadr rst)))
                                             (cond
                                                 (pair? name) 
-                                                    #v
+                                                    (append
+                                                        (hydra@eval (cons 'fn (cons (cdar rst) (cdr rst))) env)
+                                                        (list (list 3 (caar rst)))
+                                                        (list (list (hydra@lookup '%define env)))) 
                                                 (symbol? name)
                                                     (append
                                                         (hydra@eval value env)
