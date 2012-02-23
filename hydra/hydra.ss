@@ -280,7 +280,7 @@
                             #f)
                   (eq? instr 33) ;; %define
                         (begin
-                            (hydra@add-env (caar stack) (cadar stack) env)
+                            (hydra@add-env! (caar stack) (cadar stack) env)
                             (vm@eval
                                 code env (+ ip 1)
                                 (cons (list 3 #v) stack)
