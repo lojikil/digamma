@@ -6,7 +6,7 @@
 
 ;; TODO:
 ;; - DONE: good compilation mechanism for hydra@eval
-;; - DONE: method for vm@eval to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
+;; - DONE: method for hydra@vm to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
 ;;   which it cannot currently do because we need to rotate the stack (wait, do we?)
 ;;   (cons (car (cons 1 '())) (cdr 4 '())):
 ;;   (4)   ;; nil
@@ -21,8 +21,8 @@
 ;;   works, so this isn't blocked. \o/
 ;; - lambda lifting: it would be nice if lambdas were lifted to avoid allocation as
 ;;   much as possible
-;; - define-instruction syntax that can be used to populate vm@eval as well as 
-;;   clean up redundancies in code (like manual calls to vm@eval in each instruction)
+;; - define-instruction syntax that can be used to populate hydra@vm as well as 
+;;   clean up redundancies in code (like manual calls to hydra@vm in each instruction)
 ;; - define a clean method of boxed representations of types, one that can be used from
 ;;   Vesta or E'. Not sure if this is a decent use of time here, in a VM, since that 
 ;;   should be a function of the run time, not the interpreter (we wouldn't want Ceres
@@ -71,10 +71,10 @@
 
 (define (cadddar x) (car (cdddar x)))
 
-(define (vm@instruction c)
+(define (hydra@instruction c)
     (car c))
 
-(define (vm@operand c)
+(define (hydra@operand c)
     (cadr c))
 
 (define (build-environment environment stack params)
@@ -97,7 +97,7 @@
                     (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
 
-(define (vm@eval code env (ip 0) (stack '()) (dump '()))
+(define (hydra@vm code env (ip 0) (stack '()) (dump '()))
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
@@ -110,7 +110,7 @@
        (1)   ;; cdr
        (0)   ;; car
        
-       which vm@eval can then interpret in a tail-call fashion.
+       which hydra@vm can then interpret in a tail-call fashion.
        There might be better ways to store the actual VM codes themselves
        other than pairs of pairs (even vector of pairs would be more efficient really)
        and it might be worth it to add two collexion-neutral primitives, cappend & 
@@ -145,115 +145,115 @@
      (if (>= ip (length code))
         (if (null? dump)
             (car stack)
-            (vm@eval (caar dump) (cadar dump) (+ (caddar dump) 1) (cons (car stack) (cadddar dump)) (cdr dump)))
+            (hydra@vm (caar dump) (cadar dump) (+ (caddar dump) 1) (cons (car stack) (cadddar dump)) (cdr dump)))
          (let* ((c (nth code ip))
-                (instr (vm@instruction c)))
+                (instr (hydra@instruction c)))
 
                 ;(display "current instruction: ")
                 ;(display (nth code ip))
                 ;(newline)   
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (car (car stack)) (cdr stack)) dump)
                   (eq? instr 1) ;; cdr
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (cdr (car stack)) (cdr stack)) dump)
                   (eq? instr 2) ;; cons
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (cons (car stack)
                                                 (cadr stack))
                                        (cddr stack)) dump)
                   (eq? instr 3) ;; load
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
-                                 (cons (vm@operand c) stack) dump)
+                                 (cons (hydra@operand c) stack) dump)
                   (eq? instr 4) ;; nil
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons '() stack) dump)
                   (eq? instr 5) ;; -
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (- (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 6) ;; +
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (+ (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 7) ;; * 
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (* (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 8) ;; / 
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (/ (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 9) ;;  < 
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (< (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 10) ;; >
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (> (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 11) ;; <= 
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (<= (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 12) ;; >= 
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (>= (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 16) ;; display
                     (begin
                         (display (car stack))
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons #v (cdr stack)) dump))
                   (eq? instr 26) ;; = 
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (= (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 27) ;; eq?
-                        (vm@eval code
+                        (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (eq? (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 28) ;; jump
-                        (vm@eval code
+                        (hydra@vm code
                                  env
-                                 (+ ip (vm@operand c))
+                                 (+ ip (hydra@operand c))
                                  stack dump)
                   (eq? instr 29) ;; cmp
                         (if (car stack) ;; if the top of the stack is true
-                            (vm@eval code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
-                            (vm@eval code env (+ ip (vm@operand c)) (cdr stack) dump))
+                            (hydra@vm code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
+                            (hydra@vm code env (+ ip (hydra@operand c)) (cdr stack) dump))
                   (eq? instr 30) ;; call
                         (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
                             ;; create a list from the current registers, cons this to dump, and 
-                            ;; recurse over vm@eval. 
+                            ;; recurse over hydra@vm. 
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
                             (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
-                                (vm@eval
+                                (hydra@vm
                                     (nth (cadar stack) 1)
                                     (car env-and-stack)
                                     0 '() 
@@ -262,10 +262,10 @@
                                 (display "in <else> of CALL\n")
                                 #f))
                   (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
-                        (with r (hydra@lookup (vm@operand c) env)
+                        (with r (hydra@lookup (hydra@operand c) env)
                             (if (eq? r #f)
                                 #f
-                                (vm@eval
+                                (hydra@vm
                                     code 
                                     env
                                     (+ ip 1) 
@@ -273,7 +273,7 @@
                                     dump)))
                   (eq? instr 32) ;; tail-call 
                         (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
-                            (vm@eval
+                            (hydra@vm
                                 (nth (cdar stack) 0)
                                 (nth (cdar stack) 1)
                                 0 '() 
@@ -282,14 +282,14 @@
                   (eq? instr 33) ;; %define
                         (begin
                             (hydra@add-env! (car stack) (cadr stack) env)
-                            (vm@eval
+                            (hydra@vm
                                 code env (+ ip 1)
                                 (cons #v stack)
                                 dump))
                   (eq? instr 34) ;; %set!
                         (begin
                             (hydra@set-env! (car stack) (cadr stack) env)
-                            (vm@eval
+                            (hydra@vm
                                 code env (+ ip 1)
                                 (cons #v stack)
                                 dump))))))
@@ -569,7 +569,7 @@
                 (top-level-print (hydra@lookup inp *tlenv*))
                  (newline)
                  (hydra@repl))
-            (with r (vm@eval (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
+            (with r (hydra@vm (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
                 (cond
                  (symbol? r) (top-level-print (hydra@lookup r *tlenv*))
                  (eq? r #v) #t
