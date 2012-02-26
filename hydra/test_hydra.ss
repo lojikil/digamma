@@ -28,15 +28,16 @@
 ;; need macro/syntax:
 
 ;; (hydra-test digamma expected-hlap expected-value)
+;; this would be 100x cleaner with syntax...
 
 (define-macro hydra-test (digamma-code expected-hlap expected-value)
-    (list 'with 'h (list 'hydra@eval digamma-code '*tlenv*)
-        (list 'if (list 'not (list 'equal? 'h expected-hlap))
-            (list 'display (list 'format "[-] HLAP generation failed for ~a; expected ~a, got ~a~%" digamma-code expected-hlap 'h))
+    (list 'with 'h (list 'hydra@eval (list 'quote digamma-code) '*tlenv*)
+        (list 'if (list 'not (list 'equal? 'h (list 'quote expected-hlap)))
+            (list 'display (list 'format "[-] HLAP generation failed for ~a; expected ~a, got ~a~%" (list 'quote digamma-code) (list 'quote expected-hlap) 'h))
             (list 'with 'e (list 'hydra@vm 'h '*tlenv*)
-                (list 'if (list 'not (list 'equal? 'e expected-value))
-                    (list 'display (list 'format "[-] Eval failed for ~a; expected ~a, got ~a~%" digamma-code expected-value 'e))
-                    (list 'display (list 'format "[+] test passed for ~a~%" digamma-code)))))))
+                (list 'if (list 'not (list 'equal? 'e (list 'quote expected-value)))
+                    (list 'display (list 'format "[-] Eval failed for ~a; expected ~a, got ~a~%" (list 'quote digamma-code) (list 'quote expected-value) 'e))
+                    (list 'display (list 'format "[+] test passed for ~a~%" (list 'quote digamma-code))))))))
 
 (hydra-test (cons 1 2) ((3 2) (3 1) (2)) (1 . 2))
 (hydra-test (cons 1 (cons 2 '())) ((4) (3 2) (2) (3 1) (2)) (1 2))

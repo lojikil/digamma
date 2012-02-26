@@ -393,7 +393,6 @@
             (cset! (car environment) name value)
         else hydra@set-env! name value (cdr environment)))
 
-
 (define (reverse-append x)
     "append but in reverse"
     (cond
@@ -545,6 +544,8 @@
 
             else (list (list 3 line)))))
 
+;; need to separate user values from what 
+;; is returned in the eval...
 (define (top-level-print x)
     " print #<foo> at the top level"
     (cond
