@@ -301,18 +301,22 @@
 ; this should also fill in the top-level environment for those that have non-null name
 ; (define-instruction name short-description code-manip stack-manip IP-manip resulting code) 
 
+; (primitive 0) can still be defeated, I think:
+; (define foo '(primitive 0))
+; (foo '(1 2 3 4))
+; Have to test. 
 (define *tlenv* '({
-    :car 0 ;; (primitive . 0) 
-    :cdr 1
-    :cons 2
-    :%- 5 ;; primitive math operations with arity 2
-    :%+ 6
-    :%* 7
-    :%/ 8
-    :%< 9
-    :%> 10
-    :%<= 11
-    :%>= 12
+    :car (primitive . 0) ;; (primitive . 0) 
+    :cdr (primitive . 1)
+    :cons (primitive . 2)
+    :%- (primitive . 5) ;; primitive math operations with arity 2
+    :%+ (primitive . 6)
+    :%* (primitive . 7)
+    :%/ (primitive . 8)
+    :%< (primitive . 9)
+    :%> (primitive . 10)
+    :%<= (primitive . 11)
+    :%>= (primitive . 12)
     :if primitive-syntax-if 
     :fn primitive-syntax-fn
     :lambda primitive-syntax-fn
@@ -320,21 +324,21 @@
     :quasi-quote primitive-syntax-qquote
     :unquote primitve-syntax-unquote
     :unquote-splice primitive-syntax-unqsplice
-    :eval 13
-    :load 14
-    :apply 15
-    :display 16
-    :write 17
-    :read 18
-    :read-string 19
-    :read-char 20
-    :write-string 21
-    :write-char 22
-    :write-buffer 23
-    :numerator 24
-    :denomenator 25
-    :%= 26 ;; probably has to place the value on stack rather than #t, #f for failure
-    :eq? 27
+    :eval (primitive . 13)
+    :load (primitive . 14)
+    :apply (primitive . 15)
+    :display (primitive . 16)
+    :write (primitive . 17)
+    :read (primitive . 18)
+    :read-string (primitive . 19)
+    :read-char (primitive . 20)
+    :write-string (primitive . 21)
+    :write-char (primitive . 22)
+    :write-buffer (primitive . 23)
+    :numerator (primitive . 24)
+    :denomenator (primitive . 25)
+    :%= (primitive . 26) ;; probably has to place the value on stack rather than #t, #f for failure
+    :eq? (primitive . 27)
     ;; 28 is jump
     ;; 29 is compare
     ;; 30 is call
@@ -353,8 +357,8 @@
     :set! primitive-syntax-set
     :define-syntax primitive-syntax-defsyn
     :define-macro primitive-syntax-defmac
-    :%define 33
-    :%set! 34
+    :%define (primitive . 33)
+    :%set! (primitive . 34)
 }))
 
 (define (hydra@lookup item env)
@@ -376,6 +380,9 @@
 
 (define (hydra@lambda? x)
     (and (pair? x) (eq? (car x) 'compiled-lambda)))
+
+(define (hydra@primitive? x)
+    (and (pair? x) (eq? (car x) 'primitive)))
 
 (define (hydra@add-env! name value environment)
     " adds name to the environment, but also returns
@@ -520,7 +527,7 @@
                                                 (list (list 28 else-len)) ;; jump else
                                                 <else>)) 
                                     else #t)
-                            (integer? v) ;; primitive procedure
+                            (hydra@primitive? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
                                 ;; and flatten it. basically, if we have:
                                 ;; (cons (+ 1 2) (cons (+ 3 4) '()))
@@ -535,7 +542,7 @@
                                     (reverse-append
                                         (map (fn (x) (hydra@eval x env))
                                              rst))
-                                    (list (list v)))
+                                    (list (list (cdr v))))
                             (hydra@lambda? v) ;; hydra closure
                                 (append (reverse-append
                                             (map (fn (x) (hydra@eval x env)) rst))
@@ -560,9 +567,10 @@
 (define (top-level-print x)
     " print #<foo> at the top level"
     (cond
-        (pair? x) (display (car x))
-        (integer? x) (display (format "#<primitive procedure ~a>" x))
+        (hydra@lambda? x) (display "#<closure>\n")
+        (hydra@primitive? x) (display (format "#<primitive procedure ~a>" (cdr x)))
         (symbol? x) (display (format "#<~a>" x))
+        (pair? x) (display (car x))
         (bool? x) (display "Error: unknown symbol")
         else (display x)))
 
