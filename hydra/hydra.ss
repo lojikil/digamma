@@ -460,6 +460,17 @@
                                                         (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%/ env)))))
                                                         (cdr rst)))
                                             else (error "division fail"))
+                                    (eq? v 'primitive-syntax-numeq)
+                                        (cond
+                                            (= (length rst) 1)
+                                                (list (list 3 #t))
+                                            (> (length rst) 1)
+                                                (append
+                                                    (hydra@eval (car rst) env)
+                                                    (append-map
+                                                        (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%= env)))))
+                                                        (cdr rst)))
+                                            else (error "numeq fail"))
                                     (eq? v 'primitive-syntax-define)
                                         (let ((name (car rst))
                                                (value (cadr rst)))
