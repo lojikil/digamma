@@ -304,7 +304,8 @@
 ; (primitive 0) can still be defeated, I think:
 ; (define foo '(primitive 0))
 ; (foo '(1 2 3 4))
-; Have to test. 
+; Definitely can be defeated. Really, need to move to some SRFI-9-ish system that
+; users cannot create their own versions of.
 (define *tlenv* '({
     :car (primitive . 0) ;; (primitive . 0) 
     :cdr (primitive . 1)
@@ -433,7 +434,7 @@
                                         (append 
                                             '((3 0))
                                             (append-map
-                                                (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%+ env)))))
+                                                (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%+ env))))))
                                                 rst))
                                     (eq? v 'primitive-syntax-minus)
                                         (cond
@@ -445,14 +446,14 @@
                                                 (append 
                                                     (hydra@eval (car rst) env)
                                                     (append-map
-                                                        (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%- env)))))
+                                                        (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%- env))))))
                                                         (cdr rst)))
                                             else (error "minus fail"))
                                     (eq? v 'primitive-syntax-mult)
                                         (append 
                                             '((3 1))
                                             (append-map
-                                                (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%* env)))))
+                                                (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%* env))))))
                                                 rst))
                                     (eq? v 'primitive-syntax-div)
                                         (cond
@@ -464,7 +465,7 @@
                                                 (append 
                                                     (hydra@eval (car rst) env)
                                                     (append-map
-                                                        (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%/ env)))))
+                                                        (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%/ env))))))
                                                         (cdr rst)))
                                             else (error "division fail"))
                                     (eq? v 'primitive-syntax-numeq)
@@ -475,7 +476,7 @@
                                                 (append
                                                     (hydra@eval (car rst) env)
                                                     (append-map
-                                                        (fn (x) (append (hydra@eval x env) (list (list (hydra@lookup '%= env)))))
+                                                        (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%= env))))))
                                                         (cdr rst)))
                                             else (error "numeq fail"))
                                     (eq? v 'primitive-syntax-define)
@@ -486,12 +487,12 @@
                                                     (append
                                                         (hydra@eval (cons 'fn (cons (cdar rst) (cdr rst))) env)
                                                         (list (list 3 (caar rst)))
-                                                        (list (list (hydra@lookup '%define env)))) 
+                                                        (list (list (cdr (hydra@lookup '%define env))))) 
                                                 (symbol? name)
                                                     (append
                                                         (hydra@eval value env)
                                                         (list (list 3 name))
-                                                        (list (list (hydra@lookup '%define env))))
+                                                        (list (list (cdr (hydra@lookup '%define env)))))
                                                 else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
                                     (eq? v 'primitive-syntax-set)
                                         (let ((name (car rst))
@@ -500,7 +501,7 @@
                                                 (append
                                                     (hydra@eval value env)
                                                     (list (list 3 name))
-                                                    (list (list (hydra@lookup '%set! env))))
+                                                    (list (list (cdr (hydra@lookup '%set! env)))))
                                                 (error "SET!: set! SYMBOL S-EXPR*")))
                                     (eq? v 'primitive-syntax-defsyn)
                                         #t
@@ -509,6 +510,30 @@
                                     (eq? v 'primitive-syntax-fn)
                                         (list (list 3 ;; load
                                             (compile-lambda rst env)))
+                                    (eq? v 'primitive-syntax-lt)
+                                        (append 
+                                            (hydra@eval (car rst) env)
+                                            (append-map
+                                                (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%< env))))))
+                                                (cdr rst)))
+                                    (eq? v 'primitive-syntax-gt)
+                                        (append 
+                                            (hydra@eval (car rst) env)
+                                            (append-map
+                                                (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%> env))))))
+                                                (cdr rst)))
+                                    (eq? v 'primitive-syntax-lte)
+                                        (append 
+                                            (hydra@eval (car rst) env)
+                                            (append-map
+                                                (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%<= env))))))
+                                                (cdr rst)))
+                                    (eq? v 'primitive-syntax-gte)
+                                        (append 
+                                            (hydra@eval (car rst) env)
+                                            (append-map
+                                                (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%>= env))))))
+                                                (cdr rst)))
                                     (eq? v 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
