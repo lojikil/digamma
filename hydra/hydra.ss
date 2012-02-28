@@ -247,7 +247,7 @@
                             (hydra@vm code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
                             (hydra@vm code env (+ ip (hydra@operand c)) (cdr stack) dump))
                   (eq? instr 30) ;; call
-                        (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
+                        (if (and (not (null? stack)) (hydra@lambda? (car stack)))
                             ;; create a list from the current registers, cons this to dump, and 
                             ;; recurse over hydra@vm. 
                             ;; need to support CALLing primitives too, since they could be passed
@@ -576,7 +576,7 @@
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
                                             (map (fn (x) (hydra@eval x env)) rst))
-                                            (list (list 31 v))
+                                            (list (list 31 fst))
                                             (list (list 30)))
                             (pair? fst) ;; fst is a pair, so we just blindly attempt to compile it. May cause an error that has to be caught in CALL. some lifting might fix this...
                                 (append (reverse-append
@@ -593,7 +593,7 @@
     " print #<foo> at the top level"
     (cond
         (hydra@lambda? x) (display "#<closure>\n")
-        (hydra@primitive? x) (display (format "#<primitive procedure ~a>" (cdr x)))
+        (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
         (symbol? x) (display (format "#<~a>" x))
         (pair? x) (display (car x))
         (bool? x) (display "Error: unknown symbol")
