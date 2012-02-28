@@ -1,3 +1,4 @@
+#!/usr/bin/env vesta
 (load 'hydra.ss)
 (define code '(car (cdr (cons 1 (cons 2 '())))))
 (define hlap (hydra@eval code *tlenv*))

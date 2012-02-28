@@ -39,7 +39,7 @@
 ;;   stack before moving to running the code... 
 ;; - add a debug variable, so that you could ,debug-engine at the REPL, and I wouldn't have to comment/uncomment
 ;;   debug lines every time I wanted to check out what's going on underneath the hood
-;; - fix this:
+;; - DONE fix this:
 ;;      h; 0
 ;;      #<primitive-procedure 0>
 ;;   it should be:
