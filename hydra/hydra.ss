@@ -204,22 +204,22 @@
                         (hydra@vm code
                                  env
                                  (+ ip 1)
-                                 (cons (< (car stack) (cadr stack)) (cddr stack)) dump)
+                                 (cons (< (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 10) ;; >
                         (hydra@vm code
                                  env
                                  (+ ip 1)
-                                 (cons (> (car stack) (cadr stack)) (cddr stack)) dump)
+                                 (cons (> (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 11) ;; <= 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
-                                 (cons (<= (car stack) (cadr stack)) (cddr stack)) dump)
+                                 (cons (<= (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 12) ;; >= 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
-                                 (cons (>= (car stack) (cadr stack)) (cddr stack)) dump)
+                                 (cons (>= (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 16) ;; display
                     (begin
                         (display (car stack))
