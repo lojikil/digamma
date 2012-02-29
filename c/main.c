@@ -21,7 +21,7 @@ main(int ac, char **al, char **el)
 	int iter = 0, rc = 0;
 	char choice = 0, buf[4096] = {0}, *tnam = nil;
 	struct stat st;
-	const char *VER = "2009.3", *REL = "6.6-theta";
+	const char *VER = "2012.0", *REL = "6.7-alpha";
 	const char *paths[] = {
 		"./prelude.ss",
 		"~/.digamma/prelude.ss",

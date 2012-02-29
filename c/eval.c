@@ -623,10 +623,34 @@ __base:
 					printf("symbol: %s",tmp2->object.str);
 					__return(makeerror(1,0,"unknown symbol"));
 				}
-				tconc(ret,tmp1);
+                if(tmp0 == e->snil)
+				    tconc(ret,tmp1);
+                else
+                {
+                    tmp1 = car(tmp0);
+                    tmp0 = cdr(tmp0);
+                    if(tmp0 != e->snil)
+                        stk = cons(vector(6,src,fst,tmp0,ret,env->data,makeinteger(state)),stk);
+                    src = tmp1;
+                    state = __PRE_APPLY;
+                    goto __base;
+                }
 			}
 			else
-				tconc(ret,tmp1);
+            {
+                if(tmp0 == e->snil)
+				    tconc(ret,tmp1);
+                else
+                {
+                    tmp1 = car(tmp0);
+                    tmp0 = cdr(tmp0);
+                    if(tmp0 != e->snil)
+                        stk = cons(vector(6,src,fst,tmp0,ret,env->data,makeinteger(state)),stk);
+                    src = tmp1;
+                    state = __PRE_APPLY;
+                    goto __base;
+                }
+            }
 		    if(fst->type == CLOSURE)
 			{
 				//close_window(env);

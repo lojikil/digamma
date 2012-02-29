@@ -605,6 +605,7 @@
      (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
         (cond
          (eq? (cadr inp) 'exit) (quit)
+         (eq? (cadr inp) 'q) (quit)
          (eq? (cadr inp) 'quit) (quit)
          (eq? (cadr inp) 'dribble) (begin (hydra@repl))
          (eq? (cadr inp) 'save) (begin (hydra@repl))
