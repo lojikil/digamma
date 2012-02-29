@@ -627,5 +627,5 @@
                     (hydra@repl))))))))
 
 (define (hydra@main)
-    (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2009.3/r0\n")
+    (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")
     (hydra@repl))    
