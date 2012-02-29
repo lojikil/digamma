@@ -595,7 +595,7 @@
         (hydra@lambda? x) (display "#<closure>\n")
         (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
         (symbol? x) (display (format "#<~a>" x))
-        (pair? x) (display (car x))
+        (pair? x) (display x)
         (bool? x) (display "Error: unknown symbol")
         else (display x)))
 
@@ -606,21 +606,24 @@
         (cond
          (eq? (cadr inp) 'exit) (quit)
          (eq? (cadr inp) 'quit) (quit)
-         (eq? (cadr inp) 'dribble) #t
-         (eq? (cadr inp) 'save) #t
-         else #f)
+         (eq? (cadr inp) 'dribble) (begin (hydra@repl))
+         (eq? (cadr inp) 'save) (begin (hydra@repl))
+         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl))
+         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl)))
         (if (not (pair? inp))
-            (begin
-                (top-level-print (hydra@lookup inp *tlenv*))
-                 (newline)
-                 (hydra@repl))
+            (if (eq? inp #v)
+                (hydra@repl)
+                (begin
+                    (top-level-print (hydra@lookup inp *tlenv*))
+                    (newline)
+                    (hydra@repl)))
             (with r (hydra@vm (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
-                (cond
-                 (symbol? r) (top-level-print (hydra@lookup r *tlenv*))
-                 (eq? r #v) #t
-                 else (write r))
-            (newline)
-            (hydra@repl))))))
+                (if (eq? r #v)
+                 (hydra@repl)
+                 (begin
+                    (top-level-print r)
+                    (newline)
+                    (hydra@repl))))))))
 
 (define (hydra@main)
     (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2009.3/r0\n")
