@@ -552,6 +552,11 @@
                                                 (list (list 28 else-len)) ;; jump else
                                                 <else>)) 
                                     else #t)
+                            (pair? fst) ;; fst is a pair, so we just blindly attempt to compile it. May cause an error that has to be caught in CALL. some lifting might fix this...
+                                (append (reverse-append
+                                            (map (fn (x) (hydra@eval x env)) rst))
+                                        (hydra@eval fst env)
+                                        (list (list 30)))
                             (hydra@primitive? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
                                 ;; and flatten it. basically, if we have:
@@ -578,11 +583,6 @@
                                             (map (fn (x) (hydra@eval x env)) rst))
                                             (list (list 31 fst))
                                             (list (list 30)))
-                            (pair? fst) ;; fst is a pair, so we just blindly attempt to compile it. May cause an error that has to be caught in CALL. some lifting might fix this...
-                                (append (reverse-append
-                                            (map (fn (x) (hydra@eval x env)) rst))
-                                        (hydra@eval fst env)
-                                        (list (list 30)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax"))))
 
             else (list (list 3 line)))))
@@ -596,7 +596,7 @@
         (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
         (symbol? x) (display (format "#<~a>" x))
         (pair? x) (display x)
-        (bool? x) (display "Error: unknown symbol")
+        ;;(bool? x) (display "Error: unknown symbol")
         else (display x)))
 
 (define (hydra@repl)
