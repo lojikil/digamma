@@ -57,11 +57,11 @@
 
 (define-macro letrec (bind :body letbody)
     (append
-        (list 'let (map car bind))
+        (list 'let (map (fn (x) (cons (car x) (cons #f '()))) bind))
         (append
-            (map (fn (x) (cons 'set x))
+            (map (fn (x) (cons 'set! x))
                 bind)
-            body)))
+            letbody)))
 
 (define-macro aif (<if-test> <if-true> :opt <if-false>) #f)
 
