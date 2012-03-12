@@ -220,6 +220,11 @@
                                  env
                                  (+ ip 1)
                                  (cons (>= (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 13) ;; length
+                        (hydra@vm code
+                                 env
+                                 (+ ip 1)
+                                 (cons (length (car stack)) (cdr stack)) dump)
                   (eq? instr 16) ;; display
                     (begin
                         (display (car stack))
@@ -325,7 +330,7 @@
     :quasi-quote (syntax . primitive-syntax-qquote)
     :unquote (syntax . primitve-syntax-unquote)
     :unquote-splice (syntax . primitive-syntax-unqsplice)
-    :eval (primitive . 13)
+    :length (primitive . 13)
     :load (primitive . 14)
     :apply (primitive . 15)
     :display (primitive . 16)
@@ -600,9 +605,9 @@
         (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
         else (display x)))
 
-(define (hydra@load src-file)
+(define (hydra@load src-file env)
     "an implementation of the primitive procedure load"
-    (with f (open f :read)
+    (with f (open src-file :read)
         (with-exception-handler
             (fn (x) (display (format "An error occured while loading ~S: ~a\n" src-file x)) (close f))
             (fn ()
@@ -610,7 +615,7 @@
                                     (if (eq? expr #e)
                                         #v
                                         (begin
-                                            (hydra@vm (list->vector (hydra@eval expr *tlenv*)) *tlenv*)
+                                            (hydra@vm (list->vector (hydra@eval expr env)) env)
                                             (loop (read f)))))))
                     (loop (read f)))
                 (close f)))))
