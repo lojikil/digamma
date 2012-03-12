@@ -318,13 +318,13 @@
     :%> (primitive . 10)
     :%<= (primitive . 11)
     :%>= (primitive . 12)
-    :if primitive-syntax-if 
-    :fn primitive-syntax-fn
-    :lambda primitive-syntax-fn
-    :quote primitive-syntax-quote
-    :quasi-quote primitive-syntax-qquote
-    :unquote primitve-syntax-unquote
-    :unquote-splice primitive-syntax-unqsplice
+    :if (syntax . primitive-syntax-if)
+    :fn (syntax . primitive-syntax-fn)
+    :lambda (syntax . primitive-syntax-fn)
+    :quote (syntax . primitive-syntax-quote)
+    :quasi-quote (syntax . primitive-syntax-qquote)
+    :unquote (syntax . primitve-syntax-unquote)
+    :unquote-splice (syntax . primitive-syntax-unqsplice)
     :eval (primitive . 13)
     :load (primitive . 14)
     :apply (primitive . 15)
@@ -345,19 +345,19 @@
     ;; 30 is call
     ;; 31 is environment-load
     ;; 32 is tail-call
-    :+ primitive-syntax-plus ;; variable arity syntax
-    :- primitive-syntax-minus
-    :* primitive-syntax-mult
-    :/ primitive-syntax-div
-    :< primitive-syntax-lt
-    :> primitive-syntax-gt
-    :<= primitive-syntax-lte
-    :>= primitive-syntax-gte
-    := primitive-syntax-numeq
-    :define primitive-syntax-define
-    :set! primitive-syntax-set
-    :define-syntax primitive-syntax-defsyn
-    :define-macro primitive-syntax-defmac
+    :+ (syntax . primitive-syntax-plus) ;; variable arity syntax
+    :- (syntax . primitive-syntax-minus)
+    :* (syntax . primitive-syntax-mult)
+    :/ (syntax . primitive-syntax-div)
+    :< (syntax . primitive-syntax-lt)
+    :> (syntax . primitive-syntax-gt)
+    :<= (syntax . primitive-syntax-lte)
+    :>= (syntax . primitive-syntax-gte)
+    := (syntax . primitive-syntax-numeq)
+    :define (syntax . primitive-syntax-define)
+    :set! (syntax . primitive-syntax-set)
+    :define-syntax (syntax . primitive-syntax-defsyn)
+    :define-macro (syntax . primitive-syntax-defmac)
     :%define (primitive . 33)
     :%set! (primitive . 34)
 }))
@@ -384,6 +384,9 @@
 
 (define (hydra@primitive? x)
     (and (pair? x) (eq? (car x) 'primitive)))
+
+(define (hydra@syntax? x)
+    (and (pair? x) (eq? (car x) 'syntax)))
 
 (define (hydra@add-env! name value environment)
     " adds name to the environment, but also returns
@@ -424,19 +427,19 @@
                    (if (eq? fst #f) ;; failed to find fst
                        (error (format "Symbol not found: ~a~%" fst)) 
                        (cond 
-                            (symbol? v) ;; primitive syntax
+                            (hydra@syntax? v) ;; primitive syntax
                                 (cond
-                                    (eq? v 'primitive-syntax-quote)
+                                    (eq? (cdr v) 'primitive-syntax-quote)
                                         (if (null? (car rst))
                                             '((4))
                                             (list (list 3 (car rst))))
-                                    (eq? v 'primitive-syntax-plus)
+                                    (eq? (cdr v) 'primitive-syntax-plus)
                                         (append 
                                             '((3 0))
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%+ env))))))
                                                 rst))
-                                    (eq? v 'primitive-syntax-minus)
+                                    (eq? (cdr v) 'primitive-syntax-minus)
                                         (cond
                                             (= (length rst) 1)
                                                 (append '((3 0))
@@ -449,13 +452,13 @@
                                                         (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%- env))))))
                                                         (cdr rst)))
                                             else (error "minus fail"))
-                                    (eq? v 'primitive-syntax-mult)
+                                    (eq? (cdr v) 'primitive-syntax-mult)
                                         (append 
                                             '((3 1))
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%* env))))))
                                                 rst))
-                                    (eq? v 'primitive-syntax-div)
+                                    (eq? (cdr v) 'primitive-syntax-div)
                                         (cond
                                             (= (length rst) 1)
                                                 (append '((3 1))
@@ -468,7 +471,7 @@
                                                         (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%/ env))))))
                                                         (cdr rst)))
                                             else (error "division fail"))
-                                    (eq? v 'primitive-syntax-numeq)
+                                    (eq? (cdr v) 'primitive-syntax-numeq)
                                         (cond
                                             (= (length rst) 1)
                                                 (list (list 3 #t))
@@ -479,7 +482,7 @@
                                                         (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%= env))))))
                                                         (cdr rst)))
                                             else (error "numeq fail"))
-                                    (eq? v 'primitive-syntax-define)
+                                    (eq? (cdr v) 'primitive-syntax-define)
                                         (let ((name (car rst))
                                                (value (cadr rst)))
                                             (cond
@@ -494,7 +497,7 @@
                                                         (list (list 3 name))
                                                         (list (list (cdr (hydra@lookup '%define env)))))
                                                 else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
-                                    (eq? v 'primitive-syntax-set)
+                                    (eq? (cdr v) 'primitive-syntax-set)
                                         (let ((name (car rst))
                                               (value (cadr rst)))
                                            (if (symbol? name) 
@@ -503,38 +506,38 @@
                                                     (list (list 3 name))
                                                     (list (list (cdr (hydra@lookup '%set! env)))))
                                                 (error "SET!: set! SYMBOL S-EXPR*")))
-                                    (eq? v 'primitive-syntax-defsyn)
+                                    (eq? (cdr v) 'primitive-syntax-defsyn)
                                         #t
-                                    (eq? v 'primitive-syntax-defmac)
+                                    (eq? (cdr v) 'primitive-syntax-defmac)
                                         #t
-                                    (eq? v 'primitive-syntax-fn)
+                                    (eq? (cdr v) 'primitive-syntax-fn)
                                         (list (list 3 ;; load
                                             (compile-lambda rst env)))
-                                    (eq? v 'primitive-syntax-lt)
+                                    (eq? (cdr v) 'primitive-syntax-lt)
                                         (append 
                                             (hydra@eval (car rst) env)
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%< env))))))
                                                 (cdr rst)))
-                                    (eq? v 'primitive-syntax-gt)
+                                    (eq? (cdr v) 'primitive-syntax-gt)
                                         (append 
                                             (hydra@eval (car rst) env)
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%> env))))))
                                                 (cdr rst)))
-                                    (eq? v 'primitive-syntax-lte)
+                                    (eq? (cdr v) 'primitive-syntax-lte)
                                         (append 
                                             (hydra@eval (car rst) env)
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%<= env))))))
                                                 (cdr rst)))
-                                    (eq? v 'primitive-syntax-gte)
+                                    (eq? (cdr v) 'primitive-syntax-gte)
                                         (append 
                                             (hydra@eval (car rst) env)
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%>= env))))))
                                                 (cdr rst)))
-                                    (eq? v 'primitive-syntax-if)
+                                    (eq? (cdr v) 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
                                         ;; generate code for <then>
@@ -592,11 +595,9 @@
 (define (top-level-print x)
     " print #<foo> at the top level"
     (cond
-        (hydra@lambda? x) (display "#<closure>\n")
+        (hydra@lambda? x) (display "#<closure>")
         (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
-        (symbol? x) (display (format "#<~a>" x))
-        (pair? x) (display x)
-        ;;(bool? x) (display "Error: unknown symbol")
+        (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
         else (display x)))
 
 (define (hydra@repl)
