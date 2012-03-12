@@ -39,14 +39,12 @@
 	(if (null? <body>) 
 		<item>
 		(list 'if <item> (cons 'and <body>))))
+
 (define-macro or (<item> :rest <body>) 
 	(if (null? <body>)
 		<item>
 		(list 'if <item> #t (cons 'or <body>))))
-;(def endswith? (fn (ending str)
-;	(eq? (cslice str (- 0 (length ending)) -1) ending)))
-;(def beginswith? (fn (str b)
-;	(eq? (cslice str 0 (length b)) b)))
+
 (define-macro with (name value :body body) (list (cons 'fn (cons (cons name '()) body)) value))
 
 (define-macro let (bind :body letbody)
@@ -56,6 +54,14 @@
     (if (null? (cdr bind))
         (list (cons 'fn (cons (list (caar bind)) letbody)) (cadar bind))
         (list (list 'fn (list (caar bind)) (cons 'let* (cons (cdr bind) letbody))) (cadar bind))))
+
+(define-macro letrec (bind :body letbody)
+    (append
+        (list 'let (map car bind))
+        (append
+            (map (fn (x) (cons 'set x))
+                bind)
+            body)))
 
 (define-macro aif (<if-test> <if-true> :opt <if-false>) #f)
 
