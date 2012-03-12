@@ -5,6 +5,6 @@
 (hydra@add-env! '*command-line* '() *tlenv*)
 (if (> (length *command-line*) 0)
     (begin
-        (hydra@set-env! '*command-line* *command-line* *tlenv*)
-        (hydra@load (nth *command-line* 0) *tlenv*))
+        (hydra@set-env! '*command-line* (cslice *command-line* 1 (length *command-line*)) *tlenv*)
+        (hydra@load (nth *command-line* 1) *tlenv*))
         (hydra@main))

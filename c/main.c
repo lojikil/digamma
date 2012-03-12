@@ -172,9 +172,9 @@ main(int ac, char **al, char **el)
 		if(ac > 2)
 		{
 			/* build command line */
-			tmp = makevector(ac - 2, nil);
-			for(iter = 2;iter < ac;iter++)
-				tmp->object.vec[iter - 2] = makestring(al[iter]);
+			tmp = makevector(ac - 1, nil);
+			for(iter = 1;iter < ac;iter++)
+				tmp->object.vec[iter - 1] = makestring(al[iter]);
 			add_env(tl_env,"*command-line*",tmp);
 		}
 		else
