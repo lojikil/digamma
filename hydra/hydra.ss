@@ -600,6 +600,21 @@
         (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
         else (display x)))
 
+(define (hydra@load src-file)
+    "an implementation of the primitive procedure load"
+    (with f (open f :read)
+        (with-exception-handler
+            (fn (x) (display (format "An error occured while loading ~S: ~a\n" src-file x)) (close f))
+            (fn ()
+                (letrec ((loop (fn (expr)
+                                    (if (eq? expr #e)
+                                        #v
+                                        (begin
+                                            (hydra@vm (list->vector (hydra@eval expr *tlenv*)) *tlenv*)
+                                            (loop (read f)))))))
+                    (loop (read f)))
+                (close f)))))
+                                    
 (define (hydra@repl)
     (display "h; ")
     (with inp (read)
