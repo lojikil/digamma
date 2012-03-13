@@ -225,6 +225,16 @@
                                  env
                                  (+ ip 1)
                                  (cons (length (car stack)) (cdr stack)) dump)
+                  (eq? instr 14) ;; exact?
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (exact? (car stack)) (cdr stack)) dump)
+                  (eq? instr 15) ;; inexact?
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (inexact? (car stack)) (cdr stack)) dump)
                   (eq? instr 16) ;; display
                     (begin
                         (display (car stack))
@@ -232,6 +242,46 @@
                                  env
                                  (+ ip 1)
                                  (cons #v (cdr stack)) dump))
+                  (eq? instr 18) ;; real?
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (real? (car stack)) (cdr stack)) dump)
+                  (eq? instr 19) ;; integer?
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (integer? (car stack)) (cdr stack)) dump)
+                  (eq? instr 20) ;; complex?
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (complex? (car stack)) (cdr stack)) dump)
+                  (eq? instr 21) ;; rational?
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (rational? (car stack)) (cdr stack)) dump)
+                  (eq? instr 22) ;; gcd
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (gcd (car stack)) (cdr stack)) dump)
+                  (eq? instr 23) ;; lcm
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (lcm (car stack)) (cdr stack)) dump)
+                  (eq? instr 24) ;; numerator 
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (numerator (car stack)) (cdr stack)) dump)
+                  (eq? instr 25) ;; denomenator
+                        (hydra@vm code
+                                  env
+                                  (+ ip 1)
+                                  (cons (denomenator (car stack)) (cdr stack)) dump)
                   (eq? instr 26) ;; = 
                         (hydra@vm code
                                  env
@@ -315,6 +365,8 @@
     :car (primitive . 0) ;; (primitive . 0) 
     :cdr (primitive . 1)
     :cons (primitive . 2)
+    ;; 3 is load a value onto the stack
+    ;; 4 is push a nil onto the stack
     :%- (primitive . 5) ;; primitive math operations with arity 2
     :%+ (primitive . 6)
     :%* (primitive . 7)
@@ -331,16 +383,16 @@
     :unquote (syntax . primitve-syntax-unquote)
     :unquote-splice (syntax . primitive-syntax-unqsplice)
     :length (primitive . 13)
-    :load (primitive . 14)
-    :apply (primitive . 15)
+    :exact? (primitive . 14)
+    :inexact? (primitive . 15)
     :display (primitive . 16)
-    :write (primitive . 17)
-    :read (primitive . 18)
-    :read-string (primitive . 19)
-    :read-char (primitive . 20)
-    :write-string (primitive . 21)
-    :write-char (primitive . 22)
-    :write-buffer (primitive . 23)
+    :apply (primitive . 17)
+    :real? (primitive . 18)
+    :integer? (primitive . 19)
+    :complex? (primitive . 20)
+    :rational? (primitive . 21)
+    :gcd (primitive . 22)
+    :lcm (primitive . 23)
     :numerator (primitive . 24)
     :denomenator (primitive . 25)
     :%= (primitive . 26) ;; probably has to place the value on stack rather than #t, #f for failure

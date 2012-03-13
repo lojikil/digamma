@@ -497,7 +497,37 @@
 ; Doesn't process more than one list at a time, which should be 
 ; fixed
 (def (gen-foreach code)
+    "generates a while-loop from a foreach, using empty? as the 
+     loop test" 
 #f)
+
+(define (gen-foreach-proc code)
+    " generates a while-loop from a foreach-proc loop, using empty?
+      as the loop test, but this will convert loops such as:
+        (foreach-proc (fn (x) (display x) (newline)) '(1 2 3 4 5))
+      into a normal foreach loop:
+        SExp *v123 = list(5,makeinteger(1)...);
+        while(emptyp(v123) != env->sfalse){
+            x = f_first(v123);
+            v123 = f_rest(v123);
+            f_display(x);
+            f_newline();
+        }
+      (i.e. it will not generate a lifted anonymous function, and 
+       will be nearly identical to the normal foreach loop)
+      whereas a loop such as
+        (foreach-proc myfun '(1 2 3 4 5))
+      will be translated into:
+        SExp *v124 = list(5,...);
+        SExp *v125 = env->snil;
+        while(emptyp(v124) != env->sfalse) {
+           v125 = f_first(v124);
+            v124 = f_rest(v124);
+            myfun(v125);
+        }
+    "
+#f)
+
 (def (defined-lambda? name)
 	(dict-has? *fnmung* name))
 
@@ -605,10 +635,15 @@
                                     (lift-named-let (cdr x))
                                     (gen-let (cadr x) (cddr x)))  ; let should be a top-level form, rather than expand to lambda(s)
             (eq? (car x) 'let*) (gen-let (cadr x) (cddr x)) ; same here
+            (eq? (car x) 'letrec) (gen-letrec (cadr x) (cddr x)) ; letrecs should be lifted with generated names 
 			(eq? (car x) 'with) 
                 (format "SExp *~s = ~s;\n~s" (coerce (car (cdr x)) 'string) (gen-code (caddr x)) (gen-begin (cdddr x)))
             (eq? (car x) 'map)
                 (lift-map x)
+            (eq? (car x) 'foreach)
+                (gen-foreach x)
+            (eq? (car x) 'foreach-proc)
+                (gen-foreach-proc x)
 			(eq? (car x) 'quote) (gen-literal (cadr x))
 			(eq? (car x) 'module) 'MODULE
 			(eq? (car x) 'if) (gen-if (cdr x)) ; if & other primitive syntax needs to be handled here
