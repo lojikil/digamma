@@ -5,6 +5,12 @@
 ;; file for details
 
 ;; TODO:
+;; - variable arity functions should have some easier method for generating
+;;   their code, so as to reduce boiler plate. List, <, +, &c. have a lot of 
+;;   repeated code in the code-generation side, that could be handled if they
+;;   could simply be marked as "variable arity" to the compiler. This arity marker
+;;   could be Z+ (integer >= 1) or -1 for true "variable arity", and they could be 
+;;   given handlers for it. Simple with a syntax for "generate-variable-arity-primitive"
 ;; - DONE: good compilation mechanism for hydra@eval
 ;; - DONE: method for hydra@vm to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
 ;;   which it cannot currently do because we need to rotate the stack (wait, do we?)
@@ -373,6 +379,132 @@
                             env
                             (+ ip 1)
                             (cons (inexact->exact (car stack)) (cdr stack)) dump)
+                  (eq? instr 40) ;; quotient
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (quotient (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 41) ;; modulo
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (modulo (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 42) ;; &
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (& (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 43) ;; |
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (| (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 44) ;; ^
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (^ (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 45) ;; ~
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (~ (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 46) ;; %list
+                        ;; take N items off the stack, create a list, and return it
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons
+                                (cslice (cdr stack) 0 (car stack))
+                                (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
+                  (eq? instr 47) ;; %vector
+                        ;; take N items off the stack, create a list, and return it
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons
+                                (coerce (cslice (cdr stack) 0 (car stack)) 'vector)
+                                (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
+                  (eq? instr 48) ;; %make-vector
+                        #t
+                  (eq? instr 49) ;; %make-string
+                        #t
+                  (eq? instr 50) ;; %string
+                        #t
+                  (eq? instr 51) ;; %append
+                        #t
+                  (eq? instr 52) ;; first
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (first (car stack)) (cdr stack)) dump)
+                  (eq? instr 53) ;; rest
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (rest (car stack)) (cdr stack)) dump)
+                  (eq? instr 54) ;; ccons
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (ccons (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 55) ;; %nth
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (nth (caddr stack) (cadr stack) (car stack)) (cdddr stack)) dump)
+                  (eq? instr 56) ;; keys
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (keys (car stack)) (cdr stack)) dump)
+                  (eq? instr 57) ;; partial-key?
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (partial-key? (cadr stack) (car stack)) (cddr stack)) dump)
+                  (eq? instr 58) ;; cset!
+                        (begin
+                            (cset! (cadr stack) (car stack))
+                            (hydra@vm code
+                                env
+                                (+ ip 1)
+                                (cons #v (cddr stack)) dump))
+                  (eq? instr 59) ;; empty?
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (empty? (car stack)) (cdr stack)) dump)
+                  (eq? instr 60) ;; gensym
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (gensym (car stack)) (cdr stack)) dump)
+                  (eq? instr 61) ;; imag-part
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (imag-part (car stack)) (cdr stack)) dump)
+                  (eq? instr 62) ;; real-part
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (real-part (car stack)) (cdr stack)) dump)
+                  (eq? instr 63) ;; make-rectangular
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (make-rectangular (car stack)) (cdr stack)) dump)
+                  (eq? instr 64) ;; make-polar
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (make-polar (car stack)) (cdr stack)) dump)
+                  (eq? instr 65) ;; magnitude
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (magnitude (car stack)) (cdr stack)) dump)
                         ))))
 
 
@@ -448,6 +580,35 @@
     :truncate (primitive . 37)
     :round (primitive . 38)
     :inexact->exact (primitive . 39)
+    :quotient (primitive . 40)
+    :modulo (primitive . 41)
+    :& (primitive . 42)
+    :| (primitive . 43)
+    :^ (primitive . 44)
+    :~ (primitive . 45)
+    :%list (primitive . 46)
+    :list (syntax . primitive-syntax-list)
+    :%vector (primitive . 47)
+    :vector (syntax . primitive-syntax-vector)
+    :%make-vector (primitive . 48)
+    :%make-string (primtiive . 49)
+    :%string (primitive . 50)
+    :%append (primitive . 51)
+    :first (primitive . 52)
+    :rest (primitive . 53)
+    :ccons (primitive . 54)
+    :nth (primitive . 55)
+    :keys (primitive . 56)
+    :partial-key? (primitive . 57)
+    :cset! (primitive . 58)
+    :empty? (primitive . 59)
+    :define-macro (syntax . primitive-syntax-defmac)
+    :gensym (primitive . 60)
+    :imag-part (primitive . 61)
+    :real-part (primitive . 62)
+    :make-rectangular (primitive . 63)
+    :make-polar (primitive . 64)
+    :magnitude (primitive . 65)
 }))
 
 (define (hydra@lookup item env)
@@ -625,6 +786,32 @@
                                             (append-map
                                                 (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%>= env))))))
                                                 (cdr rst)))
+                                    (eq? (cdr v) 'primitive-syntax-list)
+                                        ;; if rst is null?, then generate a load-null instruction (4)
+                                        ;; otherwise generate the instructions for the list, a length
+                                        ;; and a call to %list
+                                        (if (null? rst)
+                                            (list (list 4))
+                                            (append
+                                                (reverse-append
+                                                    (map
+                                                        (fn (x) (hydra@eval x env))
+                                                        rst))
+                                                (list (list 3 (length rst)))
+                                                (list (list (cdr (hydra@lookup '%list env))))))
+                                    (eq? (cdr v) 'primitive-syntax-vector)
+                                        ;; if rst is null?, then generate a load-null instruction (4)
+                                        ;; otherwise generate the instructions for the list, a length
+                                        ;; and a call to %list
+                                        (if (null? rst)
+                                            (list (list 4))
+                                            (append
+                                                (reverse-append
+                                                    (map
+                                                        (fn (x) (hydra@eval x env))
+                                                        rst))
+                                                (list (list 3 (length rst)))
+                                                (list (list (cdr (hydra@lookup '%vector env))))))
                                     (eq? (cdr v) 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
