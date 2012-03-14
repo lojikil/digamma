@@ -347,7 +347,33 @@
                             (hydra@vm
                                 code env (+ ip 1)
                                 (cons #v stack)
-                                dump))))))
+                                dump))
+                  (eq? instr 35) ;; ceil
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (ceil (car stack)) (cdr stack)) dump)
+                  (eq? instr 36) ;; floor
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (floor (car stack)) (cdr stack)) dump)
+                  (eq? instr 37) ;; truncate
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (truncate (car stack)) (cdr stack)) dump)
+                  (eq? instr 38) ;; round
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (round (car stack)) (cdr stack)) dump)
+                  (eq? instr 39) ;; inexact->exact
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (inexact->exact (car stack)) (cdr stack)) dump)
+                        ))))
 
 
 ; syntax to make the above nicer:
@@ -417,6 +443,11 @@
     :define-macro (syntax . primitive-syntax-defmac)
     :%define (primitive . 33)
     :%set! (primitive . 34)
+    :ceil (primitive . 35)
+    :floor (primitive . 36)
+    :truncate (primitive . 37)
+    :round (primitive . 38)
+    :inexact->exact (primitive . 39)
 }))
 
 (define (hydra@lookup item env)
