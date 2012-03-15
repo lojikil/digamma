@@ -426,13 +426,29 @@
                                 (coerce (cslice (cdr stack) 0 (car stack)) 'vector)
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
                   (eq? instr 48) ;; %make-vector
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (make-vector (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 49) ;; %make-string
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (make-string (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 50) ;; %string
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons
+                                (apply string (cslice (cdr stack) 0 (car stack)))
+                                (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
                   (eq? instr 51) ;; %append
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons
+                                (apply append (cslice (cdr stack) 0 (car stack)))
+                                (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
                   (eq? instr 52) ;; first
                         (hydra@vm code
                             env
