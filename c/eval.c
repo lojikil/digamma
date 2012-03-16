@@ -182,6 +182,7 @@ __base:
 				}
 			}
 			rst = mcar(ret);
+        case __POST_POST_APPLY:
 			switch(fst->type)
 			{
 				case PRIM:
@@ -363,8 +364,10 @@ __base:
 			{
 				__return(makeerror(1,0,"apply a : APPLIABLE l : PAIR => S-EXPRESSION"));
 			}
-			src = cons(car(rst),car(cdr(rst)));
-			state = __PRE_APPLY;
+			//src = cons(car(rst),car(cdr(rst)));
+            fst = car(rst);
+            rst = car(cdr(rst));
+			state = __POST_POST_APPLY;
 			goto __base;
 		case OPSTRING:
 			__return(fstring(rst));
