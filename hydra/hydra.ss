@@ -607,9 +607,13 @@
     :%vector (primitive . 47)
     :vector (syntax . primitive-syntax-vector)
     :%make-vector (primitive . 48)
-    :%make-string (primtiive . 49)
+    :make-vector (syntax  . primitive-syntax-makevector)
+    :%make-string (primitive . 49)
+    :make-string (syntax . primitive-syntax-makestring)
     :%string (primitive . 50)
+    :string (syntax . primitive-syntax-string)
     :%append (primitive . 51)
+    :append (syntax . primitive-syntax-append)
     :first (primitive . 52)
     :rest (primitive . 53)
     :ccons (primitive . 54)
@@ -818,7 +822,7 @@
                                     (eq? (cdr v) 'primitive-syntax-vector)
                                         ;; if rst is null?, then generate a load-null instruction (4)
                                         ;; otherwise generate the instructions for the list, a length
-                                        ;; and a call to %list
+                                        ;; and a call to %vector
                                         (if (null? rst)
                                             (list (list 4))
                                             (append
@@ -828,6 +832,34 @@
                                                         rst))
                                                 (list (list 3 (length rst)))
                                                 (list (list (cdr (hydra@lookup '%vector env))))))
+                                    (eq? (cdr v) 'primitive-syntax-makevector)
+                                        (with l (length rst)
+                                            (cond
+                                                (= l 1)
+                                                    (append
+                                                        '((4))
+                                                        (hydra@eval (car rst) env)
+                                                        (list (list (cdr (hydra@lookup '%make-vector env)))))
+                                                (= l 2)
+                                                    (append
+                                                        (reverse-append
+                                                            (map (fn (x) (hydra@eval x env)) rst))
+                                                        (list (list (cdr (hydra@lookup '%make-vector env)))))
+                                                else (hydra@eval "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
+                                    (eq? (cdr v) 'primitive-syntax-makestring)
+                                        (with l (length rst)
+                                            (cond
+                                                (= l 1)
+                                                    (append
+                                                        '((3 #\space))
+                                                        (hydra@eval (car rst) env)
+                                                        (list (list (cdr (hydra@lookup '%make-string env)))))
+                                                (= l 2)
+                                                    (append
+                                                        (reverse-append
+                                                            (map (fn (x) (hydra@eval x env)) rst))
+                                                        (list (list (cdr (hydra@lookup '%make-string env)))))
+                                                else (hydra@eval "make-string len : INTEGER (c : CHAR) => STRING")))
                                     (eq? (cdr v) 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
