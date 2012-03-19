@@ -506,21 +506,149 @@
                             env
                             (+ ip 1)
                             (cons (real-part (car stack)) (cdr stack)) dump)
-                  (eq? instr 63) ;; make-rectangular
+                    (eq? instr 63) ;; make-rectangular
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (make-rectangular (car stack)) (cdr stack)) dump)
-                  (eq? instr 64) ;; make-polar
+                    (eq? instr 64) ;; make-polar
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (make-polar (car stack)) (cdr stack)) dump)
-                  (eq? instr 65) ;; magnitude
+                    (eq? instr 65) ;; magnitude
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (magnitude (car stack)) (cdr stack)) dump)
+                    (eq? instr 66) ;; argument
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (argument (car stack)) (cdr stack)) dump)
+                    (eq? instr 67) ;; conjugate
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (conjugate (car stack)) (cdr stack)) dump)
+                    (eq? instr 68) ;; conjugate
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (conjugate! (car stack)) (cdr stack)) dump)
+                    (eq? instr 69) ;; polar->rectangular
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (polar->rectangular (car stack)) (cdr stack)) dump)
+                    (eq? instr 70) ;; rectangular->polar
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (rectangular->polar (car stack)) (cdr stack)) dump)
+                    (eq? instr 71) ;; sin
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (sin (car stack)) (cdr stack)) dump)
+                    (eq? instr 72) ;; cos
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (cos (car stack)) (cdr stack)) dump)
+                    (eq? instr 73) ;; tan
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (tan (car stack)) (cdr stack)) dump)
+                    (eq? instr 74) ;; asin
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (asin (car stack)) (cdr stack)) dump)
+                    (eq? instr 75) ;; acos
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (acos (car stack)) (cdr stack)) dump)
+                    (eq? instr 76) ;; atan
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (atan (car stack)) (cdr stack)) dump)
+                    (eq? instr 77) ;; atan2
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (atan2 (cadr stack) (car stack)) (cddr stack)) dump)
+                    (eq? instr 78) ;; sinh
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (sinh (car stack)) (cdr stack)) dump)
+                    (eq? instr 79) ;; cosh
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (cosh (car stack)) (cdr stack)) dump)
+                    (eq? instr 80) ;; tanh
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (tanh (car stack)) (cdr stack)) dump)
+                    (eq? instr 81) ;; exp
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp (car stack)) (cdr stack)) dump)
+                    (eq? instr 82) ;; ln
+                        #t
+                    (eq? instr 83) ;; abs
+                        #t
+                    (eq? instr 84) ;; sqrt
+                        #t
+                    (eq? instr 85) ;; exp2
+                        #t
+                    (eq? instr 86) ;; expm1
+                        #t
+                    (eq? instr 87) ;; log2
+                        #t
+                    (eq? instr 88) ;; log10
+                        #t
+                    (eq? instr 89) ;; <<
+                        #t
+                    (eq? instr 90) ;; >>
+                        #t
+                    (eq? instr 91) ;; string-append
+                        #t
+                    (eq? instr 92) ;; assq
+                        #t
+                    (eq? instr 93) ;; memq
+                        #t
+                    (eq? instr 94) ;; dict
+                        #t
+                    (eq? instr 95) ;; make-dict
+                        #t
+                    (eq? instr 96) ;; dict-has?
+                        #t
+                    (eq? instr 97) ;; coerce
+                        #t
+                    (eq? instr 98) ;; cupdate
+                        #t
+                    (eq? instr 99) ;; cslice
+                        #t
+                    (eq? instr 100) ;; tconc!
+                        #t
+                    (eq? instr 101) ;; make-tconc
+                        #t
+                    (eq? instr 102) ;; tconc-list
+                        #t
+                    (eq? instr 103) ;; tconc->pair
+                        #t
+                    (eq? instr 104) ;; tconc-splice
+                        #t
+                    (eq? instr 105) ;; rationalize
+                        #t 
                         ))))
 
 
@@ -629,6 +757,47 @@
     :make-rectangular (primitive . 63)
     :make-polar (primitive . 64)
     :magnitude (primitive . 65)
+    :argument (primitive . 66)
+    :conjugate (primitive . 67)
+    :conjugate! (primitive . 68)
+    :polar->rectangular (primitive . 69)
+    :rectangular->polar (primitive . 70)
+    :sin (primitive . 71)
+    :cos (primitive . 72)
+    :tan (primitive . 73)
+    :asin (primitive . 74)
+    :acos (primitive . 75)
+    :atan (primitive . 76)
+    :atan2 (primitive . 77)
+    :sinh (primitive . 78)
+    :cosh (primitive . 79)
+    :tanh (primitive . 80)
+    :exp (primitive . 81)
+    :ln (primitive . 82)
+    :abs (primitive . 83)
+    :sqrt (primitive . 84)
+    :exp2 (primitive . 85)
+    :expm1 (primitive . 86)
+    :log2 (primitive . 87)
+    :log10 (primitive . 88)
+    :<< (primitive . 89)
+    :>> (primitive . 90)
+    :string-append (primitive . 91)
+    :assq (primitive . 92)
+    :memq (primitive . 93)
+    :dict (primitive . 94)
+    :make-dict (primitive . 95)
+    :dict-has? (primitive . 96)
+    :coerce (primitive . 97)
+    :cupdate (primitive . 98)
+    :cslice (primitive . 99)
+    :tconc! (primitive . 100)
+    :make-tconc (primitive . 101)
+    :tconc-list (primitive . 102)
+    :tconc->pair (primitive . 103)
+    :tconc-splice (primitive . 104)
+    :rationalize (primitive . 105)
+    
 }))
 
 (define (hydra@lookup item env)
