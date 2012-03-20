@@ -675,12 +675,12 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (dict-has? (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (dict-has? (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 97) ;; coerce
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (coerce (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (coerce (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 98) ;; cupdate
                         (hydra@vm code
                             env
