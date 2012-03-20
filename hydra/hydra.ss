@@ -640,12 +640,12 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (<< (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (<< (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 90) ;; >>
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (>> (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (>> (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 91) ;; %string-append
                         (hydra@vm code
                             env
@@ -655,12 +655,12 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (assq (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (assq (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 93) ;; memq
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (memq (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (memq (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 94) ;; %dict
                         (hydra@vm code
                             env
