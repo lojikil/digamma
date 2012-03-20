@@ -602,53 +602,125 @@
                             (+ ip 1)
                             (cons (exp (car stack)) (cdr stack)) dump)
                     (eq? instr 82) ;; ln
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (ln (car stack)) (cdr stack)) dump)
                     (eq? instr 83) ;; abs
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (abs (car stack)) (cdr stack)) dump)
                     (eq? instr 84) ;; sqrt
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (sqrt (car stack)) (cdr stack)) dump)
                     (eq? instr 85) ;; exp2
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 86) ;; expm1
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (expm1 (car stack)) (cdr stack)) dump)
                     (eq? instr 87) ;; log2
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (log2 (car stack)) (cdr stack)) dump)
                     (eq? instr 88) ;; log10
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (log10 (car stack)) (cdr stack)) dump)
                     (eq? instr 89) ;; <<
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (<< (cadr stack) (car stack)) (cddr stack)) dump)
                     (eq? instr 90) ;; >>
-                        #t
-                    (eq? instr 91) ;; string-append
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (>> (cadr stack) (car stack)) (cddr stack)) dump)
+                    (eq? instr 91) ;; %string-append
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 92) ;; assq
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (assq (cadr stack) (car stack)) (cddr stack)) dump)
                     (eq? instr 93) ;; memq
-                        #t
-                    (eq? instr 94) ;; dict
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (memq (cadr stack) (car stack)) (cddr stack)) dump)
+                    (eq? instr 94) ;; %dict
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 95) ;; make-dict
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (make-dict) stack) dump)
                     (eq? instr 96) ;; dict-has?
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (dict-has? (cadr stack) (car stack)) (cddr stack)) dump)
                     (eq? instr 97) ;; coerce
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (coerce (cadr stack) (car stack)) (cddr stack)) dump)
                     (eq? instr 98) ;; cupdate
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (cupdate (car stack) (cadr stack) (caddr stack)) (cdddr stack)) dump)
                     (eq? instr 99) ;; cslice
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (cslice (car stack) (cadr stack) (caddr stack)) (cdddr stack)) dump)
                     (eq? instr 100) ;; tconc!
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 101) ;; make-tconc
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 102) ;; tconc-list
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 103) ;; tconc->pair
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 104) ;; tconc-splice
-                        #t
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (exp2 (car stack)) (cdr stack)) dump)
                     (eq? instr 105) ;; rationalize
-                        #t 
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (rationalize (car stack)) (cdr stack)) dump)
                         ))))
 
 
