@@ -54,3 +54,9 @@
         (map-stream
             (fn (x) (hex->ip (+ b x)))
             (range-stream 0 (+ (useable-ips mask) 1)))))
+
+(define (cidr->ip-stream baseip mask)
+    (with b (ip->hex baseip)
+        (map-stream
+            (fn (x) (hex->ip (+ b x)))
+            (range-stream 0 (+ (useable-ips mask) 1)))))
