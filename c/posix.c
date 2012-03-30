@@ -1624,9 +1624,9 @@ f_port_state(SExp *s, Symbol *e)
 	port = car(s);
 	if(port->type != PORT)
 		return makeerror(2,0,"port-state's p argument *must* be bound to a PORT object");
-	ret = makechar(PORT(port)->state);
-	ret->type = BOOL;
-	return ret;
+    if(PORT(port)->state)
+        return e->strue;
+    return e->sfalse;
 }	
 SExp *
 f_port_type(SExp *s, Symbol *e)

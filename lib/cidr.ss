@@ -39,6 +39,7 @@
                     (set! state (+ state 1))
                     (- state 1))
                 (error "stream end")))))
+
 ;; causes a crash; look into this
 (define (map-stream p r)
     (let ((v '()))

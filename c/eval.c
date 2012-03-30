@@ -35,15 +35,16 @@ __seval(SExp *s, Symbol *e)
 		return e->svoid;
 	env = shallow_clone_env(e);
 __base:
-	/*printf("Stack depth: %d; State: %d\n",pairlength(stk),state);
+	printf("Stack depth: %d; State: %d\n",pairlength(stk),state);
     printf("Env depth: %d; Total: %d\n",env->cur_offset, env->cur_size);
 	printf("src == ");
 	princ(src);
-	printf("\n");*/
+	printf("\n");
 	// add interpreter tick here.
 	switch(state)
 	{
 		case __PRE_APPLY:
+            LINE_DEBUG;
 			e->tick++;
 			if(src->type == PAIR)
 			{
@@ -133,9 +134,12 @@ __base:
 					state = fst->object.primitive.num;
 					goto __base;
 				}
-				if(fst->type != PRIM && fst->type != PROCEDURE && fst->type != VECTOR && fst->type != STRING && fst->type != DICT && fst->type != CLOSURE)
+				if(fst->type != PRIM && fst->type != PROCEDURE &&
+                   fst->type != VECTOR && fst->type != STRING &&
+                   fst->type != DICT && fst->type != CLOSURE &&
+                   fst->type != CONTINUATION)
 				{
-					__return(makeerror(1,0,"invalid type for application: only primitives, procedures, vectors, strings & dictionaries may be applied"));
+					__return(makeerror(1,0,"invalid type for application: only primitives, procedures, continuations, vectors, strings & dictionaries may be applied"));
 				}
 			}
 			else
@@ -144,6 +148,7 @@ __base:
 			}
 			//goto __base;
 		case __POST_APPLY:
+            LINE_DEBUG;
 			tmp0 = rst;
 			/* it would be great if we could unify closure arguments
 			 * whilst processing args for application, but for now
@@ -194,6 +199,7 @@ __base:
 				case CLOSURE:
 					// unify formal parameters with arguments
 					// Need to add a check here for a tail call condition.
+                    LINE_DEBUG;
 					env->data = (Window *) fst->object.closure.env;
 					tmp0 = fst->object.closure.params;
 					/* add test for tail here... */
@@ -202,6 +208,7 @@ __base:
 						if(tmp0->type != NIL && mcar(tmp0)->type != KEY)
 						{
 							// attempt a stack trace
+                            // TODO: check if this is actually needed here 
 							printf("Stack trace: \n");
 							tmp1 = stk;
 							while(tmp1 != e->snil)
@@ -478,7 +485,18 @@ __base:
 			}
 			__return(eqp(car(rst), car(cdr(rst))));
 		case OPCALLCC:
-			__return(e->snil);
+            if(pairlength(rst) != 1)
+            {
+                __return(makeerror(1,0,"call/cc expects a single, applicable, argument"));
+            }
+            tmp0 = car(rst);
+            tmp2 = (SExp *)hmalloc(sizeof(SExp));
+            tmp2->type = CONTINUATION;
+            stk = cdr(stk);
+            tmp2->object.closure.data = stk;
+            state = __POST_APPLY;
+            src = cons(tmp0,cons(tmp2,e->snil));
+            goto __base; 
 		case OPLT: /* < */
 			__return(flt(rst));
 		case OPLTE:
