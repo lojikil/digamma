@@ -156,6 +156,7 @@ __base:
 			 */
 			while(tmp0 != e->snil)
 			{
+                LINE_DEBUG;
 				tmp1 = car(tmp0);
 				tmp0 = cdr(tmp0);
 				if(tmp1->type == PAIR)
@@ -188,6 +189,7 @@ __base:
 			}
 			rst = mcar(ret);
         case __POST_POST_APPLY:
+            LINE_DEBUG;
 			switch(fst->type)
 			{
 				case PRIM:
@@ -197,6 +199,7 @@ __base:
 					state = __PROC;
 					break;
 				case CLOSURE:
+                    LINE_DEBUG;
 					// unify formal parameters with arguments
 					// Need to add a check here for a tail call condition.
                     LINE_DEBUG;
@@ -495,7 +498,9 @@ __base:
             stk = cdr(stk);
             tmp2->object.closure.data = stk;
             state = __POST_APPLY;
-            src = cons(tmp0,cons(tmp2,e->snil));
+            //src = cons(tmp0,cons(tmp2,e->snil));
+            rst = cons(tmp2,e->snil);
+            fst = tmp0;
             goto __base; 
 		case OPLT: /* < */
 			__return(flt(rst));
