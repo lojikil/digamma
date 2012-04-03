@@ -36,7 +36,12 @@
 #define FILEMODE(x) (x)->object.p->mode
 #define SOCKINFO(x) (x)->object.p->sock_info
 
+#ifdef DEBUG
 #define LINE_DEBUG printf("Made it to %d in %s\n", __LINE__, __FUNCTION__)
+#else
+#define LINE_DEBUG
+#endif
+
 /* def macros */
 #define INTERNDEF(x) SExp *x(SExp *, Symbol *)
 
@@ -411,9 +416,7 @@ SExp *frealp(SExp *);
 SExp *fcomplexp(SExp *);
 SExp *frationalp(SExp *);
 SExp *fintegerp(SExp *);
-#ifdef NEED_LOG2
-double log2(double);
-#endif
+
 /* syntactic primitives */
 SExp *fset(SExp *, SExp *, Symbol *);
 SExp *fdef(SExp *, SExp *, Symbol *);

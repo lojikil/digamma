@@ -5,7 +5,8 @@ OBJS=vesta.o ffi.o posix.o main.o eval.o
 LIBPATH=
 INCPATH=
 LIBS=-lgc -lm
-CFLAGS=-I/usr/local/include -L/usr/local/lib -DNEED_LOG2
+EFLAGS=""
+CFLAGS=-I/usr/local/include -L/usr/local/lib $(EFLAGS)
 IMAGE=vesta
 all: $(OBJS)
 	@echo -n "Linking image..."

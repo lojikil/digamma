@@ -6373,10 +6373,3 @@ fappend(SExp *rst)
 			return append(rst);
 	}
 }
-#ifdef NEED_LOG2
-double
-log2(double x)
-{
-	return log(x) / log(2);
-}
-#endif

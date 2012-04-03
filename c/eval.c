@@ -35,11 +35,13 @@ __seval(SExp *s, Symbol *e)
 		return e->svoid;
 	env = shallow_clone_env(e);
 __base:
+#ifdef DEBUG
 	printf("Stack depth: %d; State: %d\n",pairlength(stk),state);
     printf("Env depth: %d; Total: %d\n",env->cur_offset, env->cur_size);
 	printf("src == ");
 	princ(src);
 	printf("\n");
+#endif
 	// add interpreter tick here.
 	switch(state)
 	{
@@ -495,7 +497,27 @@ __base:
             tmp0 = car(rst);
             tmp2 = (SExp *)hmalloc(sizeof(SExp));
             tmp2->type = CONTINUATION;
-            stk = cdr(stk);
+#ifdef DEBUG
+            printf("\nstk dump\n");
+            tmp3 = stk;
+            while(tmp3 != e->snil && tmp3 != nil)
+            {
+                printf("tmp3: ");
+                tmp1 = car(tmp3);
+                tmp3 = cdr(tmp3);
+                for(itmp = 0;itmp < 6; itmp++)
+                {
+                    if(itmp != 4)
+                    {
+                        printf("\t");
+                        princ(tmp1->object.vec[itmp]);
+                        printf("\n");
+                    }
+                }
+                printf("\n");
+            }
+#endif
+            //stk = cdr(stk);
             tmp2->object.closure.data = stk;
             state = __POST_APPLY;
             //src = cons(tmp0,cons(tmp2,e->snil));

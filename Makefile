@@ -1,6 +1,7 @@
+EFLAGS=""
 all: 
 	@echo Buliding Vesta...
-	@cd ./c && make
+	@cd ./c && make EFLAGS="$(EFLAGS)"
 	@echo Done
 	@echo -n Moving ./c/vesta ./bin/vesta...
 	@mv ./c/vesta ./bin/vesta

@@ -1,7 +1,14 @@
 #!/bin/sh
 
 name=`uname | sed -e 's/_.*//'`
+FLAGS=""
+
+case $1 in
+    -d) FLAGS="-DDEBUG";;
+    *);;
+esac
+
 case $name in
-	CYGWIN) make CFLAGS=-DCYGWIN ;;
+	CYGWIN) make EFLAGS="-DCYGWIN $FLAGS";;
 	*) make ;;
 esac
