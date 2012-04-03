@@ -519,8 +519,8 @@ __base:
 #endif
             //stk = cdr(stk);
             tmp2->object.closure.data = stk;
-            state = __POST_APPLY;
-            //src = cons(tmp0,cons(tmp2,e->snil));
+            state = __POST_POST_APPLY;
+            src = cons(tmp0,cons(tmp2,e->snil));
             rst = cons(tmp2,e->snil);
             fst = tmp0;
             goto __base; 
