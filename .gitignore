@@ -1,3 +1,7 @@
+vesta
+*.stackdump
+*.core
+core
 *.o
 .*.swp
 *.exe

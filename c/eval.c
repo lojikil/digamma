@@ -516,6 +516,8 @@ __base:
                         princ(tmp1->object.vec[itmp]);
                         printf("\n");
                     }
+                    else
+                        printf("\tenv->data\n");
                 }
                 printf("\n");
             }
@@ -1073,6 +1075,15 @@ __base:
 				printf("SNIL == NIL in __seval before procedure call!\n");
 			__return(proc(rst,env));
         case __CONT:
+#ifdef DEBUG
+            printf("src: ");
+            princ(src);
+            printf("\nfst: ");
+            princ(fst);
+            printf("\nrst: ");
+            princ(rst);
+            printf("\nstate: %d\n",state);
+#endif
             __return(e->snil);
 		case OPCLONENV:
 			if(pairlength(rst) != 1)
