@@ -200,6 +200,9 @@ __base:
 				case PROCEDURE:
 					state = __PROC;
 					break;
+                case CONTINUATION:
+                    state = __CONT;
+                    break;
 				case CLOSURE:
                     LINE_DEBUG;
 					// unify formal parameters with arguments
@@ -1069,6 +1072,8 @@ __base:
 			if(e->snil == nil)
 				printf("SNIL == NIL in __seval before procedure call!\n");
 			__return(proc(rst,env));
+        case __CONT:
+            __return(e->snil);
 		case OPCLONENV:
 			if(pairlength(rst) != 1)
 			{
