@@ -1,2 +1,5 @@
 (define f #f)
-(+ 1 (call/cc (lambda (k) (newline) (newline) (display "K --> ") (display k) (newline) (newline) (set! f k) 1)))
+(display (+ 1 (call/cc (lambda (k) (newline) (newline) (display "K --> ") (display k) (newline) (newline) (set! f k) 1))))
+(newline)
+(display (f 3))
+(newline) 

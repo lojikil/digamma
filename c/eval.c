@@ -512,7 +512,7 @@ __base:
                 {
                     if(itmp != 4)
                     {
-                        printf("\t");
+                        printf("\t%d: ", itmp);
                         princ(tmp1->object.vec[itmp]);
                         printf("\n");
                     }
@@ -1084,7 +1084,22 @@ __base:
             princ(rst);
             printf("\nstate: %d\n",state);
 #endif
-            __return(e->snil);
+            LINE_DEBUG;
+            tmp0 = src;
+            tmp1 = fst;
+            stk = fst->object.closure.data;
+            tmp2 = car(stk);
+            LINE_DEBUG;
+            src = tmp2->object.vec[0];
+            fst = tmp2->object.vec[1];
+            rst = tmp2->object.vec[2];
+            ret = tmp2->object.vec[3];
+            LINE_DEBUG;
+            env->data = (Window *)tmp2->object.vec[4];
+            LINE_DEBUG;
+            state = AINT(tmp2->object.vec[5]);
+            LINE_DEBUG;
+            goto __base;
 		case OPCLONENV:
 			if(pairlength(rst) != 1)
 			{
