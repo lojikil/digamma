@@ -1083,6 +1083,9 @@ __base:
             printf("\nrst: ");
             princ(rst);
             printf("\nstate: %d\n",state);
+            printf("ret: ");
+            princ(ret);
+            printf("\n");
 #endif
             LINE_DEBUG;
             tmp0 = src;
@@ -1099,6 +1102,19 @@ __base:
             LINE_DEBUG;
             state = AINT(tmp2->object.vec[5]);
             LINE_DEBUG;
+#ifdef DEBUG
+            printf("after stack reification:\n");
+            printf("src: ");
+            princ(src);
+            printf("\nfst: ");
+            princ(fst);
+            printf("\nrst: ");
+            princ(rst);
+            printf("\nstate: %d\n",state);
+            printf("ret: ");
+            princ(ret);
+            printf("\n");
+#endif
             goto __base;
 		case OPCLONENV:
 			if(pairlength(rst) != 1)

@@ -876,7 +876,7 @@
     " look up item in the current environment, returning #f for not found"
     (cond
         (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
-        (null? env) #f
+        (null? env) (hydra@error (format "unbound variable: ~a" item)) 
         (dict-has? (car env) item) (nth (car env) item)
         else (hydra@lookup item (cdr env))))
 
@@ -898,6 +898,9 @@
 (define (hydra@syntax? x)
     (and (pair? x) (eq? (car x) 'syntax)))
 
+(define (hydra@error? x)
+    (and (pair? x) (eq? (car x) 'error)))
+
 (define (hydra@add-env! name value environment)
     " adds name to the environment, but also returns
       (load #v), so that the compiler adds the correct
@@ -909,7 +912,7 @@
     " sets a value in the current environment, and returns
       an error if that binding has not been previously defined"
     (cond
-        (null? environment) (error (format "SET! error: undefined name \"~a\"" name))
+        (null? environment) (hydra@error (format "SET! error: undefined name \"~a\"" name))
         (dict-has? (car environment) name)
             (cset! (car environment) name value)
         else hydra@set-env! name value (cdr environment)))
@@ -923,7 +926,15 @@
 
 (define (show x) (display "show: ") (display x) (newline) x)
 
-(define (hydra@eval line env (thusfar '()))
+(define (hydra@error msg)
+    "simple, hydra specific errors"
+    (list 'error msg))
+
+(define (hydra@eval line env)
+    "simple wrapper around hydra@vm & hydra@compile"
+    (hydra@vm (hydra@compile line env) env))
+
+(define (hydra@compile line env (thusfar '()))
     (if (null? line)
         thusfar
         (cond
@@ -945,38 +956,38 @@
                                     (append 
                                         '((3 0))
                                         (append-map
-                                            (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%+ env))))))
+                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%+ env))))))
                                             rst))
                                 (eq? (cdr v) 'primitive-syntax-minus)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 0))
-                                                (hydra@eval (car rst) env)
+                                                (hydra@compile (car rst) env)
                                                 (list (list (hydra@lookup '%- env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (hydra@eval (car rst) env)
+                                                (hydra@compile (car rst) env)
                                                 (append-map
-                                                    (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%- env))))))
+                                                    (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%- env))))))
                                                     (cdr rst)))
                                         else (error "minus fail"))
                                 (eq? (cdr v) 'primitive-syntax-mult)
                                     (append 
                                         '((3 1))
                                         (append-map
-                                            (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%* env))))))
+                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%* env))))))
                                             rst))
                                 (eq? (cdr v) 'primitive-syntax-div)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 1))
-                                                (hydra@eval (car rst) env)
+                                                (hydra@compile (car rst) env)
                                                 (list (list (hydra@lookup '%/ env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (hydra@eval (car rst) env)
+                                                (hydra@compile (car rst) env)
                                                 (append-map
-                                                    (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%/ env))))))
+                                                    (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%/ env))))))
                                                     (cdr rst)))
                                         else (error "division fail"))
                                 (eq? (cdr v) 'primitive-syntax-numeq)
@@ -985,9 +996,9 @@
                                             (list (list 3 #t))
                                         (> (length rst) 1)
                                             (append
-                                                (hydra@eval (car rst) env)
+                                                (hydra@compile (car rst) env)
                                                 (append-map
-                                                    (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%= env))))))
+                                                    (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%= env))))))
                                                     (cdr rst)))
                                         else (error "numeq fail"))
                                 (eq? (cdr v) 'primitive-syntax-define)
@@ -996,12 +1007,12 @@
                                         (cond
                                             (pair? name) 
                                                 (append
-                                                    (hydra@eval (cons 'fn (cons (cdar rst) (cdr rst))) env)
+                                                    (hydra@compile (cons 'fn (cons (cdar rst) (cdr rst))) env)
                                                     (list (list 3 (caar rst)))
                                                     (list (list (cdr (hydra@lookup '%define env))))) 
                                             (symbol? name)
                                                 (append
-                                                    (hydra@eval value env)
+                                                    (hydra@compile value env)
                                                     (list (list 3 name))
                                                     (list (list (cdr (hydra@lookup '%define env)))))
                                             else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
@@ -1010,7 +1021,7 @@
                                           (value (cadr rst)))
                                        (if (symbol? name) 
                                             (append
-                                                (hydra@eval value env)
+                                                (hydra@compile value env)
                                                 (list (list 3 name))
                                                 (list (list (cdr (hydra@lookup '%set! env)))))
                                             (error "SET!: set! SYMBOL S-EXPR*")))
@@ -1023,27 +1034,27 @@
                                         (compile-lambda rst env)))
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
-                                        (hydra@eval (car rst) env)
+                                        (hydra@compile (car rst) env)
                                         (append-map
-                                            (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%< env))))))
+                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%< env))))))
                                             (cdr rst)))
                                 (eq? (cdr v) 'primitive-syntax-gt)
                                     (append 
-                                        (hydra@eval (car rst) env)
+                                        (hydra@compile (car rst) env)
                                         (append-map
-                                            (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%> env))))))
+                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%> env))))))
                                             (cdr rst)))
                                 (eq? (cdr v) 'primitive-syntax-lte)
                                     (append 
-                                        (hydra@eval (car rst) env)
+                                        (hydra@compile (car rst) env)
                                         (append-map
-                                            (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%<= env))))))
+                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%<= env))))))
                                             (cdr rst)))
                                 (eq? (cdr v) 'primitive-syntax-gte)
                                     (append 
-                                        (hydra@eval (car rst) env)
+                                        (hydra@compile (car rst) env)
                                         (append-map
-                                            (fn (x) (append (hydra@eval x env) (list (list (cdr (hydra@lookup '%>= env))))))
+                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%>= env))))))
                                             (cdr rst)))
                                 (eq? (cdr v) 'primitive-syntax-list)
                                     ;; if rst is null?, then generate a load-null instruction (4)
@@ -1054,7 +1065,7 @@
                                         (append
                                             (reverse-append
                                                 (map
-                                                    (fn (x) (hydra@eval x env))
+                                                    (fn (x) (hydra@compile x env))
                                                     rst))
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (hydra@lookup '%list env))))))
@@ -1067,7 +1078,7 @@
                                         (append
                                             (reverse-append
                                                 (map
-                                                    (fn (x) (hydra@eval x env))
+                                                    (fn (x) (hydra@compile x env))
                                                     rst))
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (hydra@lookup '%vector env))))))
@@ -1077,28 +1088,28 @@
                                             (= l 1)
                                                 (append
                                                     '((4))
-                                                    (hydra@eval (car rst) env)
+                                                    (hydra@compile (car rst) env)
                                                     (list (list (cdr (hydra@lookup '%make-vector env)))))
                                             (= l 2)
                                                 (append
                                                     (reverse-append
-                                                        (map (fn (x) (hydra@eval x env)) rst))
+                                                        (map (fn (x) (hydra@compile x env)) rst))
                                                     (list (list (cdr (hydra@lookup '%make-vector env)))))
-                                            else (hydra@eval "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
+                                            else (hydra@compile "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
                                 (eq? (cdr v) 'primitive-syntax-makestring)
                                     (with l (length rst)
                                         (cond
                                             (= l 1)
                                                 (append
                                                     '((3 #\space))
-                                                    (hydra@eval (car rst) env)
+                                                    (hydra@compile (car rst) env)
                                                     (list (list (cdr (hydra@lookup '%make-string env)))))
                                             (= l 2)
                                                 (append
                                                     (reverse-append
-                                                        (map (fn (x) (hydra@eval x env)) rst))
+                                                        (map (fn (x) (hydra@compile x env)) rst))
                                                     (list (list (cdr (hydra@lookup '%make-string env)))))
-                                            else (hydra@eval "make-string len : INTEGER (c : CHAR) => STRING")))
+                                            else (hydra@compile "make-string len : INTEGER (c : CHAR) => STRING")))
                                 (eq? (cdr v) 'primitive-syntax-if)
                                     ;; need to generate code for <cond>
                                     ;; add CMP instruction '(30)
@@ -1106,9 +1117,9 @@
                                     ;; generate code for <else>
                                     ;; add count to CMP instruction to jump to <else>
                                     ;; add count to <then> to skip <else>
-                                    (let* ((<cond> (hydra@eval (car rst) env))
-                                           (<then> (hydra@eval (cadr rst) env))
-                                           (<else> (hydra@eval (caddr rst) env))
+                                    (let* ((<cond> (hydra@compile (car rst) env))
+                                           (<then> (hydra@compile (cadr rst) env))
+                                           (<else> (hydra@compile (caddr rst) env))
                                            (then-len (+ (length <then>) 2)) ;; +2 in order to avoid the jump over else
                                            (else-len (+ (length <else>) 1)))
                                         (append <cond>
@@ -1119,8 +1130,8 @@
                                 else #t)
                             (pair? fst) ;; fst is a pair, so we just blindly attempt to compile it. May cause an error that has to be caught in CALL. some lifting might fix this...
                                 (append (reverse-append
-                                            (map (fn (x) (hydra@eval x env)) rst))
-                                        (hydra@eval fst env)
+                                            (map (fn (x) (hydra@compile x env)) rst))
+                                        (hydra@compile fst env)
                                         (list (list 30)))
                             (hydra@primitive? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
@@ -1135,17 +1146,17 @@
                                 ;; this isn't the *most* efficient, but it is pretty easy
                                 (append
                                     (reverse-append
-                                        (map (fn (x) (hydra@eval x env))
+                                        (map (fn (x) (hydra@compile x env))
                                              rst))
                                     (list (list (cdr v))))
                             (hydra@lambda? v) ;; hydra closure
                                 (append (reverse-append
-                                            (map (fn (x) (hydra@eval x env)) rst))
+                                            (map (fn (x) (hydra@compile x env)) rst))
                                             (list (list 3 v))
                                             (list (list 30)))
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
-                                            (map (fn (x) (hydra@eval x env)) rst))
+                                            (map (fn (x) (hydra@compile x env)) rst))
                                             (list (list 31 fst))
                                             (list (list 30)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
@@ -1160,6 +1171,7 @@
         (hydra@lambda? x) (display "#<closure>")
         (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
         (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
+        (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
         else (display x)))
 
 (define (hydra@load src-file env)
