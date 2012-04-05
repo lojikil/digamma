@@ -452,6 +452,23 @@ list(int n, ...)
 	return mcar(ret);
 }
 SExp *
+list_copy(SExp *l, int tconcp)
+{
+    SExp *ret = tconcify(snil);
+    int i = 0, len = 0;
+    if(l->type != PAIR)
+        return makeerror(0,0,"list-copy's sole arg *must* be a pair");
+    for(len = pairlength(l); i < len; i++)
+    {
+        tconc(ret,car(l));
+        l = cdr(l);
+    }
+    if(tconcp)
+        return ret;
+    return mcar(ret);
+}
+     
+SExp *
 vector(int n, ...)
 {
 	va_list ap;
