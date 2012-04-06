@@ -1208,7 +1208,7 @@
                     (top-level-print (hydra@lookup inp *tlenv*))
                     (newline)
                     (hydra@repl)))
-            (with r (hydra@vm (list->vector (hydra@eval inp *tlenv*)) *tlenv*)
+            (with r (hydra@eval inp *tlenv*) 
                 (if (eq? r #v)
                  (hydra@repl)
                  (begin

@@ -1,7 +1,7 @@
 #!/usr/bin/env vesta
 (load 'hydra.ss)
 (define code '(car (cdr (cons 1 (cons 2 '())))))
-(define hlap (hydra@eval code *tlenv*))
+(define hlap (hydra@compile code *tlenv*))
 (display "original source code: ")
 (write code)
 (newline) 
@@ -32,7 +32,7 @@
 ;; this would be 100x cleaner with syntax...
 
 (define-macro hydra-test (digamma-code expected-hlap expected-value)
-    (list 'with 'h (list 'hydra@eval (list 'quote digamma-code) '*tlenv*)
+    (list 'with 'h (list 'hydra@compile (list 'quote digamma-code) '*tlenv*)
         (list 'if (list 'not (list 'equal? 'h (list 'quote expected-hlap)))
             (list 'display (list 'format "[-] HLAP generation failed for ~a; expected ~a, got ~a~%" (list 'quote digamma-code) (list 'quote expected-hlap) 'h))
             (list 'with 'e (list 'hydra@vm 'h '*tlenv*)
