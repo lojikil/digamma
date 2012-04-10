@@ -721,6 +721,8 @@
                             env
                             (+ ip 1)
                             (cons (rationalize (car stack)) (cdr stack)) dump)
+                    (eq? instr 106) ;; call/cc
+                        #f
                         ))))
 
 
@@ -869,6 +871,7 @@
     :tconc->pair (primitive . 103)
     :tconc-splice (primitive . 104)
     :rationalize (primitive . 105)
+    :call/cc (primitive . 106)
     
 }))
 
@@ -885,7 +888,7 @@
         (vector
             (list-copy env)
             (append-map
-                (fn (x) (hydra@eval x env))
+                (fn (x) (hydra@compile x env))
                 (cdr rst))
             (car rst)))) 
 
