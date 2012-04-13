@@ -524,6 +524,12 @@ __base:
             printf("current ret: ");
             princ(ret);
             printf("\n");
+            printf("__val: ");
+            princ(__val);
+            printf("\n");
+            printf("__r: ");
+            //princ(__r);
+            printf("\n");
 #endif
             //stk = cdr(stk);
             tmp2->object.closure.data = stk;
@@ -1089,17 +1095,24 @@ __base:
             printf("ret: ");
             princ(ret);
             printf("\n");
+            printf("__val: ");
+            princ(__val);
+            printf("\n");
+            printf("__r: ");
+            //princ(__r);
+            printf("\n");
 #endif
             LINE_DEBUG;
             tmp0 = rst;
             tmp1 = fst;
             stk = fst->object.closure.data;
             tmp2 = car(stk);
+            stk = cdr(stk);
             LINE_DEBUG;
             src = tmp2->object.vec[0];
             fst = tmp2->object.vec[1];
             rst = tmp2->object.vec[2];
-            ret = list_copy(mcar(tmp2->object.vec[3]), 1);
+            ret = list_copy(mcar(tmp2->object.vec[3]), 1, pairlength(rst) + 1);
             tconc(ret,car(tmp0));
             LINE_DEBUG;
             env->data = (Window *)tmp2->object.vec[4];

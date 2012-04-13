@@ -452,13 +452,19 @@ list(int n, ...)
 	return mcar(ret);
 }
 SExp *
-list_copy(SExp *l, int tconcp)
+list_copy(SExp *l, int tconcp, int less)
+/* list_copy: copies the spine of a list.
+ * params:
+ *  l: the list to copy
+ *  tconcp: 1 to return a tconc, 0 to return a list
+ *  less: copy from 0 -> len(l) - less
+ */
 {
     SExp *ret = tconcify(snil);
     int i = 0, len = 0;
     if(l->type != PAIR)
         return makeerror(0,0,"list-copy's sole arg *must* be a pair");
-    for(len = pairlength(l); i < len; i++)
+    for(len = pairlength(l) - less; i < len; i++)
     {
         tconc(ret,car(l));
         l = cdr(l);
@@ -3272,6 +3278,12 @@ fplus(SExp *rst)
 {
 	SExp *tmp0 = nil, *tmp1 = nil;
 	int itmp = 0;
+#ifdef DEBUG
+    LINE_DEBUG;
+    printf("rst == ");
+    princ(rst);
+    printf("\n");
+#endif 
 	tmp1 = makenumber(INTEGER);
 	tmp1->object.n->nobject.z = pairlength(rst);
 	if(tmp1->object.n->nobject.z == 0)

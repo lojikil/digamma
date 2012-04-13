@@ -88,6 +88,10 @@ interrogate(SExp *s, Symbol *env)
 			else
 				printf("symlookup returned nil (!!)\n");
 		}
+        else if(!strncasecmp(buf,"splay",5))
+        {
+
+        }
 		else if(!strncasecmp(buf,"val",3))
 		{
 			l = strlen(&buf[4]);

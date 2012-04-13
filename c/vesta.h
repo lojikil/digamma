@@ -354,7 +354,7 @@ SExp *eqp(SExp *, SExp *);
 SExp *assq(SExp *, SExp *);
 SExp *list(int, ...);
 SExp *vector(int, ...);
-SExp *list_copy(SExp *, int);
+SExp *list_copy(SExp *, int, int);
 
 /* math primitives */
 SExp *fsqrt(SExp *);
