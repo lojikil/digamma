@@ -722,7 +722,23 @@
                             (+ ip 1)
                             (cons (rationalize (car stack)) (cdr stack)) dump)
                     (eq? instr 106) ;; call/cc
-                        #f
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            (cons (hydra@vm 
+                                (cons
+                                    (list 3 (car stack))
+                                    (list (list 30)))
+                                env
+                                0
+                                (cons
+                                    (list
+                                        'continuation
+                                        code
+                                        ip
+                                        env
+                                        stack
+                                        dump) '()) '()) stack) dump)
                         ))))
 
 
@@ -903,6 +919,9 @@
 
 (define (hydra@error? x)
     (and (pair? x) (eq? (car x) 'error)))
+
+(define (hydra@continuation? x)
+    (and (pair? x) (eq? (car x) 'continuation)))
 
 (define (hydra@add-env! name value environment)
     " adds name to the environment, but also returns
@@ -1172,6 +1191,7 @@
     " print #<foo> at the top level"
     (cond
         (hydra@lambda? x) (display "#<closure>")
+        (hydra@continuation? x) (display "#<continuation>")
         (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
         (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
         (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
