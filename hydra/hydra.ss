@@ -732,6 +732,12 @@
                             (+ ip 1)
                             (cons retcode (cdr stack))
                             dump))
+                    (eq? instr 107) ;; %nop
+                        (hydra@vm code
+                            env
+                            (+ ip 1)
+                            stack
+                            dump)
                         ))))
 
 
@@ -881,7 +887,7 @@
     :tconc-splice (primitive . 104)
     :rationalize (primitive . 105)
     :call/cc (primitive . 106)
-    
+    :%nop (primitive . 107) ;;no operation 
 }))
 
 (define (hydra@lookup item env)
