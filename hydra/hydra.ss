@@ -722,23 +722,16 @@
                             (+ ip 1)
                             (cons (rationalize (car stack)) (cdr stack)) dump)
                     (eq? instr 106) ;; call/cc
-                        (hydra@vm code
+                        (let ((retcode (hydra@vm (cons (list 3 (car stack)) (list (list 30)))
+                                        env
+                                        0
+                                        (cons (list 'continuation code ip env stack dump) '())
+                                        '())))
+                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (hydra@vm 
-                                (cons
-                                    (list 3 (car stack))
-                                    (list (list 30)))
-                                env
-                                0
-                                (cons
-                                    (list
-                                        'continuation
-                                        code
-                                        ip
-                                        env
-                                        stack
-                                        dump) '()) '()) stack) dump)
+                            (cons retcode (cdr stack))
+                            dump))
                         ))))
 
 
@@ -937,7 +930,7 @@
         (null? environment) (hydra@error (format "SET! error: undefined name \"~a\"" name))
         (dict-has? (car environment) name)
             (cset! (car environment) name value)
-        else hydra@set-env! name value (cdr environment)))
+        else (hydra@set-env! name value (cdr environment))))
 
 (define (reverse-append x)
     "append but in reverse"
