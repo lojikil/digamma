@@ -103,14 +103,14 @@
                     (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
 
-(define (copy-code code ip offset)
-    " copies the spine of code, but at ip & ip-1, insert %nop instructions
+(define (copy-code code ip (offset 0))
+    " copies the spine of code, but at ip & ip+1, insert %nop instructions
       instead, over-writing the call/cc & load-lambda instructions therein.
       "
     (cond
         (null? code) '()
-        (= offset ip) #f
-        else #t))
+        (= offset (- ip 1)) (append (list '(107) '(107)) (copy-code (cddr code) ip (+ offset 2)))
+        else (append (list (car code)) (copy-code (cdr code) ip (+ offset 1)))))
 
 (define (hydra@vm code env (ip 0) (stack '()) (dump '()))
      " process the actual instructions of a code object; the basic idea is that
