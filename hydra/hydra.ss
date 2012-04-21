@@ -747,6 +747,17 @@
                             (+ ip 1)
                             stack
                             dump)
+                    (eq? instr 108) ;; %ap
+                        (let ((cont-code (car stack))
+                              (v (cadr stack)))
+                         (hydra@vm 
+                            (nth cont-code 1)
+                            (nth cont-code 3)
+                            0
+                            (cons
+                                v
+                                (nth cont-code 4))
+                            (nth cont-code 5)))
                         ))))
 
 
@@ -897,6 +908,7 @@
     :rationalize (primitive . 105)
     :call/cc (primitive . 106)
     :%nop (primitive . 107) ;;no operation 
+    :%ap  (primitive . 108) ;; apply a continuation
 }))
 
 (define (hydra@lookup item env)
@@ -1184,6 +1196,11 @@
                                             (map (fn (x) (hydra@compile x env)) rst))
                                             (list (list 3 v))
                                             (list (list 30)))
+                            (hydra@continuation? v) ;; hydra continuation
+                                (append (reverse-append
+                                            (map (fn (x) (hydra@compile x env)) rst))
+                                    (list (list 3 v))
+                                    (list (list 108))) ;; 108 -> %ap
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
                                             (map (fn (x) (hydra@compile x env)) rst))
