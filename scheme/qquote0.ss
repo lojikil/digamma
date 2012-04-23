@@ -1,5 +1,5 @@
 ;; exported from nyx.ss, to become an extension for Vesta/Ceres
-(define (quasiquote l e)
+(def (quasiquote l)
     (if (eq? (type l) "Pair")
      (if (eq? (type (car l)) "Pair")
       (if (eq? (car (car l)) 'unquote)

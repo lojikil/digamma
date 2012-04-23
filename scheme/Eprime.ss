@@ -401,21 +401,21 @@
        - name: the function's name, which will be fed to cmung-name
        - code: the rest of the lambda
     "
-	(let ((fixname (cmung-name name))
-          (body (gen-begin (cdr code))))
-	 (cset! *fnmung* name fixname)
-	 (cset! *fnarit* name (length (car code)))
-     (if (= (length (car code)) 0)
-       (format "SExp *~%~s()~%{~%\tSExp *ret = nil;\n\t~s\n\treturn ret;\n}\n"
-             fixname body)
-	   (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" 
-             fixname 
-             (string-join 
-               (map 
-                 (fn (x) (format "SExp *~a" x)) 
-                 (car code)) 
-               ",") 
-             body))))
+	(let ((fixname (cmung-name name)))
+        (cset! *fnmung* name fixname)
+        (cset! *fnarit* name (length (car code)))
+        (let ((body (gen-begin (cdr code))))
+            (if (= (length (car code)) 0)
+                (format "SExp *~%~s()~%{~%\tSExp *ret = nil;\n\t~s\n\treturn ret;\n}\n"
+                fixname body)
+	            (format "SExp *~%~s(~s)\n{\n\tSExp *ret = nil;\n\t~s \n\treturn ret;\n}\n" 
+                    fixname 
+                    (string-join 
+                        (map 
+                            (fn (x) (format "SExp *~a" x)) 
+                            (car code)) 
+                        ",") 
+             body)))))
 
 (def (lift-tail-lambda name code)
 	"lift-tail-lambda is for when check-tail-call returns #t; basically, this generates a while loop version of the same lambda"
@@ -611,7 +611,8 @@
 (def (gen-code x)
 	(if (pair? x) 
 		(cond
-			(eq? (car x) 'def) 
+			(or (eq? (car x) 'def) 
+                (eq? (car x) 'define))
                 (cond
                     (symbol? (car (cdr x)))
 					    (if (not (pair? (car (cdr (cdr x)))))

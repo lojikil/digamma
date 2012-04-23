@@ -5626,6 +5626,7 @@ fnth(SExp *tmp0, SExp *tmp1,SExp *dvalue)
 {
 	int iter = 0, itmp = 0;
 	SExp *tmp2 = snil;
+    char errbuf[512] = {0};
 	if(tmp0->type != DICT)
 	{
 		if(tmp1->type != NUMBER || (tmp1->type == NUMBER && NTYPE(tmp1) != INTEGER))
@@ -5675,7 +5676,8 @@ fnth(SExp *tmp0, SExp *tmp1,SExp *dvalue)
                 //Aprintf("key == %s\n",tmp1->object.str);
                 if(dvalue != nil)
                     return dvalue;
-				return makeerror(1,0,"No such key");
+                snprintf(errbuf,512,"No such key: %s", tmp1->object.str);
+				return makeerror(1,0,errbuf);
             }
 			return tmp2;
 		default: 
