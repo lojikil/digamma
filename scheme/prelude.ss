@@ -98,6 +98,29 @@
 	(if (empty? col)
 		col
 		(ccons (proc (first col)) (map proc (rest col)))))
+
+(define (map-if pred proc col)
+    " map-if pred : PREDICATE proc : PROCEDURE col : COLLEXION
+      maps values of col -> col', by applying proc to x_i, iff
+      pred returns true for col. This was inspired by
+      http://funcall.blogspot.com/2012/04/20-minute-puzzle.html
+
+      I originally wrote:
+      (def *objnames* (map (fn (x) (nth x 'name)) *objs*))
+      (filter (fn (x) (not (memq x *names*))) *objnames*)
+
+      Where *names* & *objs* are the list of strings and
+      list of objects from the puzzle. I realized that a HOF
+      that did both the job of MAP & FILTER in one pass would
+      be a neat & useful function to have in prelude, so here
+      it is.
+      "
+	(if (empty? col)
+		col
+        (if (pred (first col))
+		    (ccons (proc (first col)) (map-if proc (rest col)))
+            (map-if pred proc (rest col)))))
+
 (define (foreach-proc proc col)
        (if (empty? col)
 	       #v
