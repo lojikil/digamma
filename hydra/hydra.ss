@@ -317,7 +317,8 @@
                             (hydra@vm code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
                             (hydra@vm code env (+ ip (hydra@operand c)) (cdr stack) dump))
                   (eq? instr 30) ;; call
-                        (if (and (not (null? stack)) (hydra@lambda? (car stack)))
+                        (cond
+                            (hydra@lambda? (car stack))
                             ;; create a list from the current registers, cons this to dump, and 
                             ;; recurse over hydra@vm. 
                             ;; need to support CALLing primitives too, since they could be passed
@@ -328,6 +329,15 @@
                                     (car env-and-stack)
                                     0 '() 
                                     (cons (list code env ip (cadr env-and-stack)) dump)))
+                            (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                                (begin
+                                    (display "in hydra@primitive\n\t")
+                                    (display (car stack))
+                                    (newline)
+                                    #t)
+                            ;;(hydra@procedure? (car stack))
+                            ;;    #t
+                            else
                             (begin
                                 (display "in <else> of CALL\n")
                                 #f))
