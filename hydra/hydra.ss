@@ -782,12 +782,24 @@
 ; (foo '(1 2 3 4))
 ; Definitely can be defeated. Really, need to move to some SRFI-9-ish system that
 ; users cannot create their own versions of.
+
+; there are two ways of dealing with arity, both have upsides & downsides:
+
+; 0 - encode arity of primitives here, in the actual primitive notation.
+;     + this allows hydra@compile to know the proper arity, and signal an error.
+;     + it also means that hydra@vm has to suddenly change: it must now unpack the actual opcode
+;       before running (this might not be too bad...)
+; 1 - encode the arity of primitives in a separate array.
+;     + this allows hydra@compile to remain unchanged, and only minimal changes to hydra@vm
+;     + this does not confer the benefits that the above does (that hydra@compile can
+;       know about the arity of primitives & signal failure during code generation).
+
 (define *tlenv* '({
     :car (primitive . 0) ;; (primitive . 0) 
     :cdr (primitive . 1)
     :cons (primitive . 2)
-    ;; 3 is load a value onto the stack
-    ;; 4 is push a nil onto the stack
+    :%load (primitive . 3) ;; 3 is load a value onto the stack
+    :%nil (primitive . 4) ;; 4 is push a nil onto the stack
     :%- (primitive . 5) ;; primitive math operations with arity 2
     :%+ (primitive . 6)
     :%* (primitive . 7)
@@ -818,11 +830,11 @@
     :denomenator (primitive . 25)
     :%= (primitive . 26) ;; probably has to place the value on stack rather than #t, #f for failure
     :eq? (primitive . 27)
-    ;; 28 is jump
-    ;; 29 is compare
-    ;; 30 is call
-    ;; 31 is environment-load
-    ;; 32 is tail-call
+    :%jmp (primitive . 28) ;; 28 is jump
+    :%cmp (primitive . 29) ;; 29 is compare
+    :%call (primitive . 30) ;; 30 is call
+    :%env-load (primitive . 31) ;; 31 is environment-load
+    :%tail-call (primitive . 32) ;; 32 is tail-call; is this necessary? operand to CALL?
     :+ (syntax . primitive-syntax-plus) ;; variable arity syntax
     :- (syntax . primitive-syntax-minus)
     :* (syntax . primitive-syntax-mult)
@@ -1180,7 +1192,9 @@
                                             (list (list 28 else-len)) ;; jump else
                                             <else>)) 
                                 else #t)
-                            (pair? fst) ;; fst is a pair, so we just blindly attempt to compile it. May cause an error that has to be caught in CALL. some lifting might fix this...
+                            (pair? fst) 
+                                ;; fst is a pair, so we just blindly attempt to compile it.
+                                ;; May cause an error that has to be caught in CALL. some lifting might fix this...
                                 (append (reverse-append
                                             (map (fn (x) (hydra@compile x env)) rst))
                                         (hydra@compile fst env)
