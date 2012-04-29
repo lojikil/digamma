@@ -142,6 +142,14 @@
  :let #t
  })
 
+(define (show x) 
+    (display "show: ")
+    (display x)
+    (newline)
+    (display (type x))
+    (newline) 
+    x)
+
 (def (string-join l ij)
   (if (null? (cdr l))
         (car l)
@@ -588,12 +596,25 @@
     (format "~a = ~s" sym (gen-code code)))
 
 (def (gen-let params code)
-    "Generate C-code equivalent to a let; I wonder if we need to support lift let blocks into
+    "Generate C-code equivalent to a let; I wonder if we need to support lifting let blocks into
      top-level functions, so as to support (set! c (let ...)). Also, (let loop ...) should
      be converted into a tail while loop, but I don't know if it should do so as a simple
      loop rewrite or as a call to tail-lambda or the like.
      "
-    #f)
+    (string-append
+        "SExp "
+        (string-join
+            (map
+                (fn (x)
+                    (string-append
+                        "*"
+                        (coerce (gensym (car x)) 'string)
+                        " = "
+                        (gen-code (cadr x))))
+                params)
+            ", ")
+        ";\n"
+        (gen-begin code)))
 
 (def (ep-syntax-expand synobj) #f) ; E' syntax expansion. Use this instead of Vesta's, since Vesta's in currently incomplete
 
@@ -805,7 +826,7 @@
 		(if (eq? (cdr l) '())
 		 (if (syntax-form? (car l))
 		  (string-append (gen-code (car l)) ";\n") 
-		  (string-append "ret = " (gen-code (car l)) ";\n"))
+		  (string-append "ret = " (show (gen-code (show (car l)))) ";\n"))
 		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l)))))
 
 (def (gen-primitive x)
