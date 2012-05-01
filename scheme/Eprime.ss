@@ -534,6 +534,15 @@
             myfun(v125);
         }
     "
+    (display "within gen-foreach\n")
+    (display "code == ")
+    (display code)
+    (newline) 
+    (let ((proc (cadr code))
+          (collection (caddr code)))
+        (if (and (pair? proc) (or (eq? (car proc) 'fn) (eq? (car proc) 'lambda)))
+            (display "within anonymous fn in gen-foreach-proc\n")
+            (display "within non-anonymous fn in gen-foreach-proc\n")))
 #f)
 
 (def (defined-lambda? name)
@@ -827,7 +836,7 @@
 		 (if (syntax-form? (car l))
 		  (string-append (gen-code (car l)) ";\n") 
 		  (string-append "ret = " (show (gen-code (show (car l)))) ";\n"))
-		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l)))))
+		 (string-append (show (gen-code (show (car l)))) ";\n" (show (gen-begin (cdr l))))))
 
 (def (gen-primitive x)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
