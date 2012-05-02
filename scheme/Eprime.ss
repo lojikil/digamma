@@ -12,6 +12,13 @@
 ; contracts, I hope to make this a decent compiler, and grow it into the full
 ; Enyo, which should support inference, whole program analysis & unboxing
 
+; E's main purpose is to act as an extension compiler for Vesta; it could be used as a stand
+; alone compiler (if you wanted to link against the Vesta runtime), but the main focus is three
+; fold:
+; -- research techniques for compiling human-readable code
+; -- an extension compiler for Vesta
+; -- test out new ideas related to compilers quickly
+
 (def *fnarit* {}) ; this is a dict of the various functions' arity
 (def *fnmung* {}) ; maps the program's lambda's name to the munged version
 (def *ooblam* {}) ; lambdas that are lifted can be placed here; for lift-map & friends
