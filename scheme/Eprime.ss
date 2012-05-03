@@ -546,11 +546,26 @@
     (display code)
     (newline) 
     (let ((proc (cadr code))
-          (collection (caddr code)))
+          (collection (caddr code))
+          (col-var (gensym))
+          (anon-var (gensym)))
+
         (if (and (pair? proc) (or (eq? (car proc) 'fn) (eq? (car proc) 'lambda)))
-            (display "within anonymous fn in gen-foreach-proc\n")
-            (display "within non-anonymous fn in gen-foreach-proc\n")))
-#f)
+            (string-append
+                "SExp *" col-var " = " (gen-code collection) ";\n"
+                "while(f_emptyp(" col-var ") != e->snil) {\n"
+                "SExp *" (caadr proc) " = f_first(" col-var ");\n"
+                col-var " = f_rest(" col-var ");\n"
+                (gen-begin (cddr proc))
+                "\n}\n")
+            (string-append
+                "SExp *" col-var " = " (gen-code collection) ","
+                " *" anon-var " = e->snil;\n"
+                "while(f_emptyp(" col-var ") != e->snil) {\n"
+                anon-var " = f_first(" col-var ");\n"
+                col-var " = f_rest(" col-var ");\n"
+                proc "(" anon-var ");\n"
+                "\n}\n"))))
 
 (def (defined-lambda? name)
 	(dict-has? *fnmung* name))
