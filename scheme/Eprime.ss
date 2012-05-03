@@ -547,16 +547,16 @@
     (newline) 
     (let ((proc (cadr code))
           (collection (caddr code))
-          (col-var (gensym))
-          (anon-var (gensym)))
+          (col-var (coerce (gensym) 'string))
+          (anon-var (coerce (gensym) 'string)))
 
         (if (and (pair? proc) (or (eq? (car proc) 'fn) (eq? (car proc) 'lambda)))
             (string-append
-                "SExp *" col-var " = " (gen-code collection) ";\n"
+                "SExp *" (show col-var) " = " (show (gen-code collection)) ";\n"
                 "while(f_emptyp(" col-var ") != e->snil) {\n"
-                "SExp *" (caadr proc) " = f_first(" col-var ");\n"
+                "SExp *" (coerce (caadr proc) 'string) " = f_first(" col-var ");\n"
                 col-var " = f_rest(" col-var ");\n"
-                (gen-begin (cddr proc))
+                (show (gen-begin (cddr proc)))
                 "\n}\n")
             (string-append
                 "SExp *" col-var " = " (gen-code collection) ","
