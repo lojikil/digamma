@@ -209,6 +209,7 @@
         (bool? x) (gen-bool x)
         (goal? x) (gen-goal x)
         (key? x) (gen-key x)
+        (void? x) "SVOID"
         else (error (format "unsupported data type for code generation: ~s" (type x)))))
 
 (def (gen-dict d)
@@ -346,6 +347,9 @@
       Parameters:
        - l: list containing name of parameters to be used as argument to gensym
     "
+    (display "l == ")
+    (display l)
+    (newline)
     (map (fn (x) (coerce (gensym x) 'string)) l))
 
 (def (rewrite-tail-call name params state code auxvs )

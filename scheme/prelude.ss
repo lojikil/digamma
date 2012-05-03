@@ -23,6 +23,7 @@
                 else #f))
 (define (zero? n) (= n 0))
 (define (eof-object? n) (eq? n #e))
+(define (void? x) (eq? x #v))
 (define ncons (fn (x) (cons x '())))
 (define (unzip ll)
 	(def inner-u-r (fn (xl yl sl)
