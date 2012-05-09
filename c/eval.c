@@ -572,7 +572,7 @@ __base:
                         tmp1 = symlookup(tmp1->object.str,env);
                         if(!tmp1)
                         {
-                            __return(makeerror(1,0,"Unknown symbol in if's <ELSE> branch"));
+                            __return(makeerror(1,0,"Unknown symbol in if's <THEN> branch"));
                         }
                     default:
                         __return(tmp1);
