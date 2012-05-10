@@ -441,7 +441,7 @@ __base:
 			{
 				__return(makeerror(1,0,"partial-key? only shards on (ATOM | STRING | KEYOBJ)"));
 			}
-			__return(trie_partial(tmp0->object.dict,tmp1->object.str,0));
+			__return(fpartial_key(tmp0,tmp1));
 		case OPCSET:
 			if(pairlength(rst) != 3)
 			{

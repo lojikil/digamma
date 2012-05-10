@@ -442,6 +442,7 @@ SExp *fstringappend(SExp *);
 SExp *fdict(SExp *);
 SExp *fdicthas(SExp *, SExp *);
 SExp *fkeys(SExp *);
+SExp *fpartial_key(SExp *, SExp *);
 SExp *fstring(SExp *);
 SExp *fmakestring(SExp *);
 SExp *fappend(SExp *);

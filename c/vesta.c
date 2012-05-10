@@ -6045,6 +6045,16 @@ fkeys(SExp *tmp)
 }
 
 SExp *
+fpartial_key(SExp *d, SExp *k)
+{
+    if(d->type != DICT)
+        return makeerror(1,0,"partial-key?'s first argument *must* be a dictionary");
+    if(k->type != STRING)
+        return makeerror(1,0,"partial-key?'s second argument *must* be a string");
+    return trie_partial(d->object.dict,k->object.str,0);
+}
+
+SExp *
 fstring(SExp *rst)
 {
 	SExp *tmp0 = nil, *tmp1 = nil;
