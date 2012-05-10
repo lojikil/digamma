@@ -425,7 +425,7 @@ __base:
 			{
 				__return(makeerror(1,0,"Keys currently only operates on dictionaries"));
 			}
-			__return(mcar(trie_keys(tmp0->object.dict,tconcify(e->snil))));
+			__return(fkeys(tmp0));
 		case OPPARTIAL: // partial-key?
 			if(pairlength(rst) != 2)
 			{

@@ -6035,6 +6035,15 @@ fdicthas(SExp *tmp0, SExp *tmp1)
 		return sfalse;
 	return strue;
 }
+
+SExp *
+fkeys(SExp *tmp)
+{
+    if(tmp->type != DICT)
+        return makeerror(1,0,"keys sole argument *must* be a dictionary");
+    return mcar(trie_keys(tmp->object.dict,tconcify(snil)));
+}
+
 SExp *
 fstring(SExp *rst)
 {
