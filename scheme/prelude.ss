@@ -15,6 +15,7 @@
 (define (string? n) (eq? (type n) "String"))
 (define (bool? n) (eq? (type n) "Boolean"))
 (define (goal? n) (eq? (type n) "Goal"))
+(define (char? n) (eq? (type n) "Character"))
 (define (not x)
         (cond
                 (eq? x #s) #u
