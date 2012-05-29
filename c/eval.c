@@ -146,6 +146,15 @@ __base:
 			}
 			else
 			{
+                if(src->type == ATOM)
+                {
+                    tmp1 = symlookup(src->object.str, env);
+                    if(tmp1 == nil)
+                    {
+                        __return(makeerror(1,0,"unknown symbol in __seval"));
+                    }
+                    __return(tmp1);
+                }
 				__return(src);
 			}
 			//goto __base;
