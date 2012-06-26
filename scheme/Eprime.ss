@@ -252,9 +252,9 @@
 
 (def (ascii-acceptable? c)
     (or
-        (and (char->=? c #\a) (char-<=? c #\z))
-        (and (char->=? c #\A) (char-<=? c #\Z))
-        (and (char->=? c #\0) (char-<=? c #\9))
+        (and (char>=? c #\a) (char<=? c #\z))
+        (and (char>=? c #\A) (char<=? c #\Z))
+        (and (char>=? c #\0) (char<=? c #\9))
         (eq? c #\_)))
 
 (def (tail-call? name code)

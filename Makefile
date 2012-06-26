@@ -37,3 +37,7 @@ install:
 	@[ -d ~/bin ] && ln -s ~/.digamma/bin/vesta ~/bin/vesta || echo "~/bin does not exist"
 	@[ -d ~/.digamma ] && cp scheme/prelude.ss ~/.digamma/prelude.ss
 	@echo "Done."
+install-prelude:
+	@echo -n "Installing prelude... "
+	@[ -d ~/.digamma ] && cp scheme/prelude.ss ~/.digamma/prelude.ss
+	@echo "Done."
