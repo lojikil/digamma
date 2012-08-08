@@ -255,6 +255,8 @@ Digamma/Vesta: %s/%s\n",VER, REL);
                             break;
                     else if(tmp->type == ATOM && !strncasecmp("quit",tmp->object.str,4))
                             break;
+                    else if(tmp->type == ATOM && !strncasecmp("q",tmp->object.str,1))
+                            break;
                     else if(tmp->type == ATOM && !strncasecmp("dribble",tmp->object.str,7)) // create dribble file in $HOME/.digamma/dribble/DATE-TIME.txt
                     {
                         char tbuf[256] = {0};
