@@ -1865,5 +1865,10 @@ f_sysnanosleep(SExp *s, Symbol *e)
 SExp *
 f_sysselect(SExp *s, Symbol *e)
 {
+    int idx = 0;
+    if(s->type != PAIR && s->type != VECTOR)
+        return makeerror(1,0,"sys/select: sys/select's parameter must be a sequence of type (PAIR PORT) | (VECTOR PORT)");
+
 	return e->snil;
 }
+
