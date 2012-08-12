@@ -1,4 +1,8 @@
 #include <stdlib.h>
+#include <stdio.h>
+
+#define nil NULL
+#define nul '\0'
 
 /* the basic outline of the GCObject. Used for
  * the allocation list. Instead of maintaining
@@ -30,7 +34,7 @@ typedef struct GCO
 GCObject *init_gc_ring(int);
 void gc();
 void *gcalloc(size_t);
-void mark(GCO);
+void mark(GCObject);
 
 /* global GC objects. in the real system these
  * would be stored in the Symbol object, so as
@@ -89,3 +93,55 @@ typedef struct SEXP
         } pair;
     } object;
 } SExp;   
+
+GCObject *
+init_gc_ring(int len)
+/* generate the initial ring of GCObjects
+ * not sure if the final version will use
+ * a list (AVL tree is my current thinking),
+ * but it is good for prototype's sake.
+ */
+{
+    GCObject *ret = nil, *tmp = nil;
+    int idx = 0;
+    ret = (GCObject *)malloc(sizeof(GCObject));
+    tmp = ret;
+    while(idx < (len - 1))
+    {
+        tmp->next = (GCObject *)malloc(sizeof(GCObject));
+        tmp->next->prev = tmp;
+        tmp = tmp->next;
+        idx ++;
+    }
+    tmp->next = nil;
+    return ret;
+}
+
+void *
+gcalloc(size_t sze)
+{
+    void *ret = nil;
+    GCObject item = nil;
+    if(lptr->next == nil)
+    {
+        /* lptr points to the last
+         * item in the free list. Attempt
+         * a GC to clear it.
+         */  
+        gc(); // should this update lptr, or what?
+        if(gc_somehow_failed)
+        {
+            extend_ring();
+        }
+    }
+    else
+    {
+        ret = (void *)malloc(sze);
+        item = lptr->next;
+        item->ptr = ret;
+        item->mark = mark_direction;
+        item->length = sze;
+        lptr = lptr->next;
+        return ret;
+    }
+}
