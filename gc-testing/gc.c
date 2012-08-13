@@ -108,6 +108,8 @@ init_gc_ring(int len)
     tmp = ret;
     while(idx < (len - 1))
     {
+        if(!tmp)
+            return nil;
         tmp->next = (GCObject *)malloc(sizeof(GCObject));
         tmp->next->prev = tmp;
         tmp = tmp->next;
@@ -120,7 +122,7 @@ init_gc_ring(int len)
 void *
 gcalloc(size_t sze)
 {
-    void *ret = nil;
+    void *ret = nil, *tmp = nil;
     GCObject item = nil;
     if(lptr->next == nil)
     {
@@ -131,17 +133,20 @@ gcalloc(size_t sze)
         gc(); // should this update lptr, or what?
         if(gc_somehow_failed)
         {
-            extend_ring();
+            tmp = init_gc_ring(20);
+            if(tmp == nil)
+            {
+                printf("unable to malloc more memory! exiting\n");
+                return nil;
+            }
+            lptr->next = tmp;
         }
     }
-    else
-    {
-        ret = (void *)malloc(sze);
-        item = lptr->next;
-        item->ptr = ret;
-        item->mark = mark_direction;
-        item->length = sze;
-        lptr = lptr->next;
-        return ret;
-    }
+    ret = (void *)malloc(sze);
+    item = lptr->next;
+    item->ptr = ret;
+    item->mark = mark_direction;
+    item->length = sze;
+    lptr = lptr->next;
+    return ret;
 }
