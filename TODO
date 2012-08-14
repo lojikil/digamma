@@ -1,0 +1,2 @@
+* GC
+** Abstract all necessary GC guts into library that can be compiled as-necessary, and linked only when needed.
