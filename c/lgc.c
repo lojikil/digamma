@@ -6,51 +6,6 @@
  * compilations I'm currently working through with Boehm.
  */
 
-/* the basic outline of the GCObject. Used for
- * the allocation list. Instead of maintaining
- * a free list, keep *one* single list, and change
- * a "direction" bit that represents if something
- * is free/used. Basically, mark-don't-sweep
- */
-
-typedef struct GCO
-{
-    unsigned char mark;
-    size_t length;
-    void *ptr;
-    struct GCO *next;
-    struct GCO *prev;
-} GCObject;
-
-/* the code functions of the GC system.
- * - init_gc_ring initializes the initial allocation
- * node list. 
- * - gc kicks off the Garbage collection process
- * - gcalloc is the drop in replacement for malloc
- *   (though, not really, since it will most likely
- *    have to take an environment parameter too)
- * - mark strolls through the environment & checks
- * out what can be marked as free.
- */
-
-GCObject *init_gc_ring(int, Symbol *);
-void gc(Symbol *);
-void *gcalloc(size_t, Symbol *);
-void mark_sexp(SExp *);
-void mark_literal(void *);
-void mark(GCObject);
-
-/* global GC objects. in the real system these
- * would be stored in the Symbol object, so as
- * to support multiple-potential GC 
- * environments.
- */
-
-/*
-static GCObject *head; // the head of the allocation list
-static GCObject *lptr; // pointer to the last node allocated
-static unsigned char mark_direction; // 1 || 0
-*/
 GCObject *
 init_gc_ring(int len, Symbol *env)
 /* generate the initial ring of GCObjects
