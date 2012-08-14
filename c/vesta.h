@@ -245,6 +245,7 @@ typedef struct _WINDOW
 
 typedef struct _SYM
 {
+    unsigned char mark_direction;
 	int cur_size;
 	int cur_offset;
 	int tick;
@@ -265,6 +266,8 @@ typedef struct _SYM
     SExp *qnan;
     SExp *snan;
 	SExp *seof;
+    GCObject *head;
+    GCObject *lptr;
 } Symbol;
 
 SExp *eqp(SExp *,SExp *); /* eq? */

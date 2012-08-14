@@ -94,6 +94,12 @@ typedef struct SEXP
     } object;
 } SExp;   
 
+typedef struct SYM
+{
+    Trie *window;
+    struct SYM *next;
+} Symbol;
+
 GCObject *
 init_gc_ring(int len)
 /* generate the initial ring of GCObjects
@@ -130,8 +136,8 @@ gcalloc(size_t sze)
          * item in the free list. Attempt
          * a GC to clear it.
          */  
-        gc(); // should this update lptr, or what?
-        if(gc_somehow_failed)
+        gc(); 
+        if(lptr->next == nil)
         {
             tmp = init_gc_ring(20);
             if(tmp == nil)
@@ -149,4 +155,9 @@ gcalloc(size_t sze)
     item->length = sze;
     lptr = lptr->next;
     return ret;
+}
+void
+gc()
+{
+    
 }
