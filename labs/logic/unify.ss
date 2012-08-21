@@ -24,7 +24,7 @@
                     (not (eq? (assq env o1) '())))
                 #s
                 #u)
-        (equal? (type o0) (type o1)) #s
+        (eq? (type o0) (type o1)) #s
         (var? o0) o1
         (var? o1) o0
         else
