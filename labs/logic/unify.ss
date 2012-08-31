@@ -16,18 +16,29 @@
 (define (var? x)
     (and (pair? x) (eq? (car x) '?)))
 
-(define (unify o0 o1i env)
+(define (unify o0 o1 env)
     (cond
-        (and (var? o0) (var? o1))
-            (if (or
-                    (not (eq? (assq env o0) '()))
-                    (not (eq? (assq env o1) '())))
-                #s
-                #u)
-        (eq? (type o0) (type o1)) #s
-        (var? o0) o1
-        (var? o1) o0
-        else
-            (if (= (length o0) (length o1))
-                kkkkkkkkk
-        
+        (var? o0) 
+            (cond
+                (var? o1)
+                    (let ((v0 (assq (cadr v0) env))
+                          (v1 (assq (cadr v1) env)))
+                        (cond
+                            (eq? v0 #f) (list (cadr o0) o1)
+                            (eq? v1 #f) (list (cadr o1) o0)
+                            else (unify (cadr v0) (cadr v1) env)))
+                else
+                    (let ((v0 (assq (cadr v0) env)))
+                        (if (eq? v0 #f)
+                            (list o0 o1)
+                            (unify v0 o1))))
+        (eq? o0 o1) #s
+        (and (pair? o0) (pair? o1))
+            (with u-result (unify (car o0) (car o1))
+                (cond
+                    (pair? u-result)
+                        (cons u-result (unify (cdr o0) (cdr o1) (cons u-result env)))
+                    (eq? u-result #s)
+                        (cons u-result (unify (cdr o0) (cdr o1) env))
+                    else #u)
+        else #u))
