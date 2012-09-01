@@ -410,7 +410,7 @@ SExp *
 assq(SExp *item, SExp *alist)
 {
     SExp *tmp0 = snil, *tmp1 = snil;
-    if(alist == nil || alist->type != PAIR)
+    if(alist == nil || (alist->type != PAIR && alist->type != NIL))
         return makeerror(1,0,"assq item : EQABLE-SEXPRESSION alist : ASSOC-LIST => sexpression");
     tmp0 = alist;
     while(tmp0 != snil)
