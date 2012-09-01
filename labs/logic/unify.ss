@@ -32,13 +32,13 @@
                         (if (eq? v0 #f)
                             (list o0 o1)
                             (unify v0 o1 env))))
-        (eq? o0 o1) #s
+        (eq? o0 o1) '()
         (and (pair? o0) (pair? o1))
             (with u-result (unify (car o0) (car o1) env)
                 (cond
                     (pair? u-result)
-                        (cons u-result (unify (cdr o0) (cdr o1) (cons u-result env)))
-                    (eq? u-result #s)
-                        (cons u-result (unify (cdr o0) (cdr o1) env))
+                        (cons (list u-result) (unify (cdr o0) (cdr o1) (cons u-result env)))
+                    (not (eq? u-result #u))
+                        (unify (cdr o0) (cdr o1) env)
                     else #u))
         else #u))
