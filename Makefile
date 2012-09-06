@@ -1,4 +1,11 @@
 EFLAGS=""
+
+cygwin:
+	@cd ./c && make EFLAGS="-DCYGWIN $(EFLAGS)"
+	@echo Done
+	@echo -n Moving ./c/vesta ./bin/vesta...
+	@mv ./c/vesta ./bin/vesta
+	@echo " Completed."
 all: 
 	@echo Buliding Vesta...
 	@cd ./c && make EFLAGS="$(EFLAGS)"
