@@ -1,5 +1,9 @@
 (load '../logic/unify.ss)
 
+;; two notes:
+;; 0 - should + - / * < > <= >= be normalized to arity-2 operations?
+;; 1 - do items such as if need to be stored in the initial environment? 
+;;     I guess so; IF should be bool (U (? a) (? b))
 (define *initial-environment*
     '((nth seq int => (? a))
       (car (pair (? a)) => (? a))
