@@ -6423,3 +6423,12 @@ fappend(SExp *rst)
 			return append(rst);
 	}
 }
+SExp *
+ftype(SExp *r)
+{
+    if(r != nil)
+    {
+        return makestring(typenames[r->type]);
+    }
+    return nil;
+}

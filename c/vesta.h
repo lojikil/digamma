@@ -483,6 +483,7 @@ SExp *fpartial_key(SExp *, SExp *);
 SExp *fstring(SExp *);
 SExp *fmakestring(SExp *);
 SExp *fappend(SExp *);
+SExp *ftype(SExp *);
 /* generic functions */
 SExp *fgensym(SExp *);
 SExp *fmeta(SExp *);
