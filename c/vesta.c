@@ -428,7 +428,7 @@ SExp *
 memq(SExp *item, SExp *mlist)
 {
     SExp *tmp0 = snil, *tmp1 = snil;
-    if(mlist == nil || mlist->type != PAIR)
+    if(mlist == nil || (mlist->type != PAIR && mlist->type != NIL))
         return makeerror(1,0,"memq item : EQABLE-SEXPRESSION member-list : PAIR => (PAIR | FALSE)");
     tmp0 = mlist;
     while(tmp0 != snil)

@@ -985,7 +985,7 @@ __base:
 			}
 			tmp0 = car(rst);
 			tmp1 = car(cdr(rst));
-			if(tmp1->type != PAIR)
+			if(tmp1->type != PAIR && tmp1->type != NIL)
 			{
 				__return(makeerror(1,0,"member-list must be a pair"));
 			}
