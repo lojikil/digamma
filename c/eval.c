@@ -304,7 +304,7 @@ __base:
 		case OPCONS:
 			if(pairlength(rst) != 2)
 			{
-				__return(makeerror(1,0,"cdr list : PAIR => S-EXPRESSION"));
+				__return(makeerror(1,0,"cons s0 : S-EXPRESSION s1 : S-EXPRESSION => S-EXPRESSION"));
 			}
 			__return(cons(car(rst),car(cdr(rst))));
 		case OPLAMBDA:
