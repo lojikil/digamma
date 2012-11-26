@@ -3115,6 +3115,8 @@ fcoerce(SExp *from, SExp *to)
 				case INTEGER:
 					if(!strncasecmp(to->object.str,"char",4))
 						return makechar(AINT(from) & 0xFF);
+                    else if(!strncasecmp(to->object.str,"int",3))
+                        return from;
 					return makeerror(1,0,"coerce: illegal coercion.");
 				default:
 					return makeerror(1,0,"coerce: unknown coercion attempt");
@@ -3126,6 +3128,8 @@ fcoerce(SExp *from, SExp *to)
 				iter &= 255;
 				return makeinteger(iter);
 			}
+            else if(!strncasecmp(to->object.str,"char",4))
+                return from;
 			else
 				return makeerror(1,0,"coerce: unknown coercion attempt");
 		case KEY:
@@ -3140,6 +3144,8 @@ fcoerce(SExp *from, SExp *to)
 					ret->object.vec[iter] = makechar(from->object.str[iter]);
 				return ret;
 			}
+			else if(!strncasecmp(to->object.str,"key",3))
+                return from;
 			else
 				return makeerror(2,0,"coerce: unknown coercion attempt");
 		case ATOM:
@@ -3158,6 +3164,8 @@ fcoerce(SExp *from, SExp *to)
 					ret->object.vec[iter] = makechar(from->object.str[iter]);
 				return ret;
 			}
+            else if(!strncasecmp(to->object.str,"symbol",6))
+                return from;
 			else
 				return makeerror(2,0,"coerce: unknown coercion attempt");
 		case VECTOR:
@@ -3179,6 +3187,8 @@ fcoerce(SExp *from, SExp *to)
 					ret = cons(from->object.vec[iter],ret);
 				return ret;
 			}
+            else if(!strncasecmp(to->object.str,"vector",6))
+                return from;
 			else
 				return makeerror(2,0,"coerce: unknown coercion attempt");
 		case PAIR:
@@ -3206,6 +3216,8 @@ fcoerce(SExp *from, SExp *to)
 				}
 				return ret;
             }
+            else if(!strncasecmp(to->object.str,"pair",4))
+                return from;
 			else
 				return makeerror(2,0,"coerce: unknown coercion attempt");
 		case STRING:
@@ -3238,6 +3250,8 @@ fcoerce(SExp *from, SExp *to)
 				}
 				return ret;
 			}
+            else if(!strncasecmp(to->object.str,"string",5))
+                return from;
 			else if(!strncasecmp(to->object.str,"int",3))
 				return makeinteger(strtol(from->object.str,nil,10));
 			else if(!strncasecmp(to->object.str,"real",4))
