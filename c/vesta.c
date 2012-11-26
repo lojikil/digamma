@@ -3104,7 +3104,7 @@ SExp *
 fcoerce(SExp *from, SExp *to)
 {
 	SExp *ret = nil, *tmp = nil;
-	int iter = 0;
+	int iter = 0, len = 0;
 	if(to->type != KEY && to->type != ATOM && to->type != STRING)
 		return makeerror(1,0,"coerce: the to parameter *must* be a (KEYWORD | ATOM | STRING)");
 	switch(from->type)
@@ -3192,6 +3192,20 @@ fcoerce(SExp *from, SExp *to)
 				}
 				return ret;
 			}
+            else if(!strncasecmp(to->object.str,"string",6))
+			{
+                len = pairlength(from);
+				ret = makestring_v(len,nul);
+                for(; iter < len; iter++)
+				{
+                    tmp = car(from);
+					if(tmp->type != CHAR)
+						return makeerror(2,0,"coerce: illegal coercion attempt: vector containing non-chars to string");
+					ret->object.str[iter] = tmp->object.c;
+                    from = cdr(from);
+				}
+				return ret;
+            }
 			else
 				return makeerror(2,0,"coerce: unknown coercion attempt");
 		case STRING:
@@ -3214,9 +3228,11 @@ fcoerce(SExp *from, SExp *to)
 			{
 				ret = cons(snil,snil);
 				tmp = ret;
-				for(;iter < from->length;iter++)
+				for(;;iter++)
 				{
 					mcar(tmp) = makechar(from->object.str[iter]);
+                    if((iter + 1) >= from->length)
+                        break;
 					mcdr(tmp) = cons(snil,snil);
 					tmp = mcdr(tmp);
 				}
