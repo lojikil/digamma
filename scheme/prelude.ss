@@ -7,6 +7,11 @@
 
 (define (null? n) (eq? n '()))
 (define (pair? n) (eq? (type n) "Pair"))
+(define (list? n)
+    (cond
+        (null? n) #t
+        (not (pair? n)) #f
+        else (list? (cdr n))))
 (define (vector? n) (eq? (type n) "Vector"))
 (define (dict? n) (eq? (type n) "Dictionary"))
 (define (symbol? n) (eq? (type n) "Symbol"))
