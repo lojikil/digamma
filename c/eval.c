@@ -255,8 +255,8 @@ __base:
 						{
 							if(rst == e->snil)
 							{
-                                printf("source: ");
-                                princ(src);
+                                printf("source of unsatisfied procedure argument: ");
+                                llprinc(src, stdout, 1);
                                 printf("\n");
                                 printf("argument: %s\n",tmp1->object.str);
 								__return(makeerror(1,0,"Unsatisfied non-optional procedure argument"));
@@ -1268,7 +1268,7 @@ __base:
 						    break;
 					    tmp0 = cdr(tmp0);
 					    printf("source: ");
-					    princ(tmp1->object.vec[0]);
+					    llprinc(tmp1->object.vec[0], stdout, 1);
 					    printf("\n");
 				    }
 #endif
