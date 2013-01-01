@@ -120,6 +120,8 @@ main(int ac, char **al, char **el)
     register_procedure(f_sysusleep,"sys/usleep",0,tl_env);
     register_procedure(f_sysnanosleep,"sys/nanosleep",0,tl_env);
     register_procedure(f_sysselect,"sys/select",0,tl_env);
+    register_procedure(f_sysgetpid,"sys/getpid",0,tl_env);
+    register_procedure(f_sysgetpid,"sys/getppid",0,tl_env);
 	/* load prelude out of paths */
 	while(paths[iter] != 0)
 	{
