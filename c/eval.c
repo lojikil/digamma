@@ -495,6 +495,12 @@ __base:
 				__return(makeerror(1,0,"type expects exactly one argument..."));
 			}
 			__return(makestring((char *)typenames[mcar(rst)->type]));
+		case OPNTYPE:
+			if(pairlength(rst) != 1)
+			{
+				__return(makeerror(1,0,"numeric-type expects exactly one argument..."));
+			}
+			__return(fnumtype(car(rst)));
 		case OPEQ:
 			if(pairlength(rst) != 2)
 			{

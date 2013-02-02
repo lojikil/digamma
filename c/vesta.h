@@ -136,7 +136,7 @@ typedef enum
 	OPQQUOTE, OPUNQUOTE, OPUNQSPLICE, OPDICHAS, OPEMPTY, OPCEIL, OPFLOOR, OPTRUNCATE, OPROUND,
 	OPIN2EX, OPCLONENV, OPDEFENV, OPSETENV, OPSTDENV, OPFROMENV, OPMETA,OPRESET, OPSHIFT, OPCURTICK, 
 	OPDEFAULTENV, OPNULLENV, __INTERNAL_RETURN, __PRE_APPLY, __POST_APPLY, __INT_CLOSURE, __PROC,
-    __POST_POST_APPLY, __CONT
+    __POST_POST_APPLY, __CONT, OPNTYPE
 } InternalOps;
 
 typedef struct _NUM
@@ -484,6 +484,7 @@ SExp *fstring(SExp *);
 SExp *fmakestring(SExp *);
 SExp *fappend(SExp *);
 SExp *ftype(SExp *);
+SExp *fnumtype(SExp *);
 /* generic functions */
 SExp *fgensym(SExp *);
 SExp *fmeta(SExp *);

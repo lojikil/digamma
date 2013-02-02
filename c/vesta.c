@@ -623,6 +623,7 @@ init_env(int full_env)
 	add_env(tl_env,"denomenator",makeprimitive(OPDEN,"denomenator",0));
 	add_env(tl_env,"*",makeprimitive(OPMULT,"*",0));
 	add_env(tl_env,"type",makeprimitive(OPTYPE,"type",0));
+	add_env(tl_env,"numeric-type",makeprimitive(OPNTYPE,"numeric-type",0));
 	add_env(tl_env,"-",makeprimitive(OPSUB,"-",0));
 	add_env(tl_env,"/",makeprimitive(OPDIV,"/",0));
 	add_env(tl_env,"gcd",makeprimitive(OPGCD,"gcd",0));
@@ -6461,4 +6462,13 @@ ftype(SExp *r)
         return makestring(typenames[r->type]);
     }
     return nil;
+}
+SExp *
+fnumtype(SExp *r)
+{
+    if(r != nil && r->type == NUMBER)
+    {
+        return makestring(numtypes[r->object.n->type]);
+    }
+    return makeerror(1,0, "numeric-type o : NUMBER => STRING");
 }
