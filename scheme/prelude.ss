@@ -142,7 +142,7 @@
 	       #v
 	       (begin (proc (first col)) (map proc (rest col)))))
 
-(define (map* f l)
+(define (foreach* f l)
     "foreach*: same as map* above, but for foreach"
     (if (or (null? l) (null? (car l)))
         #v
