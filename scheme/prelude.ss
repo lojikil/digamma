@@ -106,6 +106,15 @@
 		col
 		(ccons (proc (first col)) (map proc (rest col)))))
 
+(define (map* f l)
+    " map*: like map, but takes multiple lists. Just found out this morning that
+    (define (foo . bar) ...) and (define (baz :rest z) ...) are both broken in
+    Vesta, so this uses the workaround that things must be passed in via a list.
+    Poor form, I know. :|"
+    (if (or (null? l) (null? (car l)))
+        '()
+        (cons (apply f (map car l)) (map* f (map cdr l)))))
+
 (define (map-if pred proc col)
     " map-if pred : PREDICATE proc : PROCEDURE col : COLLEXION
       maps values of col -> col', by applying proc to x_i, iff
@@ -132,6 +141,15 @@
        (if (empty? col)
 	       #v
 	       (begin (proc (first col)) (map proc (rest col)))))
+
+(define (map* f l)
+    "foreach*: same as map* above, but for foreach"
+    (if (or (null? l) (null? (car l)))
+        #v
+        (begin
+            (apply f (map car l))
+            (foreach* f (map cdr l)))))
+
 (define (filter proc col)
 	(if (empty? col)
 		col
