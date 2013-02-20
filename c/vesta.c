@@ -1864,6 +1864,8 @@ lex(FILE *fdin, char **r)
 					case 'v':
 					case 'V':
 						return TOK_LVOID;
+                    case ';':
+                        return TOK_DATCOM;
 					case '!':
 						while(c != '\n') c = fgetc(fdin);
 						state = 0;
@@ -2150,6 +2152,9 @@ llread(FILE *fdin)
 				ret->object.n->nobject.complex.i = atof(&buf[iter]);
 				/* parse a complex, similar to a rational */
 				_read_return(ret);
+            case TOK_DATCOM:
+                tmp1 = llread(fdin);
+                _read_return(llread(fdin));
 			case TOK_LPAREN:
 				tmp1 = llread(fdin);
 				if(tmp1 == fake_rpar)
