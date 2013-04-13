@@ -81,6 +81,7 @@ main(int ac, char **al, char **el)
 	register_procedure(f_port_proto,"port-protocol",0,tl_env);
 	register_procedure(f_port_state,"port-state",0,tl_env);
 	register_procedure(f_port_type,"port-type",0,tl_env);
+    register_procedure(f_end_of_portp,"end-of-port?",0,tl_env);
 	register_procedure(f_random,"random",0,tl_env);
 	register_procedure(f_seed_random,"seed-random",0,tl_env);
 	/* unix specific; should really be in a lib called 'unix'.
