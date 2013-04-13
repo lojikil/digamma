@@ -1652,7 +1652,7 @@ f_end_of_portp(SExp *s, Symbol *e)
     port = car(s);
     if(port->type != PORT)
         return makeerror(2,0,"end-of-port?'s sole argument *must* be bound to a PORT object");
-    switch(PTYPE(PORT))
+    switch(PTYPE(port))
     {
         case PFILE:
             if(feof(FILEPORT(port)))
@@ -1662,7 +1662,6 @@ f_end_of_portp(SExp *s, Symbol *e)
         default:
             return makeerror(2,0,"end-of-port? only operates on FILE ports.");
     }
-}
 }
 SExp *
 f_set_input(SExp *s, Symbol *e)
