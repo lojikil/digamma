@@ -137,10 +137,12 @@
 		    (ccons (proc (first col)) (map-if proc (rest col)))
             (map-if pred proc (rest col)))))
 
-(define (foreach-proc proc col)
+(define (foreach proc col)
        (if (empty? col)
 	       #v
-	       (begin (proc (first col)) (map proc (rest col)))))
+	       (begin (proc (first col)) (foreach proc (rest col)))))
+
+(define foreach-proc foreach)
 
 (define (foreach* f l)
     "foreach*: same as map* above, but for foreach"
