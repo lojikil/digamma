@@ -134,8 +134,10 @@
 	(if (empty? col)
 		col
         (if (pred (first col))
-		    (ccons (proc (first col)) (map-if proc (rest col)))
+		    (ccons (proc (first col)) (map-if pred proc (rest col)))
             (map-if pred proc (rest col)))))
+
+(define (flatten lst) (if (null? lst) '() (append (car lst) (flatten (cdr lst)))))
 
 (define (foreach proc col)
        (if (empty? col)
