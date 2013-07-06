@@ -19,15 +19,15 @@
 (define *urls* {})
 
 (define (prompt-string s)
- (display s)
- (read-string))
+    (display s)
+    (read-string))
 
-(define (int-read ) ; read until "^\.$"
- (with r (read-string)
-  (cond
-   (eq? r ".") '()
-   (eq? r #e) '()
-   else (cons r (int-read)))))
+(define (int-read) ; read until "^\.$"
+    (with r (read-string)
+        (cond
+            (eq? r ".") '()
+            (eq? r #e) '()
+            else (cons r (int-read)))))
 
 (define (new-note) 
     (let  ((f (open (format "~s/notes/~a" *base-dir* (sys/time)) :write)) 
@@ -41,20 +41,18 @@
 
 (define (new-url)
     (let ((title (prompt-string "url-title: "))
-         (data (prompt-string "url: ")))
+        (data (prompt-string "url: ")))
         (cset! *urls* title data)))
 
 (define (list-notes)
-    (display "in list notes\n")
     (foreach-proc 
         (lambda (k) (display (format "~s\n" k)))
         (keys *notes*)))
 
 (define (list-urls)
-    (display "in list-urls\n")
     (foreach-proc 
         (lambda (k)
-            (display (format "~s\n" k)))
+            (display (format "~s ~s\n" k (nth *urls* k)))
         (keys *urls*)))
 
 (define (about-anaxagoras)
@@ -62,8 +60,10 @@
  Pre-Socratic philosopher, who placed \"Nous\" (mind) as the organizing principle of Reality.
  Usage:
   n[ew]     - create a new note
+  e[dit]    - edit a note (uses $EDITOR)
   u[rl]     - create a new URL bookmark
   l[ist]    - list all notes
+  L[ist]    - list all URLs
   h[elp]    - show this message
   ?         - show this message
   r[ebuild] - rebuild index from messages
@@ -73,38 +73,34 @@
     "dump *notes* and *url* to disk"
     (let ((fnote (open (format "~s/notes.ss" *base-dir*) :write))
           (furls (open (format "~s/urls.ss" *base-dir*) :write)))
-     (display "{\n" fnote)
-     (foreach-proc
-      (lambda (k)
-       (display (format "~S ~S\n" k (nth *notes* k)) fnote))
-      (keys *notes*))
-     (display "}\n" fnote)
-     (close fnote)
-     (display "{\n" furls)
-     (foreach-proc
-      (lambda (k)
-       (display (format "~S ~S\n" k (nth *urls* k)) furls))
-      (keys *urls*))
-     (display "}\n" furls)
-     (close furls)))
+        (display "{\n" fnote)
+        (foreach-proc
+            (lambda (k)
+                (display (format "~S ~S\n" k (nth *notes* k)) fnote))
+            (keys *notes*))
+        (display "}\n" fnote)
+        (close fnote)
+        (display "{\n" furls)
+        (foreach-proc
+            (lambda (k)
+            (display (format "~S ~S\n" k (nth *urls* k)) furls))
+            (keys *urls*))
+        (display "}\n" furls)
+        (close furls)))
 
 (define (anaxagoras)
- (display "> ")
- (with c (read-string)
-  (if
-    (eq? (cond ; case macro would be useful here...
-            (eq? c "n") (new-note)
-            (eq? c "u") (new-url)
-            (eq? c "l") (list-notes)
-            (eq? c "L") (list-urls)
-            (eq? c "h") (about-anaxagoras)
-            (eq? c "?") (about-anaxagoras)
-            (eq? c "e") (edit-note)
-            (eq? c "q") 'QUIT 
-            else (display "Invalid command\n"))
-        'QUIT)
-        (run-shutdown)
-        (anaxagoras))))
+    (display "> ")
+    (with c (read-string)
+    (cond ; case macro would be useful here...
+        (eq? c "n") (begin (new-note) (anaxagoras))
+        (eq? c "u") (begin (new-url) (anaxagoras))
+        (eq? c "l") (begin (list-notes) (anaxagoras))
+        (eq? c "L") (begin (list-urls) (anaxagoras))
+        (eq? c "h") (begin (about-anaxagoras) (anaxagoras))
+        (eq? c "?") (begin (about-anaxagoras) (anaxagoras))
+        (eq? c "e") (begin (edit-note) (anaxagoras))
+        (eq? c "q") (run-shutdown)
+        else (display "Invalid command\n"))))
 
 ;; load the notes & urls list
 (let ((fnote (open (format "~s/notes.ss" *base-dir*) :read))
