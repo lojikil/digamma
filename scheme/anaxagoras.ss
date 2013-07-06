@@ -14,47 +14,47 @@
 
 (use "strlib")
 
-(def *base-dir* (tilde-expand "~/.digamma/anaxagoras"))
-(def *notes* {})
-(def *urls* {})
+(define *base-dir* (tilde-expand "~/.digamma/anaxagoras"))
+(define *notes* {})
+(define *urls* {})
 
-(def (prompt-string s)
+(define (prompt-string s)
  (display s)
  (read-string))
 
-(def (int-read ) ; read until "^\.$"
+(define (int-read ) ; read until "^\.$"
  (with r (read-string)
   (cond
    (eq? r ".") '()
    (eq? r #e) '()
    else (cons r (int-read)))))
 
-(def (new-note) 
- (let  ((f (open (format "~s/notes/~a" *base-dir* (sys :time)) :write)) 
-       (title (prompt-string "title: "))
-       (data (int-read)))
-   (display (format "~s\n" title) f)
-   (display (string-join data "\n") f)
-   (newline f)
-   (close f)
-   (cset! *notes* title (port-filename f))))
+(define (new-note) 
+    (let  ((f (open (format "~s/notes/~a" *base-dir* (sys/time)) :write)) 
+          (title (prompt-string "title: "))
+          (data (int-read)))
+        (display (format "~s\n" title) f)
+        (display (string-join data "\n") f)
+        (newline f)
+        (close f)
+        (cset! *notes* title (port-filename f))))
 
-(def (new-url)
- (let ((title (prompt-string "url-title: "))
-       (data (prompt-string "url: ")))
-  (cset! *urls* title data)))
+(define (new-url)
+    (let ((title (prompt-string "url-title: "))
+         (data (prompt-string "url: ")))
+        (cset! *urls* title data)))
 
-(def (list-notes)
- (foreach-proc 
-  (lambda (k) (display (format "~s\n" k)))
-  (keys *notes*)))
+(define (list-notes)
+    (foreach-proc 
+        (lambda (k) (display (format "~s\n" k)))
+        (keys *notes*)))
 
-(def (list-urls)
+(define (list-urls)
  (foreach-proc 
   (lambda (k) (display (format "~s\n" k)))
   (keys *urls*)))
 
-(def (about-anaxagoras)
+(define (about-anaxagoras)
  (display "Anaxagoras is a simple Note & URL organzier. It is named \"anaxagoras\" in honor of the 
  Pre-Socratic philosopher, who placed \"Nous\" (mind) as the organizing principle of Reality.
  Usage:
@@ -66,10 +66,10 @@
   r[ebuild] - rebuild index from messages
   q[uit]    - exit anaxagoras\n"))
 
-(def (run-shutdown) 
+(define (run-shutdown) 
     "dump *notes* and *url* to disk"
-    (let ((fnote (fopen (format "~s/notes.ss" *basedir*) :write))
-          (furls (fopen (format "~s/urls.ss" *basedir*) :write)))
+    (let ((fnote (open (format "~s/notes.ss" *base-dir*) :write))
+          (furls (open (format "~s/urls.ss" *base-dir*) :write)))
      (display "{\n" fnote)
      (foreach-proc
       (lambda (k)
@@ -85,7 +85,7 @@
      (display "}\n" furls)
      (close furls)))
 
-(def (anaxagoras)
+(define (anaxagoras)
  (display "> ")
  (with c (read-string)
   (if
@@ -104,8 +104,8 @@
         (anaxagoras))))
 
 ;; load the notes & urls list
-(let ((fnote (fopen (format "~s/notes.ss" *basedir*) :read))
-      (furls (fopen (format "~s/urls.ss" *basedir*) :read)))
+(let ((fnote (open (format "~s/notes.ss" *base-dir*) :read))
+      (furls (open (format "~s/urls.ss" *base-dir*) :read)))
     (set! *notes* (read fnote))
     (set! *urls* (read furls))
     (close fnote)
