@@ -1,0 +1,5 @@
+;Slurping a file
+(file->string "foo.txt")
+
+;Printing every line in a file
+(for-each displayln (file->lines "foo.txt"))

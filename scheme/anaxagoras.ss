@@ -45,14 +45,17 @@
         (cset! *urls* title data)))
 
 (define (list-notes)
+    (display "in list notes\n")
     (foreach-proc 
         (lambda (k) (display (format "~s\n" k)))
         (keys *notes*)))
 
 (define (list-urls)
- (foreach-proc 
-  (lambda (k) (display (format "~s\n" k)))
-  (keys *urls*)))
+    (display "in list-urls\n")
+    (foreach-proc 
+        (lambda (k)
+            (display (format "~s\n" k)))
+        (keys *urls*)))
 
 (define (about-anaxagoras)
  (display "Anaxagoras is a simple Note & URL organzier. It is named \"anaxagoras\" in honor of the 
@@ -73,14 +76,14 @@
      (display "{\n" fnote)
      (foreach-proc
       (lambda (k)
-       (display (format "~S ~S\n" k (nth *notes* k))))
+       (display (format "~S ~S\n" k (nth *notes* k)) fnote))
       (keys *notes*))
      (display "}\n" fnote)
      (close fnote)
      (display "{\n" furls)
      (foreach-proc
       (lambda (k)
-       (display (format "~S ~S\n" k (nth *urls* k))))
+       (display (format "~S ~S\n" k (nth *urls* k)) furls))
       (keys *urls*))
      (display "}\n" furls)
      (close furls)))
