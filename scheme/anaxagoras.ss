@@ -12,7 +12,7 @@
 ;  - ~/.digamma/anaxagoras/profile (simple dict)
 ;  - Server interface for uploading & syncing
 
-(use "strlib")
+;(use "strlib")
 
 (define *base-dir* (tilde-expand "~/.digamma/anaxagoras"))
 (define *notes* {})
@@ -52,7 +52,7 @@
 (define (list-urls)
     (foreach-proc 
         (lambda (k)
-            (display (format "~s ~s\n" k (nth *urls* k)))
+            (display (format "~S ~s\n" k (nth *urls* k))))
         (keys *urls*)))
 
 (define (about-anaxagoras)
@@ -69,7 +69,7 @@
   r[ebuild] - rebuild index from messages
   q[uit]    - exit anaxagoras\n"))
 
-(define (run-shutdown) 
+(define (run-shutdown)
     "dump *notes* and *url* to disk"
     (let ((fnote (open (format "~s/notes.ss" *base-dir*) :write))
           (furls (open (format "~s/urls.ss" *base-dir*) :write)))
@@ -99,8 +99,9 @@
         (eq? c "h") (begin (about-anaxagoras) (anaxagoras))
         (eq? c "?") (begin (about-anaxagoras) (anaxagoras))
         (eq? c "e") (begin (edit-note) (anaxagoras))
+        (eq? c "S") (begin (run-shutdown) (anaxagoras))
         (eq? c "q") (run-shutdown)
-        else (display "Invalid command\n"))))
+        else (begin (display "Invalid command\n") (anaxagoras)))))
 
 ;; load the notes & urls list
 (let ((fnote (open (format "~s/notes.ss" *base-dir*) :read))
