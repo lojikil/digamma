@@ -2321,7 +2321,7 @@ llread(FILE *fdin)
 	return snil;
 }
 char *
-_itoa(char *b, unsigned int s, int *offset)
+_itoa(char *b, int s, int *offset)
 /* offset is a reach into b, so that
  * things like format & integer->string
  * can use _itoa on buffers that have already
@@ -2332,15 +2332,13 @@ _itoa(char *b, unsigned int s, int *offset)
 	char c0 = ' ';
 	if(b == nil)
 		return nil;
-	if(s < 0)
-	{
+	if(s < 0) {
 		s *= -1;
 		b[iter] = '-';
 		iter++;
 		rev_ptr++;
 	}
-	while(iter < MAX_STRING)
-	{
+	while(iter < MAX_STRING) {
 		b[iter] = (s % 10) + '0';
 		s /= 10;
 		iter++;
@@ -2349,8 +2347,7 @@ _itoa(char *b, unsigned int s, int *offset)
 	}
 	b[iter] = nul;
 	holder = iter;
-	for(iter--;rev_ptr < iter;rev_ptr++, iter--)
-	{
+	for(iter--;rev_ptr < iter;rev_ptr++, iter--) {
 		c0 = b[rev_ptr];
 		b[rev_ptr] = b[iter];
 		b[iter] = c0;
