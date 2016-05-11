@@ -152,22 +152,22 @@ tconc_splice(SExp *s0, SExp *s1)
 	SExp *tmp = nil, *holder = nil;
 	if(s0->type != TCONC)
 		return makeerror(1,0,"tconc: type clash");
-	printf("\n-------------------\ntconc_splice\ns0: ");
+	/*printf("\n-------------------\ntconc_splice\ns0: ");
 	princ(s0);
 	printf("\ns1: ");
 	princ(s1);
-    printf("\n");
+    printf("\n");*/
 	if(mcar(s0)->type != NIL)
 	{
-		printf("\n\t\tPath 0");
+		//printf("\n\t\tPath 0");
 		tmp = mcdr(s0);
 		if(s1->type == PAIR)
 		{
-			printf("\n\t\t\tPath 0.0");
+			//printf("\n\t\t\tPath 0.0");
 			holder = tconcify(s1);
-			printf("\n\t\t\tholder == ");
+			/*printf("\n\t\t\tholder == ");
 			princ(holder);
-            printf("\n");
+            printf("\n");*/
 			mcdr(tmp) = mcar(holder);
 			mcdr(s0) = mcdr(holder);
 		}
